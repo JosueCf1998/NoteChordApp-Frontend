@@ -2,8 +2,7 @@ import { Component, OnDestroy, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Keyboard } from '@capacitor/keyboard';
 import { Observable, Subscription, of } from 'rxjs';
-import { AlertController } from '@ionic/angular';
-
+import { DialogService } from '../../../../core/dialog/dialog.service';
 import { Folder } from '../../../folders/models/folder.model';
 import { FolderService } from '../../../folders/services/folder.service';
 import { NoteService } from '../../services/note.service';
@@ -25,7 +24,7 @@ export class NoteEditorPage implements OnDestroy {
   private readonly navService = inject(NavigationService);
   private readonly noteService = inject(NoteService);
   private readonly folderService = inject(FolderService);
-  private readonly alertController = inject(AlertController);
+  private readonly dialogService = inject(DialogService);
 
   folderId = '';
   noteId = '';
@@ -133,19 +132,18 @@ export class NoteEditorPage implements OnDestroy {
   async deleteNote() {
     this.closeOptions();
 
-    const alert = await this.alertController.create({
-      header: 'Eliminar nota',
-      message: `¿Quieres eliminar “${this.title}”?`,
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Eliminar',
-          role: 'destructive',
-          handler: () => void this.performDelete()
-        }
-      ]
+    const confirmed = await this.dialogService.confirm({
+      title: 'Eliminar nota',
+      message: `¿Estás seguro de que deseas eliminar “${this.title || 'esta nota'}”? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      variant: 'danger',
+      icon: 'trash-outline'
     });
-    await alert.present();
+
+    if (confirmed) {
+      await this.performDelete();
+    }
   }
 
   private async performDelete() {

@@ -20,6 +20,10 @@ export class LoginPage {
   isRegisterMode = false;
   statusMessage = '';
 
+  backToSplash() {
+    return this.navService.goToSplash('back');
+  }
+
   async login() {
     this.errorMessage = '';
     this.statusMessage = '';

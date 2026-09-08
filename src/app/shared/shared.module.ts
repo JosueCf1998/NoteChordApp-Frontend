@@ -9,12 +9,14 @@ import { SwipeActionsComponent } from './components/swipe-actions/swipe-actions.
 import { AnimatedPageTitleComponent } from './components/animated-page-title/animated-page-title.component';
 import { GroupedListComponent } from './components/grouped-list/grouped-list.component';
 import { TopNavbarComponent } from './components/top-navbar/top-navbar.component';
+import { CustomAlertComponent } from './components/custom-alert/custom-alert.component';
 import { NoteCountPipe, NoteDatePipe, NotePreviewPipe } from './pipes/note-format.pipe';
 
 @NgModule({
   declarations: [
     AnimatedPageTitleComponent,
     ConfirmModalComponent,
+    CustomAlertComponent,
     FloatingSearchActionComponent,
     FullScreenLoaderComponent,
     GroupedListComponent,
@@ -28,6 +30,7 @@ import { NoteCountPipe, NoteDatePipe, NotePreviewPipe } from './pipes/note-forma
   exports: [
     AnimatedPageTitleComponent,
     ConfirmModalComponent,
+    CustomAlertComponent,
     FloatingSearchActionComponent,
     FullScreenLoaderComponent,
     GroupedListComponent,

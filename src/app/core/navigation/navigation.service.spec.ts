@@ -44,6 +44,14 @@ describe('NavigationService', () => {
     expect(service).toBeTruthy();
   });
 
+  it('should navigate to splash as root', async () => {
+    await service.goToSplash('back');
+    expect(navCtrlMock.navigateRoot).toHaveBeenCalledWith('/', {
+      animated: true,
+      animationDirection: 'back'
+    });
+  });
+
   it('should navigate to home as root', async () => {
     await service.goToHome(true);
     expect(navCtrlMock.navigateRoot).toHaveBeenCalledWith('/home', {

@@ -22,13 +22,22 @@ export class NavigationService {
 
     this.platform.backButton.subscribeWithPriority(10, () => {
       const currentUrl = this.router.url.split('?')[0];
-      if (currentUrl === '/home' || currentUrl === '/login' || currentUrl === '/') {
+      if (currentUrl === '/home' || currentUrl === '/') {
         void App.exitApp();
       } else if (this.routerOutlet?.canGoBack()) {
         void this.routerOutlet.pop();
+      } else if (currentUrl === '/login') {
+        void this.goToSplash('back');
       } else {
         void App.exitApp();
       }
+    });
+  }
+
+  goToSplash(direction: 'forward' | 'back' = 'back') {
+    return this.navCtrl.navigateRoot('/', {
+      animated: true,
+      animationDirection: direction
     });
   }
 

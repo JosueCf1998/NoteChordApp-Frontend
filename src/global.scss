@@ -347,18 +347,66 @@ app-note-editor .view-mode pre {
 	min-height: 88px;
 }
 
+.confirm-modal,
+.custom-alert-modal {
+	--backdrop-opacity: 1;
+	contain: none !important;
+	border: 0;
+
+	&::part(backdrop) {
+		background: rgba(15, 23, 42, 0.6) !important;
+		backdrop-filter: blur(14px) !important;
+		-webkit-backdrop-filter: blur(14px) !important;
+		contain: none !important;
+		opacity: 1 !important;
+	}
+}
+
+:root.nc-theme-dark .confirm-modal::part(backdrop),
+:root.nc-theme-dark .custom-alert-modal::part(backdrop) {
+	background: rgba(0, 0, 0, 0.72) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+	.confirm-modal::part(backdrop),
+	.custom-alert-modal::part(backdrop) {
+		background: rgba(0, 0, 0, 0.72) !important;
+	}
+}
+
 .confirm-modal {
 	--background: var(--nc-surface);
-	--border-radius: 18px;
+	--border-radius: 20px;
 	--box-shadow: none;
 	--height: auto;
 	--max-width: 300px;
 	--width: calc(100% - 48px);
-	border: 0;
+
+	&::part(content) {
+		border: 0;
+		border-radius: 20px;
+		box-shadow: none;
+		overflow: hidden;
+	}
 }
 
-.folder-modal::part(content),
-.confirm-modal::part(content) {
+.custom-alert-modal {
+	--background: transparent;
+	--border-radius: 24px;
+	--box-shadow: none;
+	--height: auto;
+	--max-width: 340px;
+	--width: calc(100% - 40px);
+
+	&::part(content) {
+		background: transparent !important;
+		border-radius: 24px !important;
+		box-shadow: none !important;
+		overflow: visible !important;
+	}
+}
+
+.folder-modal::part(content) {
 	border: 0;
 	box-shadow: none;
 }

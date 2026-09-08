@@ -1,29 +1,31 @@
-ion-toolbar {
-  --background: var(--nc-background);
-  --border-width: 0;
+ion-content {
+  --background: var(--nc-background-secondary);
 }
 
 .settings-container {
   margin: 0 auto;
-  max-width: 720px;
+  max-width: 640px;
   padding: var(--nc-space-2) var(--nc-page-gutter) calc(var(--nc-space-8) + env(safe-area-inset-bottom));
 }
 
-.settings-container > h1 {
-  font-size: clamp(2rem, 1.7rem + 1vw, 2.5rem);
+.settings-title {
+  color: var(--nc-text);
+  font-size: clamp(2rem, 1.7rem + 1vw, 2.4rem);
+  font-weight: 750;
   letter-spacing: -0.035em;
-  margin: 0 0 var(--nc-space-6);
+  margin: 0 0 var(--nc-space-5);
 }
 
-.profile-section {
+/* Tarjeta de perfil limpia */
+.profile-card {
   align-items: center;
   background: var(--nc-surface);
   border: 1px solid var(--nc-border);
-  border-radius: var(--nc-radius-md);
-  box-shadow: var(--nc-shadow-md);
+  border-radius: var(--nc-radius-lg, 16px);
+  box-shadow: var(--nc-shadow-sm);
   display: flex;
-  gap: var(--nc-space-3);
-  padding: var(--nc-space-4);
+  gap: 14px;
+  padding: 14px 16px;
 }
 
 .profile-avatar {
@@ -32,148 +34,167 @@ ion-toolbar {
   border-radius: 50%;
   color: var(--nc-primary);
   display: flex;
-  flex: 0 0 48px;
+  flex: 0 0 46px;
   font-size: 1.125rem;
-  font-weight: 650;
-  height: 48px;
+  font-weight: 700;
+  height: 46px;
   justify-content: center;
 }
 
-.profile-section h2,
-.profile-section p {
-  margin: 0;
+.profile-info {
+  flex: 1;
+  min-width: 0;
+
+  h2 {
+    color: var(--nc-text);
+    font-size: 0.9375rem;
+    font-weight: 650;
+    margin: 0;
+  }
+
+  p {
+    color: var(--nc-text-secondary);
+    font-size: 0.8125rem;
+    margin: 2px 0 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
-.profile-section h2 {
-  font-size: 0.9375rem;
-}
-
-.profile-section p {
-  color: var(--nc-text-secondary);
-  font-size: var(--nc-font-size-caption);
-  margin-top: 3px;
-}
-
-.settings-group {
+/* Sección de apariencia */
+.settings-section {
   margin-top: var(--nc-space-6);
 }
 
-.group-heading {
+.section-title {
   align-items: center;
+  color: var(--nc-text);
   display: flex;
-  gap: var(--nc-space-3);
-  margin-bottom: var(--nc-space-4);
-}
+  font-size: 0.875rem;
+  font-weight: 650;
+  gap: 8px;
+  margin-bottom: var(--nc-space-3);
 
-.group-heading > ion-icon {
-  color: var(--nc-primary);
-  font-size: 22px;
-}
-
-.group-heading h2,
-.group-heading p {
-  margin: 0;
-}
-
-.group-heading h2 {
-  font-size: var(--nc-font-size-body);
-}
-
-.group-heading p {
-  color: var(--nc-text-secondary);
-  font-size: var(--nc-font-size-caption);
-  margin-top: 2px;
+  ion-icon {
+    color: var(--nc-primary);
+    font-size: 18px;
+  }
 }
 
 .appearance-options {
   display: grid;
   gap: var(--nc-space-3);
   grid-template-columns: repeat(3, 1fr);
-}
 
-.appearance-options button {
-  align-items: center;
-  background: var(--nc-surface);
-  border: 1px solid var(--nc-border);
-  border-radius: var(--nc-radius-md);
-  color: var(--nc-text);
-  display: flex;
-  flex-direction: column;
-  font-size: var(--nc-font-size-caption);
-  gap: var(--nc-space-2);
-  min-height: 112px;
-  padding: var(--nc-space-3);
-  position: relative;
-}
+  button {
+    align-items: center;
+    background: var(--nc-surface);
+    border: 1px solid var(--nc-border);
+    border-radius: var(--nc-radius-lg, 16px);
+    color: var(--nc-text);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.8125rem;
+    font-weight: 550;
+    gap: 10px;
+    min-height: 104px;
+    padding: 14px 10px 12px;
+    position: relative;
+    transition: border-color var(--nc-transition-fast), transform var(--nc-transition-fast);
 
-.appearance-options button.selected {
-  border-color: var(--nc-primary);
-  box-shadow: 0 0 0 1px var(--nc-primary);
-}
+    &:hover {
+      border-color: color-mix(in srgb, var(--nc-primary) 40%, var(--nc-border));
+    }
 
-.appearance-options button > ion-icon {
-  color: var(--nc-primary);
-  position: absolute;
-  right: 6px;
-  top: 6px;
+    &.selected {
+      border-color: var(--nc-primary);
+      box-shadow: 0 0 0 1px var(--nc-primary);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    > ion-icon {
+      color: var(--nc-primary);
+      font-size: 16px;
+      position: absolute;
+      right: 8px;
+      top: 8px;
+    }
+  }
 }
 
 .theme-preview {
   border: 1px solid #cdd4df;
   border-radius: 6px;
   display: block;
-  height: 56px;
+  height: 48px;
   overflow: hidden;
-  padding: 10px 7px;
-  width: 44px;
+  padding: 8px 6px;
+  width: 40px;
+
+  i {
+    border-radius: 3px;
+    display: block;
+    height: 8px;
+    margin-bottom: 5px;
+  }
 }
 
-.theme-preview i {
-  border-radius: 3px;
-  display: block;
-  height: 9px;
-  margin-bottom: 6px;
-}
-
-.light-preview { background: #fff; }
-.light-preview i { background: #e9edf3; }
+.light-preview { background: #fff; border-color: #cbd5e1; }
+.light-preview i { background: #e2e8f0; }
 .dark-preview { background: #0b1321; border-color: #26334a; }
 .dark-preview i { background: #26334a; }
-.system-preview { background: linear-gradient(90deg, #fff 50%, #0b1321 50%); }
-.system-preview i { background: #8b98aa; }
+.system-preview { background: linear-gradient(90deg, #fff 50%, #0b1321 50%); border-color: #94a3b8; }
+.system-preview i { background: #64748b; }
 
-.settings-list {
+/* Tarjeta agrupada de opciones */
+.settings-card {
+  background: var(--nc-surface);
+  border: 1px solid var(--nc-border);
+  border-radius: var(--nc-radius-lg, 16px);
+  box-shadow: var(--nc-shadow-sm);
   margin-top: var(--nc-space-6);
+  overflow: hidden;
 }
 
-.settings-list button {
+.settings-row {
   align-items: center;
   background: transparent;
   border: 0;
-  border-bottom: 1px solid var(--nc-border);
   color: var(--nc-text);
+  cursor: pointer;
   display: flex;
-  gap: var(--nc-space-3);
-  min-height: 58px;
-  padding: 0 var(--nc-space-2);
+  gap: 12px;
+  min-height: 54px;
+  padding: 0 16px;
   text-align: left;
+  transition: background var(--nc-transition-fast);
   width: 100%;
+
+  &:active {
+    background: color-mix(in srgb, var(--nc-primary) 5%, var(--nc-surface));
+  }
 }
 
-.settings-list button > ion-icon:first-child {
+.row-icon {
+  color: var(--nc-text-secondary);
+  font-size: 20px;
+}
+
+.row-label {
   color: var(--nc-text);
-  font-size: 21px;
-}
-
-.settings-list button > span {
   flex: 1;
   font-size: 0.9375rem;
   font-weight: 550;
 }
 
-.settings-list small,
-.chevron {
+.row-detail {
   color: var(--nc-text-secondary);
+  font-size: 0.8125rem;
 }
 
 .status-dot {
@@ -183,18 +204,56 @@ ion-toolbar {
   width: 7px;
 }
 
+.chevron-icon {
+  color: var(--nc-text-secondary);
+  font-size: 16px;
+  opacity: 0.55;
+}
+
+.row-divider {
+  background: var(--nc-border);
+  height: 1px;
+  margin-left: 48px;
+}
+
+/* Cerrar sesión */
+.logout-section {
+  margin-top: var(--nc-space-6);
+}
+
 .logout-button {
-  --background: color-mix(in srgb, var(--nc-danger) 7%, transparent);
-  margin-top: var(--nc-space-8);
-  min-height: 50px;
+  align-items: center;
+  background: var(--nc-surface);
+  border: 1px solid var(--nc-border);
+  border-radius: var(--nc-radius-lg, 16px);
+  box-shadow: var(--nc-shadow-xs);
+  color: var(--nc-danger);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  gap: 8px;
+  height: 50px;
+  justify-content: center;
+  transition: background var(--nc-transition-fast), transform var(--nc-transition-fast);
+  width: 100%;
+
+  ion-icon {
+    font-size: 19px;
+  }
+
+  &:active {
+    background: color-mix(in srgb, var(--nc-danger) 8%, var(--nc-surface));
+    transform: scale(0.99);
+  }
 }
 
 @media (max-width: 380px) {
   .appearance-options {
     gap: var(--nc-space-2);
-  }
 
-  .appearance-options button {
-    padding-inline: var(--nc-space-2);
+    button {
+      padding-inline: var(--nc-space-2);
+    }
   }
 }

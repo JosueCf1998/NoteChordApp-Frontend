@@ -88,6 +88,49 @@ p {
   width: 34%;
 }
 
+.splash-actions {
+  animation: splashFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  bottom: calc(7% + env(safe-area-inset-bottom));
+  left: 50%;
+  max-width: 340px;
+  position: absolute;
+  transform: translateX(-50%);
+  width: calc(100% - 48px);
+  z-index: 10;
+}
+
+.btn-start {
+  --background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --border-radius: var(--nc-radius-md, 14px);
+  --box-shadow: 0 8px 24px rgba(37, 99, 235, 0.38);
+  --color: #ffffff;
+  font-size: 1rem;
+  font-weight: 650;
+  height: 52px;
+  margin: 0;
+  text-transform: none;
+
+  ion-icon {
+    font-size: 1.125rem;
+    margin-left: 6px;
+  }
+
+  &:active {
+    transform: scale(0.985);
+  }
+}
+
+@keyframes splashFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 14px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 @media (min-width: 768px) {
   .splash-brand img {
     height: 156px;

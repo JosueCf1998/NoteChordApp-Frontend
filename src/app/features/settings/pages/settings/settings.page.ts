@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { AlertController } from '@ionic/angular';
-
 import { AuthService } from '../../../../core/auth/auth.service';
+import { DialogService } from '../../../../core/dialog/dialog.service';
 import { NavigationService } from '../../../../core/navigation/navigation.service';
 import { AppearanceMode, ThemeService } from '../../../../core/theme/theme.service';
 
@@ -15,7 +14,7 @@ export class SettingsPage {
   private readonly authService = inject(AuthService);
   private readonly navService = inject(NavigationService);
   private readonly themeService = inject(ThemeService);
-  private readonly alertController = inject(AlertController);
+  private readonly dialogService = inject(DialogService);
 
   readonly user$ = this.authService.user$;
 
@@ -32,32 +31,40 @@ export class SettingsPage {
   }
 
   async logout() {
-    const alert = await this.alertController.create({
-      header: 'Cerrar sesión',
+    const confirmed = await this.dialogService.confirm({
+      title: 'Cerrar sesión',
       message: 'Tus datos sincronizados permanecerán disponibles cuando vuelvas a iniciar sesión.',
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Cerrar sesión',
-          role: 'destructive',
-          handler: () => void this.performLogout()
-        }
-      ]
+      confirmText: 'Cerrar sesión',
+      cancelText: 'Cancelar',
+      variant: 'danger',
+      icon: 'log-out-outline'
     });
-    await alert.present();
+
+    if (confirmed) {
+      await this.performLogout();
+    }
   }
 
   async showInformation(title: string, message: string) {
-    const alert = await this.alertController.create({
-      header: title,
+    let icon = 'information-circle-outline';
+    if (title === 'Sincronización') {
+      icon = 'sync-outline';
+    } else if (title === 'Ayuda') {
+      icon = 'help-circle-outline';
+    } else if (title === 'Acerca de') {
+      icon = 'cube-outline';
+    }
+
+    await this.dialogService.alert({
+      title,
       message,
-      buttons: ['Aceptar']
+      buttonText: 'Entendido',
+      icon
     });
-    await alert.present();
   }
 
   private async performLogout() {
     await this.authService.logout();
-    await this.navService.goToLogin('back');
+    await this.navService.goToSplash('back');
   }
 }
