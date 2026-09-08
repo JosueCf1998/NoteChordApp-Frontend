@@ -1,5 +1,17 @@
 import { Injectable } from '@angular/core';
-import { addDoc, collection, deleteDoc, doc, onSnapshot, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  onSnapshot,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where,
+  writeBatch
+} from 'firebase/firestore';
 import { Observable, of, switchMap } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
@@ -84,12 +96,25 @@ export class FolderService {
     });
   }
 
-  delete(folderId: string) {
+  async delete(folderId: string): Promise<void> {
     if (!this.firestore) {
-      return Promise.reject(new Error('Firestore no esta configurado'));
+      throw new Error('Firestore no esta configurado');
     }
 
-    return deleteDoc(doc(this.firestore, 'folders', folderId));
+    const notesQuery = query(
+      collection(this.firestore, 'notes'),
+      where('folderId', '==', folderId)
+    );
+
+    const snapshot = await getDocs(notesQuery);
+    const batch = writeBatch(this.firestore);
+
+    snapshot.docs.forEach((docSnap) => {
+      batch.delete(docSnap.ref);
+    });
+
+    batch.delete(doc(this.firestore, 'folders', folderId));
+    await batch.commit();
   }
 
 }

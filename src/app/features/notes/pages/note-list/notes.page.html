@@ -1,44 +1,44 @@
 <ng-container *ngIf="folder$ | async as folder">
-  <app-top-navbar
-    [title]="folder?.name || 'Notas'"
-    [subtitle]="noteCountLabel((notes$ | async)?.length ?? 0)"
-    [showTitle]="isHeaderCollapsed"
-    [floatingControls]="true"
-  >
-    <ion-buttons nav-start slot="start">
-      <ion-button (click)="backToFolders()" aria-label="Volver a carpetas">
-        <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-buttons nav-end slot="end">
-      <ion-button (click)="openSettings()" aria-label="Ajustes">
-        <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </app-top-navbar>
+  <ng-container *ngIf="notes$ | async as notes">
+    <app-top-navbar
+      [title]="folder?.name || 'Notas'"
+      [subtitle]="notes.length | appNoteCount"
+      [showTitle]="isHeaderCollapsed"
+      [floatingControls]="true"
+    >
+      <ion-buttons nav-start slot="start">
+        <ion-button (click)="backToFolders()" aria-label="Volver a carpetas">
+          <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <ion-buttons nav-end slot="end">
+        <ion-button (click)="openSettings()" aria-label="Ajustes">
+          <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </app-top-navbar>
 
-  <ion-content
-    [scrollEvents]="true"
-    (ionScroll)="handleScroll($event)"
-    (touchstart)="handleGestureStart($event)"
-    (touchmove)="handleGestureMove($event)"
-    (touchend)="handleGestureEnd($event)"
-    (touchcancel)="handleGestureCancel()"
-  >
-    <main class="notes-container">
-      <ng-container *ngIf="notes$ | async as notes">
+    <ion-content
+      [scrollEvents]="true"
+      (ionScroll)="handleScroll($event)"
+      (touchstart)="handleGestureStart($event)"
+      (touchmove)="handleGestureMove($event)"
+      (touchend)="handleGestureEnd($event)"
+      (touchcancel)="handleGestureCancel()"
+    >
+      <main class="notes-container">
         <app-animated-page-title
           [title]="folder?.name || 'Notas'"
           (collapsedChange)="isHeaderCollapsed = $event"
         >
-          <p class="note-count">{{ noteCountLabel(notes.length) }}</p>
+          <p class="note-count">{{ notes.length | appNoteCount }}</p>
         </app-animated-page-title>
 
         <ion-text color="danger" role="alert" *ngIf="errorMessage">
           <p class="error-message">{{ errorMessage }}</p>
         </ion-text>
 
-        <ng-container *ngIf="groupedNotes(notes) as groups">
+        <ng-container *ngIf="noteGroups$ | async as groups">
           <section class="note-groups" *ngIf="groups.length; else emptyState">
             <app-grouped-list
               class="note-list"
@@ -50,8 +50,8 @@
                   <ion-label>
                     <h2>{{ note.title }}</h2>
                     <p>
-                      <span>{{ formatUpdatedAt(note) }}</span>
-                      <span>{{ notePreview(note.content) }}</span>
+                      <span>{{ note.updatedAt | appNoteDate }}</span>
+                      <span>{{ note.content | appNotePreview }}</span>
                     </p>
                   </ion-label>
                 </ion-item>
@@ -73,19 +73,20 @@
             </p>
           </section>
         </ng-template>
-      </ng-container>
-    </main>
+      </main>
 
-    <app-floating-search-action
-      slot="fixed"
-      [(value)]="searchTerm"
-      searchLabel="Buscar notas"
-      actionLabel="Nueva nota"
-      (action)="toggleCreateForm()"
-    >
-      <ion-icon action-icon class="create-note-icon" name="create-outline" aria-hidden="true"></ion-icon>
-    </app-floating-search-action>
-  </ion-content>
+      <app-floating-search-action
+        slot="fixed"
+        [value]="searchTerm"
+        (valueChange)="onSearchChange($event)"
+        searchLabel="Buscar notas"
+        actionLabel="Nueva nota"
+        (action)="toggleCreateForm()"
+      >
+        <ion-icon action-icon class="create-note-icon" name="create-outline" aria-hidden="true"></ion-icon>
+      </app-floating-search-action>
+    </ion-content>
+  </ng-container>
 </ng-container>
 
 <app-confirm-modal

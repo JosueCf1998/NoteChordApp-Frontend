@@ -1,5 +1,17 @@
 import { Injectable } from '@angular/core';
-import { addDoc, collection, deleteDoc, doc, onSnapshot, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  onSnapshot,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where,
+  writeBatch
+} from 'firebase/firestore';
 import { Observable, map, of, shareReplay, switchMap } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
@@ -42,13 +54,14 @@ export class NoteService {
   forFolder(folderId: string): Observable<Note[]> {
     return this.authService.user$.pipe(
       switchMap((user) => {
-        if (!user || !this.firestore) {
+        if (!user || !this.firestore || !folderId) {
           return of([]);
         }
 
         const notesQuery = query(
           collection(this.firestore, 'notes'),
-          where('userId', '==', user.uid)
+          where('userId', '==', user.uid),
+          where('folderId', '==', folderId)
         );
 
         return new Observable<Note[]>((subscriber) => onSnapshot(
@@ -58,12 +71,36 @@ export class NoteService {
               id: note.id,
               ...note.data()
             } as Note))
-            .filter((note) => note.folderId === folderId)
             .sort((first, second) => first.title.localeCompare(second.title))),
           (error) => subscriber.error(error)
         ));
-      })
+      }),
+      shareReplay({ bufferSize: 1, refCount: true })
     );
+  }
+
+  async deleteByFolder(folderId: string): Promise<void> {
+    const user = this.authService.currentUser;
+    if (!this.firestore || !user || !folderId) {
+      return;
+    }
+
+    const notesQuery = query(
+      collection(this.firestore, 'notes'),
+      where('userId', '==', user.uid),
+      where('folderId', '==', folderId)
+    );
+
+    const snapshot = await getDocs(notesQuery);
+    if (snapshot.empty) {
+      return;
+    }
+
+    const batch = writeBatch(this.firestore);
+    snapshot.docs.forEach((docSnap) => {
+      batch.delete(docSnap.ref);
+    });
+    await batch.commit();
   }
 
   create(folderId: string, title: string, content = '') {

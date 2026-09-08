@@ -25,37 +25,35 @@
       <p class="error-message">{{ errorMessage }}</p>
     </ion-text>
 
-    <ng-container *ngIf="folders$ | async as folders">
-      <ng-container *ngIf="filterFolders(folders) as filteredFolders">
-        <app-grouped-list class="folder-list" *ngIf="filteredFolders.length; else emptyState">
-          <ion-item-sliding *ngFor="let folder of filteredFolders">
-            <ion-item
-              button
-              detail="false"
-              (click)="handleFolderClick(folder.id)"
-              (pointerdown)="startLongPress($event, folder)"
-              (pointermove)="trackLongPress($event)"
-              (pointerup)="cancelLongPress()"
-              (pointercancel)="cancelLongPress()"
-              (pointerleave)="cancelLongPress()"
-              (contextmenu)="$event.preventDefault(); openFolderOptions(folder)"
-            >
-              <div class="folder-icon" slot="start">
-                <ion-icon name="folder-outline"></ion-icon>
-              </div>
-              <ion-label>
-                <h2>{{ folder.name }}</h2>
-              </ion-label>
-              <span class="folder-count" *ngIf="noteCounts$ | async as counts">{{ counts[folder.id] || 0 }}</span>
-              <ion-icon class="row-chevron" name="chevron-forward-outline" slot="end" aria-hidden="true"></ion-icon>
-            </ion-item>
-            <app-swipe-actions
-              (edit)="openEditFolder(folder)"
-              (remove)="deleteFolder(folder.id, folder.name)"
-            ></app-swipe-actions>
-          </ion-item-sliding>
-        </app-grouped-list>
-      </ng-container>
+    <ng-container *ngIf="filteredFolders$ | async as filteredFolders">
+      <app-grouped-list class="folder-list" *ngIf="filteredFolders.length; else emptyState">
+        <ion-item-sliding *ngFor="let folder of filteredFolders">
+          <ion-item
+            button
+            detail="false"
+            (click)="handleFolderClick(folder.id)"
+            (pointerdown)="startLongPress($event, folder)"
+            (pointermove)="trackLongPress($event)"
+            (pointerup)="cancelLongPress()"
+            (pointercancel)="cancelLongPress()"
+            (pointerleave)="cancelLongPress()"
+            (contextmenu)="$event.preventDefault(); openFolderOptions(folder)"
+          >
+            <div class="folder-icon" slot="start">
+              <ion-icon name="folder-outline"></ion-icon>
+            </div>
+            <ion-label>
+              <h2>{{ folder.name }}</h2>
+            </ion-label>
+            <span class="folder-count" *ngIf="noteCounts$ | async as counts">{{ counts[folder.id] || 0 }}</span>
+            <ion-icon class="row-chevron" name="chevron-forward-outline" slot="end" aria-hidden="true"></ion-icon>
+          </ion-item>
+          <app-swipe-actions
+            (edit)="openEditFolder(folder)"
+            (remove)="deleteFolder(folder.id, folder.name)"
+          ></app-swipe-actions>
+        </ion-item-sliding>
+      </app-grouped-list>
     </ng-container>
 
     <ng-template #emptyState>
@@ -70,6 +68,8 @@
   <app-floating-search-action
     slot="fixed"
     [(value)]="searchTerm"
+    [value]="searchTerm"
+    (valueChange)="onSearchChange($event)"
     searchLabel="Buscar carpetas"
     actionLabel="Nueva carpeta"
     (action)="openCreateFolder()"

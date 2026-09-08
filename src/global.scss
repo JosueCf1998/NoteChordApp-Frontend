@@ -228,30 +228,17 @@ app-note-editor .view-mode pre {
 	border: 0;
 }
 
-.note-create-modal {
-	--background: var(--nc-background-secondary);
-	--border-radius: var(--nc-radius-lg);
-	--box-shadow: none;
-	--height: min(680px, calc(100% - 24px));
-	--max-width: 560px;
-	--width: calc(100% - 30px);
-	border: 0;
-}
-
-.folder-modal ion-toolbar,
-.note-create-modal ion-toolbar {
+.folder-modal ion-toolbar {
 	--background: var(--nc-surface);
 	--min-height: 48px;
 }
 
-.folder-modal ion-title,
-.note-create-modal ion-title {
+.folder-modal ion-title {
 	font-size: 1rem;
 	font-weight: 650;
 }
 
-.folder-modal ion-button,
-.note-create-modal ion-button {
+.folder-modal ion-button {
 	--padding-start: var(--nc-space-3);
 	--padding-end: var(--nc-space-3);
 	font-size: 0.9375rem;
@@ -370,7 +357,6 @@ app-note-editor .view-mode pre {
 }
 
 .folder-modal::part(content),
-.note-create-modal::part(content),
 .confirm-modal::part(content) {
 	border: 0;
 	box-shadow: none;
@@ -427,77 +413,8 @@ app-note-editor .view-mode pre {
 	width: 18px;
 }
 
-.folder-modal .save-button,
-.note-create-modal .save-button {
+.folder-modal .save-button {
 	--color: var(--nc-primary);
-}
-
-.note-create-form {
-	margin: 0 auto;
-	max-width: 600px;
-	padding: var(--nc-space-5) var(--nc-page-gutter) calc(var(--nc-space-6) + env(safe-area-inset-bottom));
-}
-
-.note-form-icon {
-	align-items: center;
-	background: var(--nc-primary-soft);
-	border-radius: var(--nc-radius-lg);
-	color: var(--nc-primary);
-	display: flex;
-	height: 58px;
-	justify-content: center;
-	margin: 0 auto var(--nc-space-5);
-	width: 58px;
-}
-
-.note-form-icon ion-icon {
-	font-size: 31px;
-}
-
-.note-create-form ion-input,
-.note-create-form ion-textarea,
-.folder-field > div {
-	--background: var(--nc-surface);
-	--border-radius: var(--nc-radius-md);
-	--highlight-color-focused: var(--nc-primary);
-	--padding-bottom: var(--nc-space-3);
-	--padding-end: var(--nc-space-4);
-	--padding-start: var(--nc-space-4);
-	--padding-top: var(--nc-space-3);
-	border: 1px solid var(--nc-border);
-	border-radius: var(--nc-radius-md);
-}
-
-.folder-field {
-	margin-top: var(--nc-space-4);
-}
-
-.folder-field > span {
-	display: block;
-	font-size: var(--nc-font-size-small);
-	font-weight: 600;
-	margin-bottom: var(--nc-space-2);
-}
-
-.folder-field > div {
-	align-items: center;
-	display: flex;
-	gap: var(--nc-space-3);
-	min-height: 48px;
-	padding: var(--nc-space-3) var(--nc-space-4);
-}
-
-.folder-field ion-icon {
-	color: var(--nc-primary);
-	font-size: 22px;
-}
-
-.folder-field strong {
-	font-size: var(--nc-font-size-small);
-}
-
-.note-create-form ion-textarea {
-	margin-top: var(--nc-space-4);
 }
 
 .folder-form {
@@ -522,35 +439,8 @@ app-note-editor .view-mode pre {
 	font-size: 31px;
 }
 
-.folder-form ion-input {
-	--background: var(--nc-surface);
-	--border-color: var(--nc-border);
-	--border-radius: var(--nc-radius-md);
-	--highlight-color-focused: var(--nc-primary);
-	--padding-bottom: var(--nc-space-3);
-	--padding-end: var(--nc-space-4);
-	--padding-start: var(--nc-space-4);
-	--padding-top: var(--nc-space-3);
-	border: 1px solid var(--nc-border);
-	border-radius: var(--nc-radius-md);
-}
-
-.folder-form ion-textarea {
-	--background: var(--nc-surface);
-	--border-radius: var(--nc-radius-md);
-	--highlight-color-focused: var(--nc-primary);
-	--padding-bottom: var(--nc-space-3);
-	--padding-end: var(--nc-space-4);
-	--padding-start: var(--nc-space-4);
-	--padding-top: var(--nc-space-3);
-	border: 1px solid var(--nc-border);
-	border-radius: var(--nc-radius-md);
-	margin-top: var(--nc-space-4);
-}
-
 @media (max-width: 480px) {
-	.folder-modal,
-	.note-create-modal {
+	.folder-modal {
 		--border-radius: 14px;
 		--width: calc(100% - 20px);
 	}
@@ -594,8 +484,7 @@ ion-button[disabled] {
 }
 
 @media (min-width: 1024px) {
-	ion-modal.folder-modal,
-	ion-modal.note-create-modal {
+	ion-modal.folder-modal {
 		--border-radius: var(--nc-radius-xl);
 		--height: min(760px, 88vh);
 		--width: min(680px, 78vw);

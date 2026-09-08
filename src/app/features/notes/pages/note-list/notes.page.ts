@@ -1,6 +1,7 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ActionSheetController } from '@ionic/angular';
+import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 
 import { FolderService } from '../../../folders/services/folder.service';
 import { Note } from '../../models/note.model';
@@ -20,73 +21,46 @@ interface NoteGroup {
   standalone: false
 })
 export class NotesPage {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly noteService = inject(NoteService);
+  private readonly folderService = inject(FolderService);
+  private readonly actionSheetController = inject(ActionSheetController);
+
   @ViewChild(FloatingSearchActionComponent) notesSearch?: FloatingSearchActionComponent;
   @ViewChild(AnimatedPageTitleComponent) pageTitle?: AnimatedPageTitleComponent;
+
   readonly folderId = this.route.snapshot.paramMap.get('folderId') ?? '';
   readonly notes$ = this.noteService.forFolder(this.folderId);
   readonly folder$ = this.folderService.watch(this.folderId);
+  readonly searchTerm$ = new BehaviorSubject<string>('');
+
+  readonly filteredNotes$: Observable<Note[]> = combineLatest([
+    this.notes$,
+    this.searchTerm$
+  ]).pipe(
+    map(([notes, term]) => {
+      const search = term.trim().toLocaleLowerCase();
+      if (!search) {
+        return notes;
+      }
+      return notes.filter((note) => note.title.toLocaleLowerCase().includes(search));
+    })
+  );
+
+  readonly noteGroups$: Observable<NoteGroup[]> = this.filteredNotes$.pipe(
+    map((notes) => this.groupNotes(notes))
+  );
+
   searchTerm = '';
   isHeaderCollapsed = false;
   isDeleting = false;
   pendingDelete: { id: string; title: string } | null = null;
   errorMessage = '';
-  private groupedSource?: Note[];
-  private groupedSearch = '';
-  private groupedResult: NoteGroup[] = [];
 
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly noteService: NoteService,
-    private readonly folderService: FolderService,
-    private readonly actionSheetController: ActionSheetController,
-  ) {}
-
-  filterNotes(notes: Note[]) {
-    const search = this.searchTerm.trim().toLocaleLowerCase();
-
-    if (!search) {
-      return notes;
-    }
-
-    return notes.filter((note) => note.title.toLocaleLowerCase().includes(search));
-  }
-
-  noteCountLabel(count: number) {
-    if (count === 0) {
-      return 'Sin notas';
-    }
-
-    return `${count} ${count === 1 ? 'nota' : 'notas'}`;
-  }
-
-  groupedNotes(notes: Note[]): NoteGroup[] {
-    const search = this.searchTerm.trim().toLocaleLowerCase();
-
-    if (this.groupedSource === notes && this.groupedSearch === search) {
-      return this.groupedResult;
-    }
-
-    const filteredNotes = search
-      ? notes.filter((note) => note.title.toLocaleLowerCase().includes(search))
-      : notes;
-    const groups = new Map<string, NoteGroup>();
-
-    for (const note of filteredNotes) {
-      const label = this.noteGroupLabel(note);
-      const group = groups.get(label);
-
-      if (group) {
-        group.notes.push(note);
-      } else {
-        groups.set(label, { label, notes: [note] });
-      }
-    }
-
-    this.groupedSource = notes;
-    this.groupedSearch = search;
-    this.groupedResult = [...groups.values()];
-    return this.groupedResult;
+  onSearchChange(term: string) {
+    this.searchTerm = term;
+    this.searchTerm$.next(term);
   }
 
   handleScroll(event: Event) {
@@ -117,51 +91,21 @@ export class NotesPage {
     this.notesSearch?.focus();
   }
 
-  notePreview(content: string) {
-    const preview = content.replace(/\s+/g, ' ').trim();
-    return preview || 'Sin contenido todavía';
-  }
+  private groupNotes(notes: Note[]): NoteGroup[] {
+    const groups = new Map<string, NoteGroup>();
 
-  formatUpdatedAt(note: Note) {
-    const date = note.updatedAt?.toDate?.();
+    for (const note of notes) {
+      const label = this.noteGroupLabel(note);
+      const group = groups.get(label);
 
-    if (!date) {
-      return 'Guardando…';
+      if (group) {
+        group.notes.push(note);
+      } else {
+        groups.set(label, { label, notes: [note] });
+      }
     }
 
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const noteDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const dayDifference = Math.round((today.getTime() - noteDay.getTime()) / 86400000);
-
-    if (dayDifference === 0) {
-      const formatted = new Intl.DateTimeFormat('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      }).format(date);
-
-      return formatted.replace('AM', 'a.m').replace('PM', 'p.m');
-    }
-
-    const startOfWeek = new Date(today);
-    const dayOfWeek = (today.getDay() + 6) % 7;
-    startOfWeek.setDate(today.getDate() - dayOfWeek);
-    startOfWeek.setHours(0, 0, 0, 0);
-
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999);
-
-    if (date >= startOfWeek && date <= endOfWeek) {
-      return String(date.getDate());
-    }
-
-    return new Intl.DateTimeFormat('es-PE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: '2-digit'
-    }).format(date);
+    return [...groups.values()];
   }
 
   private noteGroupLabel(note: Note) {

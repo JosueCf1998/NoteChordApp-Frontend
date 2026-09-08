@@ -1,6 +1,7 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { ActionSheetController } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 
 import { AuthService } from '../../../../core/auth/auth.service';
 import { Folder } from '../../models/folder.model';
@@ -15,10 +16,29 @@ import { FloatingSearchActionComponent } from '../../../../shared/components/flo
   standalone: false,
 })
 export class FoldersPage {
+  private readonly authService = inject(AuthService);
+  private readonly folderService = inject(FolderService);
+  private readonly noteService = inject(NoteService);
+  private readonly router = inject(Router);
+  private readonly actionSheetController = inject(ActionSheetController);
+
   private readonly defaultFolderColor = '#3164F4';
   @ViewChild(FloatingSearchActionComponent) folderSearch?: FloatingSearchActionComponent;
   readonly folders$ = this.folderService.folders$;
   readonly noteCounts$ = this.noteService.countsByFolder$;
+  readonly searchTerm$ = new BehaviorSubject<string>('');
+  readonly filteredFolders$: Observable<Folder[]> = combineLatest([
+    this.folders$,
+    this.searchTerm$
+  ]).pipe(
+    map(([folders, term]) => {
+      const search = term.trim().toLocaleLowerCase();
+      if (!search) {
+        return folders;
+      }
+      return folders.filter((folder) => folder.name.toLocaleLowerCase().includes(search));
+    })
+  );
   folderName = '';
   folderColor = this.defaultFolderColor;
   folderDescription = '';
@@ -33,14 +53,6 @@ export class FoldersPage {
   private longPressTimer?: ReturnType<typeof setTimeout>;
   private longPressTriggered = false;
   private longPressOrigin?: { x: number; y: number };
-
-  constructor(
-    private readonly authService: AuthService,
-    private readonly folderService: FolderService,
-    private readonly noteService: NoteService,
-    private readonly router: Router,
-    private readonly actionSheetController: ActionSheetController
-  ) {}
 
   openFolder(folderId: string) {
     return this.router.navigate(['/notes', folderId]);
@@ -124,15 +136,11 @@ export class FoldersPage {
     this.folderSearch?.focus();
   }
 
-  filterFolders(folders: Folder[]) {
-    const search = this.searchTerm.trim().toLocaleLowerCase();
-
-    if (!search) {
-      return folders;
-    }
-
-    return folders.filter((folder) => folder.name.toLocaleLowerCase().includes(search));
+  onSearchChange(term: string) {
+    this.searchTerm = term;
+    this.searchTerm$.next(term);
   }
+
 
   openCreateFolder() {
     this.editingFolder = null;

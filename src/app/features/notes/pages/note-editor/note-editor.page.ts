@@ -1,7 +1,7 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Keyboard } from '@capacitor/keyboard';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, of } from 'rxjs';
 import { AlertController } from '@ionic/angular';
 
 import { Folder } from '../../../folders/models/folder.model';
@@ -20,9 +20,15 @@ interface NoteSection {
   standalone: false
 })
 export class NoteEditorPage implements OnDestroy {
-  readonly folderId: string;
-  readonly noteId: string;
-  readonly folder$: Observable<Folder | null>;
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly noteService = inject(NoteService);
+  private readonly folderService = inject(FolderService);
+  private readonly alertController = inject(AlertController);
+
+  folderId = '';
+  noteId = '';
+  folder$: Observable<Folder | null> = of(null);
   title = '';
   content = '';
   errorMessage = '';
@@ -34,26 +40,42 @@ export class NoteEditorPage implements OnDestroy {
   isOptionsOpen = false;
   updatedAtLabel = '';
   sections: NoteSection[] = [];
-  private readonly noteSubscription?: Subscription;
+  private noteSubscription?: Subscription;
+  private readonly routeSubscription: Subscription;
 
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly noteService: NoteService,
-    private readonly folderService: FolderService,
-    private readonly alertController: AlertController
-  ) {
-    this.folderId = this.route.snapshot.paramMap.get('folderId') ?? '';
-    this.noteId = this.route.snapshot.paramMap.get('noteId') ?? '';
-    this.folder$ = this.folderService.watch(this.folderId);
+  constructor() {
+    this.routeSubscription = this.route.paramMap.subscribe((params) => {
+      const folderId = params.get('folderId') ?? '';
+      const noteId = params.get('noteId') ?? '';
 
-    if (this.noteId === 'new') {
-      this.isLoading = false;
-      this.isDirty = true;
-      return;
-    }
+      if (folderId !== this.folderId) {
+        this.folderId = folderId;
+        this.folder$ = this.folderService.watch(this.folderId);
+      }
 
-    this.noteSubscription = this.noteService.watch(this.noteId).subscribe({
+      if (noteId !== this.noteId) {
+        this.noteId = noteId;
+
+        if (this.noteId === 'new') {
+          this.noteSubscription?.unsubscribe();
+          this.noteSubscription = undefined;
+          this.title = '';
+          this.content = '';
+          this.sections = [];
+          this.updatedAtLabel = '';
+          this.isLoading = false;
+          this.isDirty = false;
+        } else {
+          this.isLoading = true;
+          this.subscribeToNote(this.noteId);
+        }
+      }
+    });
+  }
+
+  private subscribeToNote(noteId: string) {
+    this.noteSubscription?.unsubscribe();
+    this.noteSubscription = this.noteService.watch(noteId).subscribe({
       next: (note) => {
         if (note && !this.isDirty) {
           this.title = note.title;
@@ -148,7 +170,10 @@ export class NoteEditorPage implements OnDestroy {
     try {
       if (this.noteId === 'new') {
         const note = await this.noteService.create(this.folderId, this.title, this.content);
+        this.noteId = note.id;
         this.isDirty = false;
+        this.statusMessage = 'Guardado';
+        this.subscribeToNote(note.id);
         await this.router.navigate(['/notes', this.folderId, note.id], { replaceUrl: true });
         return;
       }
@@ -243,5 +268,6 @@ export class NoteEditorPage implements OnDestroy {
 
   ngOnDestroy() {
     this.noteSubscription?.unsubscribe();
+    this.routeSubscription.unsubscribe();
   }
 }
