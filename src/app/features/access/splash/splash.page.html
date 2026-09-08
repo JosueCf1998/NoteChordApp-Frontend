@@ -1,19 +1,66 @@
 <ion-content [fullscreen]="true">
   <main class="splash-screen" aria-label="Iniciando NoteChord">
+    <!-- Distinctive curved circular lines (Top and Bottom) -->
     <div class="splash-wave splash-wave-top" aria-hidden="true"></div>
-    <div class="splash-brand">
-      <img src="assets/branding/notechord-logo.png" alt="">
-      <h1>Note<span>Chord</span></h1>
-      <p>Tus notas.<br>Siempre contigo.</p>
-    </div>
     <div class="splash-wave splash-wave-bottom" aria-hidden="true"></div>
-    <div class="splash-progress" *ngIf="isCheckingAuth" aria-hidden="true"><span></span></div>
 
-    <div class="splash-actions" *ngIf="!isCheckingAuth">
-      <ion-button class="btn-start" expand="block" (click)="goToLogin()">
-        Iniciar sesión
-        <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
-      </ion-button>
+    <!-- Silky background waves and ambient glow -->
+    <div class="splash-bg" aria-hidden="true">
+      <svg class="bg-waves" viewBox="0 0 400 850" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="silkWave1" x1="0%" y1="0%" x2="100%" y2="80%">
+            <stop offset="0%" stop-color="#2563eb" stop-opacity="0.55"/>
+            <stop offset="40%" stop-color="#1d4ed8" stop-opacity="0.32"/>
+            <stop offset="80%" stop-color="#0a1b42" stop-opacity="0.05"/>
+            <stop offset="100%" stop-color="#060b17" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="silkWaveline" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.8"/>
+            <stop offset="50%" stop-color="#2563eb" stop-opacity="0.4"/>
+            <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="silkWave2" x1="100%" y1="10%" x2="0%" y2="90%">
+            <stop offset="0%" stop-color="#1d4ed8" stop-opacity="0.4"/>
+            <stop offset="50%" stop-color="#0f2b6b" stop-opacity="0.2"/>
+            <stop offset="100%" stop-color="#060b17" stop-opacity="0"/>
+          </linearGradient>
+          <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="26"/>
+          </filter>
+          <filter id="gentleBlur" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur stdDeviation="14"/>
+          </filter>
+        </defs>
+
+        <!-- Top-left silky sweeping wave -->
+        <path d="M-60,-20 C30,40 100,120 160,220 C220,320 280,390 420,440 L420,-20 Z" fill="url(#silkWave1)" filter="url(#softGlow)"/>
+        <path d="M-30,-10 C60,60 120,150 170,240 C220,330 260,390 410,430" stroke="url(#silkWaveline)" stroke-width="7" stroke-linecap="round" filter="url(#gentleBlur)" opacity="0.6"/>
+
+        <!-- Right side background curve wave -->
+        <path d="M420,160 C320,240 260,380 280,520 C300,640 360,720 420,780 Z" fill="url(#silkWave2)" filter="url(#softGlow)"/>
+
+        <!-- Lower left subtle ambient wave -->
+        <path d="M-40,540 C60,590 120,680 140,780 C150,830 140,880 130,900 L-40,900 Z" fill="url(#silkWave1)" filter="url(#softGlow)" opacity="0.3"/>
+      </svg>
+    </div>
+
+    <!-- Center brand & quote content -->
+    <div class="splash-brand">
+      <img src="assets/branding/notechord-logo.png" alt="NoteChord" class="logo-img">
+
+      <h1 class="app-title">Note<span>Chord</span></h1>
+      <p class="app-subtitle">Tus notas.<br>Siempre contigo.</p>
+
+      <div class="splash-quote" aria-hidden="true">
+        Música<br>
+        que te acompaña<br>
+        donde vayas.
+      </div>
+    </div>
+
+    <!-- Slim progress bar advancing smoothly (hardware accelerated) -->
+    <div class="splash-progress" role="progressbar" [attr.aria-valuenow]="progress" aria-valuemin="0" aria-valuemax="100" aria-label="Cargando NoteChord">
+      <span [class.completed]="progress >= 100"></span>
     </div>
   </main>
 </ion-content>

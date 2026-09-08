@@ -1,50 +1,155 @@
 import { Injectable } from '@angular/core';
-import { browserLocalPersistence, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail, setPersistence, signInWithEmailAndPassword, signOut, User } from 'firebase/auth';
+import {
+  browserLocalPersistence,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  setPersistence,
+  signInWithEmailAndPassword,
+  signOut,
+  User
+} from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
-import { Observable, shareReplay } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 import { firebaseAuth } from '../firebase/firebase';
+import { UserSession } from './user-session.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly auth = firebaseAuth;
+  private readonly sessionStorageKey = 'notechord_user_session';
 
-  readonly user$ = new Observable<User | null>((subscriber) => {
-    if (!this.auth) {
-      subscriber.next(null);
-      subscriber.complete();
-      return;
+  private readonly sessionSubject = new BehaviorSubject<UserSession | null>(this.readInitialSession());
+  readonly session$ = this.sessionSubject.asObservable();
+
+  private readonly userSubject = new BehaviorSubject<User | null>(this.auth?.currentUser ?? null);
+  readonly user$: Observable<User | null> = this.userSubject.asObservable();
+
+  constructor() {
+    if (this.auth) {
+      onAuthStateChanged(this.auth, (user) => {
+        if (user) {
+          this.saveSession(user);
+        }
+        this.userSubject.next(user);
+      });
     }
+  }
 
-    return onAuthStateChanged(this.auth, subscriber);
-  }).pipe(
-    shareReplay({ bufferSize: 1, refCount: true })
-  );
-
-  get currentUser() {
+  get currentUser(): User | null {
     return this.auth?.currentUser ?? null;
   }
 
-  login(email: string, password: string) {
-    const auth = this.auth;
-
-    if (!auth) {
-      return Promise.reject(new Error('Firebase no esta configurado'));
-    }
-
-    return this.setPersistenceWithFallback(auth)
-      .then(() => signInWithEmailAndPassword(auth, email, password));
+  get currentUserId(): string | null {
+    return this.auth?.currentUser?.uid ?? this.getSession()?.uid ?? null;
   }
 
-  register(email: string, password: string) {
+  getSession(): UserSession | null {
+    try {
+      const raw = localStorage.getItem(this.sessionStorageKey);
+      if (!raw) {
+        return null;
+      }
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && typeof parsed.uid === 'string') {
+        return parsed as UserSession;
+      }
+      this.clearSession();
+      return null;
+    } catch {
+      this.clearSession();
+      return null;
+    }
+  }
+
+  hasSession(): boolean {
+    return this.getSession() !== null;
+  }
+
+  isLoggedIn(): boolean {
+    return Boolean(this.currentUser || this.hasSession());
+  }
+
+  saveSession(user: Partial<UserSession> | User): UserSession {
+    const session: UserSession = {
+      uid: user.uid as string,
+      email: user.email ?? null,
+      displayName: user.displayName ?? null,
+      photoURL: user.photoURL ?? null,
+      emailVerified: Boolean(user.emailVerified),
+      phoneNumber: (user as any).phoneNumber ?? null,
+      lastLoginAt: Date.now()
+    };
+
+    try {
+      localStorage.setItem(this.sessionStorageKey, JSON.stringify(session));
+    } catch { }
+
+    this.sessionSubject.next(session);
+    return session;
+  }
+
+  clearSession(): void {
+    try {
+      localStorage.removeItem(this.sessionStorageKey);
+    } catch { }
+    this.sessionSubject.next(null);
+  }
+
+  async validateSession(): Promise<boolean> {
+    if (this.auth) {
+      try {
+        if (typeof this.auth.authStateReady === 'function') {
+          await Promise.race([
+            this.auth.authStateReady(),
+            new Promise<void>((resolve) => window.setTimeout(resolve, 2000))
+          ]);
+        }
+      } catch { }
+    }
+
+    if (this.auth?.currentUser) {
+      this.saveSession(this.auth.currentUser);
+      return true;
+    }
+
+    const storedSession = this.getSession();
+    if (storedSession) {
+      return true;
+    }
+
+    return false;
+  }
+
+  async login(email: string, password: string) {
     const auth = this.auth;
 
     if (!auth) {
-      return Promise.reject(new Error('Firebase no esta configurado'));
+      throw new Error('Firebase no esta configurado');
     }
 
-    return this.setPersistenceWithFallback(auth)
-      .then(() => createUserWithEmailAndPassword(auth, email, password));
+    await this.setPersistenceWithFallback(auth);
+    const credential = await signInWithEmailAndPassword(auth, email, password);
+    if (credential.user) {
+      this.saveSession(credential.user);
+    }
+    return credential;
+  }
+
+  async register(email: string, password: string) {
+    const auth = this.auth;
+
+    if (!auth) {
+      throw new Error('Firebase no esta configurado');
+    }
+
+    await this.setPersistenceWithFallback(auth);
+    const credential = await createUserWithEmailAndPassword(auth, email, password);
+    if (credential.user) {
+      this.saveSession(credential.user);
+    }
+    return credential;
   }
 
   resetPassword(email: string) {
@@ -53,8 +158,28 @@ export class AuthService {
       : Promise.reject(new Error('Firebase no esta configurado'));
   }
 
-  logout() {
-    return this.auth ? signOut(this.auth) : Promise.resolve();
+  async logout(): Promise<void> {
+    this.clearSession();
+    this.userSubject.next(null);
+    if (this.auth) {
+      await signOut(this.auth);
+    }
+  }
+
+  private readInitialSession(): UserSession | null {
+    try {
+      const raw = localStorage.getItem(this.sessionStorageKey);
+      if (!raw) {
+        return null;
+      }
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && typeof parsed.uid === 'string') {
+        return parsed as UserSession;
+      }
+      return null;
+    } catch {
+      return null;
+    }
   }
 
   private async setPersistenceWithFallback(auth: NonNullable<typeof this.auth>) {
@@ -71,5 +196,4 @@ export class AuthService {
       ]);
     } catch { }
   }
-
 }

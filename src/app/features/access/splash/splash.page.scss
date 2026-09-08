@@ -1,10 +1,12 @@
 ion-content {
-  --background: #080f1c;
+  --background: #060b17;
 }
 
 .splash-screen {
   align-items: center;
-  background: linear-gradient(150deg, #10275e 0%, #080f1c 38%, #050914 100%);
+  background:
+    radial-gradient(circle at 50% 36%, rgba(26, 75, 185, 0.45) 0%, rgba(10, 25, 65, 0.2) 40%, rgba(6, 11, 23, 0) 70%),
+    linear-gradient(175deg, #071022 0%, #060c19 45%, #03060d 100%);
   color: #fff;
   display: flex;
   height: 100%;
@@ -14,47 +16,17 @@ ion-content {
   position: relative;
 }
 
-.splash-brand {
-  align-items: center;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  transform: translateY(-3vh);
-  z-index: 1;
-}
-
-.splash-brand img {
-  border-radius: 24%;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.32);
-  height: clamp(112px, 18vw, 170px);
-  width: clamp(112px, 18vw, 170px);
-}
-
-h1 {
-  font-size: clamp(2rem, 5vw, 3rem);
-  letter-spacing: -0.045em;
-  margin: var(--nc-space-6) 0 var(--nc-space-2);
-}
-
-h1 span {
-  color: #7ba2ff;
-}
-
-p {
-  color: #b9c6de;
-  font-size: clamp(1rem, 2.2vw, 1.25rem);
-  line-height: 1.4;
-  margin: 0;
-  text-align: center;
-}
-
+/* Distinctive curved accent lines */
 .splash-wave {
-  border: 2px solid rgba(49, 100, 244, 0.34);
+  border: 2px solid rgba(64, 138, 255, 0.45);
   border-radius: 50%;
+  box-shadow: 0 0 12px rgba(56, 125, 255, 0.22);
   height: 42vh;
+  pointer-events: none;
   position: absolute;
   transform: rotate(-28deg);
   width: 130vw;
+  z-index: 1;
 }
 
 .splash-wave-top {
@@ -67,73 +39,125 @@ p {
   right: -76vw;
 }
 
+/* Silky background waves and ambient aura */
+.splash-bg {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+
+  .bg-waves {
+    height: 100%;
+    opacity: 0.92;
+    width: 100%;
+  }
+}
+
+.splash-brand {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  text-align: center;
+  transform: translateY(-2vh);
+  z-index: 2;
+}
+
+/* Brand Logo - Crisp, sharp & natural without artificial glow */
+.logo-img {
+  border-radius: 24%;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.42);
+  height: clamp(120px, 20vw, 150px);
+  image-rendering: -webkit-optimize-contrast;
+  position: relative;
+  width: clamp(120px, 20vw, 150px);
+  z-index: 2;
+}
+
+/* App Title */
+.app-title {
+  color: #ffffff;
+  font-size: clamp(2.15rem, 5.2vw, 2.7rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  margin: 22px 0 6px;
+
+  span {
+    color: #529cf8;
+  }
+}
+
+/* Subtitle */
+.app-subtitle {
+  color: #a2b4cd;
+  font-size: clamp(0.98rem, 2.3vw, 1.12rem);
+  font-weight: 400;
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* Script quote */
+.splash-quote {
+  color: #c4d2e8;
+  font-family: 'Caveat', 'Dancing Script', 'Snell Roundhand', 'Brush Script MT', cursive;
+  font-size: clamp(1.45rem, 3.8vw, 1.75rem);
+  font-weight: 500;
+  letter-spacing: 0.015em;
+  line-height: 1.25;
+  margin-top: clamp(40px, 7vh, 66px);
+  opacity: 0.88;
+  text-shadow: 0 0 18px rgba(96, 165, 250, 0.28);
+  transform: rotate(-5.5deg);
+}
+
+/* Loading progress capsule (Hardware accelerated via transform: scaleX) */
 .splash-progress {
-  background: #273653;
-  border-radius: var(--nc-radius-round);
-  bottom: calc(7% + env(safe-area-inset-bottom));
-  height: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  bottom: calc(5% + env(safe-area-inset-bottom, 18px));
+  height: 3.5px;
   left: 50%;
-  max-width: 240px;
   overflow: hidden;
   position: absolute;
   transform: translateX(-50%);
-  width: 54%;
-}
+  width: clamp(180px, 52vw, 220px);
+  z-index: 2;
 
-.splash-progress span {
-  background: #5790ff;
-  border-radius: inherit;
-  display: block;
-  height: 100%;
-  width: 34%;
-}
+  span {
+    background: linear-gradient(90deg, #2563eb 0%, #38bdf8 100%);
+    border-radius: inherit;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+    display: block;
+    height: 100%;
+    transform: scaleX(0);
+    transform-origin: left center;
+    width: 100%;
+    will-change: transform;
+    animation: splashProgressAdvance 2.2s cubic-bezier(0.16, 0.8, 0.25, 1) forwards;
 
-.splash-actions {
-  animation: splashFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  bottom: calc(7% + env(safe-area-inset-bottom));
-  left: 50%;
-  max-width: 340px;
-  position: absolute;
-  transform: translateX(-50%);
-  width: calc(100% - 48px);
-  z-index: 10;
-}
-
-.btn-start {
-  --background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  --border-radius: var(--nc-radius-md, 14px);
-  --box-shadow: 0 8px 24px rgba(37, 99, 235, 0.38);
-  --color: #ffffff;
-  font-size: 1rem;
-  font-weight: 650;
-  height: 52px;
-  margin: 0;
-  text-transform: none;
-
-  ion-icon {
-    font-size: 1.125rem;
-    margin-left: 6px;
-  }
-
-  &:active {
-    transform: scale(0.985);
+    &.completed {
+      animation: none;
+      transform: scaleX(1);
+      transition: transform 0.2s ease-out;
+    }
   }
 }
 
-@keyframes splashFadeIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 14px);
+@keyframes splashProgressAdvance {
+  0% {
+    transform: scaleX(0);
   }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
+  20% {
+    transform: scaleX(0.28);
+  }
+  50% {
+    transform: scaleX(0.65);
+  }
+  80% {
+    transform: scaleX(0.88);
+  }
+  100% {
+    transform: scaleX(0.94);
   }
 }
 
-@media (min-width: 768px) {
-  .splash-brand img {
-    height: 156px;
-    width: 156px;
-  }
-}

@@ -10,7 +10,10 @@ import { SplashPage } from './splash.page';
 describe('SplashPage', () => {
   let component: SplashPage;
   let fixture: ComponentFixture<SplashPage>;
-  let authServiceMock: { user$: Observable<any> };
+  let authServiceMock: {
+    user$: Observable<any>;
+    validateSession: ReturnType<typeof vi.fn>;
+  };
   let navServiceMock: {
     goToHome: ReturnType<typeof vi.fn>;
     goToLogin: ReturnType<typeof vi.fn>;
@@ -18,7 +21,8 @@ describe('SplashPage', () => {
 
   beforeEach(() => {
     authServiceMock = {
-      user$: of(null)
+      user$: of(null),
+      validateSession: vi.fn().mockResolvedValue(false)
     };
 
     navServiceMock = {
@@ -42,17 +46,33 @@ describe('SplashPage', () => {
   it('should be created', () => {
     expect(component).toBeTruthy();
     expect(component.isCheckingAuth).toBe(true);
+    expect(component.progress).toBe(0);
   });
 
-  it('should set isCheckingAuth to false when user is null', async () => {
+  it('should navigate to login when user is not logged in without button', async () => {
+    component.minSplashDuration = 0;
+    authServiceMock.validateSession.mockResolvedValue(false);
     await component.ngOnInit();
     expect(component.isCheckingAuth).toBe(false);
+    expect(component.progress).toBe(100);
     expect(navServiceMock.goToHome).not.toHaveBeenCalled();
+    expect(navServiceMock.goToLogin).toHaveBeenCalledWith('forward');
+  });
+
+  it('should navigate to home (folders) when user session is valid', async () => {
+    component.minSplashDuration = 0;
+    authServiceMock.validateSession.mockResolvedValue(true);
+    await component.ngOnInit();
+    expect(component.isCheckingAuth).toBe(false);
+    expect(component.progress).toBe(100);
+    expect(navServiceMock.goToHome).toHaveBeenCalledWith(true);
     expect(navServiceMock.goToLogin).not.toHaveBeenCalled();
   });
 
-  it('should navigate to home when user is logged in', async () => {
-    authServiceMock.user$ = of({ uid: 'u123', email: 'test@example.com' } as any);
+  it('should fallback to user$ when validateSession is not available', async () => {
+    component.minSplashDuration = 0;
+    delete (authServiceMock as any).validateSession;
+    authServiceMock.user$ = of({ uid: 'u123' } as any);
     await component.ngOnInit();
     expect(navServiceMock.goToHome).toHaveBeenCalledWith(true);
   });
