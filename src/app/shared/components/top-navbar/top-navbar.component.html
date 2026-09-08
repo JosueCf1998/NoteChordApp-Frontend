@@ -1,0 +1,10 @@
+<ion-header [class.floating-controls]="floatingControls">
+  <ion-toolbar>
+    <ng-content select="[nav-start]"></ng-content>
+    <ion-title [class.visible]="showTitle">
+      <span>{{ title }}</span>
+      <small *ngIf="subtitle">{{ subtitle }}</small>
+    </ion-title>
+    <ng-content select="[nav-end]"></ng-content>
+  </ion-toolbar>
+</ion-header>

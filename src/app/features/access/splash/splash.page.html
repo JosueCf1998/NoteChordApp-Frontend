@@ -1,0 +1,19 @@
+<ion-content [fullscreen]="true">
+  <main class="splash-screen" aria-label="Iniciando NoteChord">
+    <div class="splash-wave splash-wave-top" aria-hidden="true"></div>
+    <div class="splash-brand">
+      <img src="assets/branding/notechord-logo.png" alt="">
+      <h1>Note<span>Chord</span></h1>
+      <p>Tus notas.<br>Siempre contigo.</p>
+    </div>
+    <div class="splash-wave splash-wave-bottom" aria-hidden="true"></div>
+    <div class="splash-progress" *ngIf="isCheckingAuth" aria-hidden="true"><span></span></div>
+
+    <div class="splash-actions" *ngIf="!isCheckingAuth">
+      <ion-button class="btn-start" expand="block" (click)="goToLogin()">
+        Iniciar sesión
+        <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+      </ion-button>
+    </div>
+  </main>
+</ion-content>

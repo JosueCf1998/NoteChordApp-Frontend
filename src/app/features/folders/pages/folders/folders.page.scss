@@ -1,0 +1,93 @@
+ion-content {
+  --background: var(--nc-background-secondary);
+}
+
+.folders-container {
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: var(--nc-content-wide);
+  padding: var(--nc-space-2) var(--nc-page-gutter) calc(76px + env(safe-area-inset-bottom));
+}
+
+.folder-add-icon {
+  display: block;
+  height: 18px;
+  position: relative;
+  width: 18px;
+}
+
+.folder-shape {
+  font-size: 18px;
+  height: 18px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+}
+
+.plus-shape {
+  background: var(--nc-surface-raised);
+  border-radius: 50%;
+  font-size: 9px;
+  position: absolute;
+  right: -2px;
+  top: -3px;
+}
+
+ion-item-sliding {
+  background: var(--nc-surface-raised);
+}
+
+ion-item {
+  --background: var(--nc-surface-raised);
+  --border-color: color-mix(in srgb, var(--nc-border) 72%, transparent);
+  --border-width: 0 0 1px 0;
+  --inner-padding-end: var(--nc-space-3);
+  --min-height: 56px;
+  --padding-start: var(--nc-space-3);
+}
+
+ion-item-sliding:last-child ion-item {
+  --border-width: 0;
+}
+
+.folder-icon {
+  align-items: center;
+  border-radius: 0;
+  display: flex;
+  flex: 0 0 26px;
+  height: 26px;
+  justify-content: center;
+  margin-right: var(--nc-space-3);
+  width: 26px;
+}
+
+.folder-icon ion-icon {
+  color: var(--nc-primary);
+  font-size: 24px;
+}
+
+ion-label h2 {
+  color: var(--nc-text);
+  font-size: 0.875rem;
+  font-weight: 650;
+  margin: 0;
+}
+
+.folder-count {
+  color: var(--nc-text-secondary);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  margin-left: var(--nc-space-3);
+}
+
+.row-chevron {
+  color: var(--nc-text-secondary);
+  font-size: 16px;
+  margin-left: 0;
+}
+
+.error-message {
+  margin: var(--nc-space-4) 0;
+}

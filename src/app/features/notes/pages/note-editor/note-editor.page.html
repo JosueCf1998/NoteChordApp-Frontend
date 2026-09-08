@@ -1,0 +1,122 @@
+<app-top-navbar [title]="title || 'Nueva nota'" [showTitle]="false" [floatingControls]="true">
+    <ion-buttons nav-start slot="start">
+      <ion-button (click)="backToNotes()" aria-label="Volver a notas">
+        <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons nav-end slot="end">
+      <ion-button class="header-icon-button" *ngIf="!isViewMode" [disabled]="isSaving || isLoading" (click)="save()" aria-label="Guardar nota">
+        <ion-icon slot="icon-only" name="checkmark-outline"></ion-icon>
+      </ion-button>
+      <ion-button class="header-icon-button" (click)="shareNote()" aria-label="Compartir nota">
+        <ion-icon slot="icon-only" name="share-outline"></ion-icon>
+      </ion-button>
+      <ion-button id="note-options-trigger" (click)="openOptions()" aria-label="Más opciones">
+        <ion-icon slot="icon-only" name="ellipsis-horizontal"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+</app-top-navbar>
+
+<ion-content [fullscreen]="true" [class.view-mode]="isViewMode">
+  <main class="editor-container" [class.is-new-note]="noteId === 'new'" *ngIf="!isLoading; else loadingState">
+    <header class="note-heading">
+        <h1 *ngIf="isViewMode">{{ title || 'Nueva nota' }}</h1>
+        <ion-input
+          *ngIf="!isViewMode"
+          [(ngModel)]="title"
+          (ngModelChange)="markDirty()"
+          name="title"
+          class="note-title"
+          placeholder="Título"
+          maxlength="80"
+          aria-label="Título de la nota"
+        ></ion-input>
+      <p><span>{{ (folder$ | async)?.name || 'Carpeta' }}</span><span aria-hidden="true">·</span><span>{{ updatedAtLabel }}</span></p>
+    </header>
+
+    <div class="mode-switch" role="group" aria-label="Modo de la nota">
+      <button type="button" [class.active]="!isViewMode" [attr.aria-pressed]="!isViewMode" (click)="setViewMode(false)">
+        <ion-icon name="pencil-outline"></ion-icon>
+        Editar
+      </button>
+      <button type="button" [class.active]="isViewMode" [attr.aria-pressed]="isViewMode" (click)="toggleViewMode()">
+        <ion-icon name="eye-outline"></ion-icon>
+        Vista
+      </button>
+      <button class="more-button" type="button" (click)="openOptions()" aria-label="Más opciones">
+        <ion-icon name="ellipsis-horizontal"></ion-icon>
+      </button>
+    </div>
+
+    <section class="edit-area" *ngIf="!isViewMode">
+      <ion-textarea
+        id="note-content"
+        [(ngModel)]="content"
+        (ngModelChange)="onContentChange()"
+        name="content"
+        class="note-content"
+        placeholder="Escribe aquí la descripción..."
+        maxlength="5000"
+        aria-label="Contenido de la nota"
+        auto-grow="true"
+      ></ion-textarea>
+    </section>
+
+    <section class="sections-preview" *ngIf="sections.length">
+      <p class="preview-label" *ngIf="!isViewMode">Vista previa</p>
+      <details *ngFor="let section of sections" open>
+        <summary>{{ section.title }}</summary>
+        <pre>{{ section.content }}</pre>
+      </details>
+    </section>
+
+    <section class="empty-note" *ngIf="isViewMode && !sections.length">
+      <p>Esta nota todavía no tiene contenido.</p>
+    </section>
+
+    <p class="reading-indicator" *ngIf="isViewMode">
+      <ion-icon name="eye-outline"></ion-icon>
+      Modo lectura activado
+    </p>
+
+    <ion-text color="medium" aria-live="polite" *ngIf="!isViewMode && isDirty">
+      <p class="status-message">Cambios sin guardar</p>
+    </ion-text>
+    <ion-text color="success" aria-live="polite" *ngIf="!isViewMode && statusMessage">
+      <p class="status-message">{{ statusMessage }}</p>
+    </ion-text>
+    <ion-text color="danger" role="alert" *ngIf="errorMessage">
+      <p class="status-message">{{ errorMessage }}</p>
+    </ion-text>
+  </main>
+
+  <ng-template #loadingState>
+    <div class="loading-message" aria-live="polite">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>Cargando nota…</span>
+    </div>
+  </ng-template>
+</ion-content>
+
+<button class="editor-new-note-button" type="button" (click)="createAnotherNote()" aria-label="Nueva nota">
+  <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
+</button>
+
+<ion-popover [isOpen]="isOptionsOpen" trigger="note-options-trigger" (didDismiss)="closeOptions()">
+  <ng-template>
+    <ion-list class="options-list">
+      <ion-item button lines="none" (click)="setViewMode(false); closeOptions()">
+        <ion-icon slot="start" name="pencil-outline"></ion-icon>
+        <ion-label>Editar nota</ion-label>
+      </ion-item>
+      <ion-item button lines="none" (click)="setViewMode(true); closeOptions()">
+        <ion-icon slot="start" name="eye-outline"></ion-icon>
+        <ion-label>Modo Vista</ion-label>
+      </ion-item>
+      <ion-item button lines="none" color="danger" (click)="deleteNote()">
+        <ion-icon slot="start" name="trash-outline"></ion-icon>
+        <ion-label>Eliminar</ion-label>
+      </ion-item>
+    </ion-list>
+  </ng-template>
+</ion-popover>

@@ -1,0 +1,134 @@
+<app-top-navbar title="Carpetas" [showTitle]="isHeaderCollapsed" [floatingControls]="true">
+    <ion-buttons nav-end slot="end">
+      <ion-button (click)="openSettings()" aria-label="Abrir ajustes">
+        <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+</app-top-navbar>
+
+<ion-content
+  [scrollEvents]="true"
+  (ionScroll)="pageTitle.handleScroll($event)"
+  (touchstart)="pageTitle.handleGestureStart($event)"
+  (touchmove)="pageTitle.handleGestureMove($event)"
+  (touchend)="pageTitle.handleGestureEnd($event)"
+  (touchcancel)="pageTitle.handleGestureCancel()"
+>
+  <main class="folders-container">
+    <app-animated-page-title
+      #pageTitle
+      title="Carpetas"
+      (collapsedChange)="isHeaderCollapsed = $event"
+    ></app-animated-page-title>
+
+    <ion-text color="danger" role="alert" *ngIf="errorMessage">
+      <p class="error-message">{{ errorMessage }}</p>
+    </ion-text>
+
+    <ng-container *ngIf="filteredFolders$ | async as filteredFolders">
+      <app-grouped-list class="folder-list" *ngIf="filteredFolders.length; else emptyState">
+        <ion-item-sliding *ngFor="let folder of filteredFolders">
+          <ion-item
+            button
+            detail="false"
+            (click)="handleFolderClick(folder.id)"
+            (pointerdown)="startLongPress($event, folder)"
+            (pointermove)="trackLongPress($event)"
+            (pointerup)="cancelLongPress()"
+            (pointercancel)="cancelLongPress()"
+            (pointerleave)="cancelLongPress()"
+            (contextmenu)="$event.preventDefault(); openFolderOptions(folder)"
+          >
+            <div class="folder-icon" slot="start">
+              <ion-icon name="folder-outline"></ion-icon>
+            </div>
+            <ion-label>
+              <h2>{{ folder.name }}</h2>
+            </ion-label>
+            <span class="folder-count" *ngIf="noteCounts$ | async as counts">{{ counts[folder.id] || 0 }}</span>
+            <ion-icon class="row-chevron" name="chevron-forward-outline" slot="end" aria-hidden="true"></ion-icon>
+          </ion-item>
+          <app-swipe-actions
+            (edit)="openEditFolder(folder)"
+            (remove)="deleteFolder(folder.id, folder.name)"
+          ></app-swipe-actions>
+        </ion-item-sliding>
+      </app-grouped-list>
+    </ng-container>
+
+    <ng-template #emptyState>
+      <section class="empty-state">
+        <h1>Aún no tienes carpetas</h1>
+        <p>Crea una carpeta para empezar a organizar tus notas.</p>
+      </section>
+    </ng-template>
+
+  </main>
+
+  <app-floating-search-action
+    slot="fixed"
+    [(value)]="searchTerm"
+    [value]="searchTerm"
+    (valueChange)="onSearchChange($event)"
+    searchLabel="Buscar carpetas"
+    actionLabel="Nueva carpeta"
+    (action)="openCreateFolder()"
+  >
+    <span action-icon class="folder-add-icon" aria-hidden="true">
+      <ion-icon class="folder-shape" name="folder-outline"></ion-icon>
+      <ion-icon class="plus-shape" name="add-outline"></ion-icon>
+    </span>
+  </app-floating-search-action>
+</ion-content>
+
+<ion-modal class="folder-modal" [animated]="false" [isOpen]="isFolderFormOpen" (didDismiss)="closeFolderForm()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>{{ editingFolder ? 'Editar carpeta' : 'Nueva carpeta' }}</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content [scrollY]="false">
+      <form class="folder-form" (ngSubmit)="saveFolder()">
+        <div class="folder-form-icon" aria-hidden="true">
+          <ion-icon name="folder-outline"></ion-icon>
+        </div>
+        <label class="modal-field">
+          <span>Nombre</span>
+          <input [(ngModel)]="folderName" name="folderName" placeholder="Ej. Alabanza" maxlength="40" enterkeyhint="done" autofocus />
+        </label>
+        <label class="modal-field modal-field-textarea">
+          <span>Descripción (opcional)</span>
+          <textarea [(ngModel)]="folderDescription" name="folderDescription" placeholder="Describe esta carpeta..." maxlength="240" rows="4"></textarea>
+        </label>
+        <ion-text color="danger" role="alert" *ngIf="errorMessage">
+          <p class="error-message">{{ errorMessage }}</p>
+        </ion-text>
+        <button class="hidden-submit" type="submit" [disabled]="isSaving || !folderName.trim()">Guardar</button>
+      </form>
+    </ion-content>
+    <ion-footer class="modal-actions">
+      <ion-toolbar>
+        <div class="modal-action-buttons">
+          <button type="button" (click)="closeFolderForm()">Cancelar</button>
+          <button type="button" class="save-button" [disabled]="isSaving || !folderName.trim()" (click)="saveFolder()">
+            <ion-spinner *ngIf="isSaving" name="crescent" aria-hidden="true"></ion-spinner>
+            <span>{{ isSaving ? 'Guardando…' : 'Guardar' }}</span>
+          </button>
+        </div>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>
+
+<app-full-screen-loader [visible]="isSaving" message="Guardando…"></app-full-screen-loader>
+
+<app-confirm-modal
+  [isOpen]="pendingDelete !== null"
+  [title]="'Eliminar carpeta'"
+  [message]="'¿Quieres eliminar ' + (pendingDelete?.name || '') + '?'"
+  confirmText="Eliminar"
+  [isBusy]="isDeleting"
+  (cancelled)="cancelFolderDelete()"
+  (confirmed)="confirmFolderDelete()"
+></app-confirm-modal>

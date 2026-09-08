@@ -1,0 +1,105 @@
+<app-top-navbar title="Ajustes" [showTitle]="false" [floatingControls]="true">
+  <ion-buttons nav-start slot="start">
+    <ion-button (click)="backToFolders()" aria-label="Volver a carpetas">
+      <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+    </ion-button>
+  </ion-buttons>
+</app-top-navbar>
+
+<ion-content>
+  <main class="settings-container">
+    <h1 class="settings-title">Ajustes</h1>
+
+    <!-- Perfil de usuario -->
+    <section class="profile-card" *ngIf="user$ | async as user">
+      <div class="profile-avatar">{{ (user.displayName || user.email || 'U').charAt(0).toUpperCase() }}</div>
+      <div class="profile-info">
+        <h2>{{ user.displayName || 'Mi cuenta' }}</h2>
+        <p>{{ user.email }}</p>
+      </div>
+    </section>
+
+    <!-- Apariencia -->
+    <section class="settings-section">
+      <div class="section-title">
+        <ion-icon name="contrast-outline"></ion-icon>
+        <span>Apariencia</span>
+      </div>
+
+      <div class="appearance-options" role="radiogroup" aria-label="Apariencia">
+        <button
+          type="button"
+          role="radio"
+          aria-checked="false"
+          [class.selected]="appearance === 'light'"
+          [attr.aria-checked]="appearance === 'light'"
+          (click)="setAppearance('light')"
+        >
+          <span class="theme-preview light-preview"><i></i><i></i></span>
+          <span>Claro</span>
+          <ion-icon *ngIf="appearance === 'light'" name="checkmark-circle"></ion-icon>
+        </button>
+
+        <button
+          type="button"
+          role="radio"
+          aria-checked="false"
+          [class.selected]="appearance === 'dark'"
+          [attr.aria-checked]="appearance === 'dark'"
+          (click)="setAppearance('dark')"
+        >
+          <span class="theme-preview dark-preview"><i></i><i></i></span>
+          <span>Oscuro</span>
+          <ion-icon *ngIf="appearance === 'dark'" name="checkmark-circle"></ion-icon>
+        </button>
+
+        <button
+          type="button"
+          role="radio"
+          aria-checked="false"
+          [class.selected]="appearance === 'system'"
+          [attr.aria-checked]="appearance === 'system'"
+          (click)="setAppearance('system')"
+        >
+          <span class="theme-preview system-preview"><i></i><i></i></span>
+          <span>Sistema</span>
+          <ion-icon *ngIf="appearance === 'system'" name="checkmark-circle"></ion-icon>
+        </button>
+      </div>
+    </section>
+
+    <!-- Opciones de información en tarjeta agrupada limpia -->
+    <section class="settings-card">
+      <button type="button" class="settings-row" (click)="showInformation('Sincronización', 'Tus carpetas y notas se sincronizan automáticamente en tiempo real mediante Cloud Firestore.')">
+        <ion-icon class="row-icon" name="sync-outline"></ion-icon>
+        <span class="row-label">Sincronización</span>
+        <span class="row-detail">Automática</span>
+        <span class="status-dot"></span>
+      </button>
+
+      <div class="row-divider"></div>
+
+      <button type="button" class="settings-row" (click)="showInformation('Ayuda', 'Crea carpetas, añade notas con letras y acordes, y usa el modo Vista para interpretar tus cifrados sin editarlos por error.')">
+        <ion-icon class="row-icon" name="help-circle-outline"></ion-icon>
+        <span class="row-label">Ayuda</span>
+        <ion-icon class="chevron-icon" name="chevron-forward-outline"></ion-icon>
+      </button>
+
+      <div class="row-divider"></div>
+
+      <button type="button" class="settings-row" (click)="showInformation('Acerca de NoteChord', 'NoteChord v1.0.0 · Una libreta moderna y sincronizada diseñada para músicos.')">
+        <ion-icon class="row-icon" name="information-circle-outline"></ion-icon>
+        <span class="row-label">Acerca de</span>
+        <ion-icon class="chevron-icon" name="chevron-forward-outline"></ion-icon>
+      </button>
+    </section>
+
+    <!-- Cerrar sesión -->
+    <section class="logout-section">
+      <button type="button" class="logout-button" (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+        <span>Cerrar sesión</span>
+      </button>
+    </section>
+  </main>
+</ion-content>

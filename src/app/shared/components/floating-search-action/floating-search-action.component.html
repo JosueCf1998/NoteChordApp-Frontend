@@ -1,0 +1,17 @@
+<div class="floating-actions" role="search">
+  <label class="search-field">
+    <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+    <input
+      #searchInput
+      [value]="value"
+      (input)="updateValue($event)"
+      type="search"
+      [placeholder]="placeholder"
+      autocomplete="off"
+      [attr.aria-label]="searchLabel"
+    >
+  </label>
+  <button class="action-button" type="button" (click)="action.emit()" [attr.aria-label]="actionLabel">
+    <ng-content select="[action-icon]"></ng-content>
+  </button>
+</div>

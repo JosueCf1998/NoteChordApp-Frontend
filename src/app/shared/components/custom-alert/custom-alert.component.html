@@ -1,0 +1,18 @@
+<div class="alert-card" role="alertdialog" aria-modal="true" aria-label="Alerta" [attr.aria-label]="title || 'Alerta'">
+  <div class="alert-icon-badge" [ngClass]="variant" aria-hidden="true">
+    <ion-icon [name]="icon"></ion-icon>
+  </div>
+
+  <h2 class="alert-title">{{ title }}</h2>
+  <p class="alert-message" *ngIf="message">{{ message }}</p>
+
+  <div class="alert-actions" [class.single]="!isConfirm">
+    <button *ngIf="isConfirm" type="button" class="btn-cancel" (click)="cancel()">
+      {{ cancelText }}
+    </button>
+    <button type="button" class="btn-confirm" [ngClass]="variant" (click)="confirm()">
+      {{ confirmText }}
+    </button>
+  </div>
+</div>
+

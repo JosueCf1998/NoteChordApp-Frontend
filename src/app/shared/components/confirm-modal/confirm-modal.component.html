@@ -1,0 +1,15 @@
+<ion-modal class="confirm-modal" [animated]="false" [isOpen]="isOpen" (didDismiss)="cancelled.emit()">
+  <ng-template>
+    <section class="confirm-content" role="alertdialog" aria-modal="true" [attr.aria-label]="title">
+      <h2>{{ title }}</h2>
+      <p>{{ message }}</p>
+      <div class="confirm-actions">
+        <button type="button" (click)="cancelled.emit()">Cancelar</button>
+        <button type="button" class="destructive" [disabled]="isBusy" (click)="confirmed.emit()">
+          <ion-spinner *ngIf="isBusy" name="crescent" aria-hidden="true"></ion-spinner>
+          <span>{{ isBusy ? 'Eliminando…' : confirmText }}</span>
+        </button>
+      </div>
+    </section>
+  </ng-template>
+</ion-modal>

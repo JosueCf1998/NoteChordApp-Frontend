@@ -1,0 +1,37 @@
+:host {
+  display: contents;
+}
+
+ion-item-options {
+  background: var(--nc-surface-raised);
+}
+
+ion-item-option {
+  --background: var(--nc-surface-raised);
+  --color: var(--nc-text-secondary);
+  --padding-end: 0;
+  --padding-start: 0;
+  border-left: 1px solid color-mix(in srgb, var(--nc-border) 68%, transparent);
+  min-width: 48px;
+  transition: filter var(--nc-transition-fast);
+  width: 48px;
+}
+
+ion-item-option[color='primary'] {
+  --background: color-mix(in srgb, var(--nc-primary) 10%, var(--nc-surface-raised));
+  --color: var(--nc-primary);
+}
+
+ion-item-option[color='danger'] {
+  --background: color-mix(in srgb, var(--nc-danger) 9%, var(--nc-surface-raised));
+  --color: var(--nc-danger);
+}
+
+ion-icon {
+  --ionicon-stroke-width: 28px;
+  font-size: 18px;
+}
+
+ion-item-option:active {
+  filter: brightness(0.96);
+}

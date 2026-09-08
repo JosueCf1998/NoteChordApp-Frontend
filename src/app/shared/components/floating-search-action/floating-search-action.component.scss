@@ -1,0 +1,98 @@
+:host {
+  display: contents;
+}
+
+.floating-actions {
+  align-items: center;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  left: var(--nc-page-gutter);
+  max-width: calc(100% - (var(--nc-page-gutter) * 2));
+  position: absolute;
+  width: calc(100% - (var(--nc-page-gutter) * 2));
+  z-index: 20;
+}
+
+.floating-actions::before {
+  background: linear-gradient(to bottom, transparent, var(--nc-background-secondary) 58%);
+  bottom: calc(-1 * (10px + env(safe-area-inset-bottom)));
+  content: '';
+  left: calc(-1 * var(--nc-page-gutter));
+  pointer-events: none;
+  position: absolute;
+  right: calc(-1 * var(--nc-page-gutter));
+  top: -32px;
+  z-index: -1;
+}
+
+.search-field {
+  align-items: center;
+  background: color-mix(in srgb, var(--nc-surface-raised) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nc-border) 72%, transparent);
+  border-radius: var(--nc-radius-round);
+  box-shadow: 0 3px 12px rgba(16, 24, 40, 0.07);
+  display: flex;
+  height: 44px;
+  position: relative;
+}
+
+.search-field > ion-icon {
+  color: var(--nc-text-secondary);
+  font-size: 16px;
+  left: 14px;
+  pointer-events: none;
+  position: absolute;
+}
+
+.search-field input {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--nc-text);
+  font-size: 0.875rem;
+  height: 100%;
+  margin: 0;
+  outline: 0;
+  padding: 0 16px 0 38px;
+  width: 100%;
+}
+
+.search-field input::placeholder {
+  color: var(--nc-text-secondary);
+  opacity: 0.8;
+}
+
+.search-field:focus-within {
+  border-color: color-mix(in srgb, var(--nc-primary) 58%, transparent);
+  box-shadow: 0 0 0 3px var(--nc-focus-ring);
+}
+
+.action-button {
+  align-items: center;
+  background: var(--nc-surface-raised);
+  border: 1px solid var(--nc-border);
+  border-radius: 50%;
+  box-shadow: var(--nc-shadow-md);
+  color: var(--nc-primary);
+  display: flex;
+  height: 44px;
+  justify-content: center;
+  padding: 0;
+  width: 44px;
+}
+
+.action-button ::ng-deep [action-icon] {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}
+
+@media (min-width: 768px) {
+  .floating-actions {
+    left: 50%;
+    max-width: 720px;
+    transform: translateX(-50%);
+  }
+}

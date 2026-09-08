@@ -1,0 +1,132 @@
+ion-content {
+  --background: var(--nc-background-secondary);
+}
+
+.notes-container {
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: var(--nc-content-wide);
+  padding: var(--nc-space-4) var(--nc-page-gutter) calc(76px + env(safe-area-inset-bottom));
+}
+
+.note-count {
+  color: var(--nc-text-secondary);
+  font-size: 0.8125rem;
+  margin: var(--nc-space-1) 0 0;
+}
+
+.note-groups {
+  display: grid;
+  gap: var(--nc-space-8);
+}
+
+ion-item-sliding {
+  background: var(--nc-surface-raised);
+}
+
+ion-item {
+  --background: var(--nc-surface-raised);
+  --border-color: color-mix(in srgb, var(--nc-border) 72%, transparent);
+  --border-width: 0 0 1px 0;
+  --inner-padding-end: var(--nc-space-3);
+  --min-height: 60px;
+  --padding-start: var(--nc-space-5);
+}
+
+ion-item-sliding:last-child ion-item {
+  --border-width: 0;
+}
+
+ion-label {
+  margin-block: 8px;
+  min-width: 0;
+}
+
+ion-label h2 {
+  color: var(--nc-text);
+  font-size: 0.875rem;
+  font-weight: 650;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+ion-label p {
+  color: var(--nc-text-secondary);
+  font-size: 0.75rem;
+  display: flex;
+  gap: var(--nc-space-3);
+  margin: 3px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+ion-label p span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.create-note-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}
+
+.error-message {
+  font-size: var(--nc-font-size-small);
+  margin: var(--nc-space-4) 0;
+}
+
+.empty-state {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 3rem auto 0;
+  min-height: 220px;
+  padding: 0 var(--nc-space-6);
+  text-align: center;
+}
+
+.empty-icon {
+  align-items: center;
+  background: transparent;
+  border-radius: 0;
+  color: var(--nc-text);
+  display: flex;
+  height: auto;
+  justify-content: center;
+  margin: 0 auto var(--nc-space-4);
+  width: auto;
+}
+
+.empty-icon ion-icon {
+  color: var(--nc-text-secondary);
+  font-size: 36px;
+  opacity: 0.9;
+}
+
+.empty-state h2 {
+  color: var(--nc-text);
+  font-size: clamp(1.5rem, 2.4vw, 1.9rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.empty-description {
+  color: var(--nc-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: var(--nc-space-3) 0 0;
+  max-width: 320px;
+}
+
+@media (min-width: 768px) {
+  .notes-container {
+    padding-top: var(--nc-space-6);
+  }
+}
