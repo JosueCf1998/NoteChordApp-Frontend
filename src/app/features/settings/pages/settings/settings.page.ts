@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, inject } from '@angular/core';
 import { AlertController } from '@ionic/angular';
 
 import { AuthService } from '../../../../core/auth/auth.service';
+import { NavigationService } from '../../../../core/navigation/navigation.service';
 import { AppearanceMode, ThemeService } from '../../../../core/theme/theme.service';
 
 @Component({
@@ -12,14 +12,12 @@ import { AppearanceMode, ThemeService } from '../../../../core/theme/theme.servi
   standalone: false
 })
 export class SettingsPage {
-  readonly user$ = this.authService.user$;
+  private readonly authService = inject(AuthService);
+  private readonly navService = inject(NavigationService);
+  private readonly themeService = inject(ThemeService);
+  private readonly alertController = inject(AlertController);
 
-  constructor(
-    private readonly authService: AuthService,
-    private readonly router: Router,
-    private readonly themeService: ThemeService,
-    private readonly alertController: AlertController
-  ) {}
+  readonly user$ = this.authService.user$;
 
   get appearance() {
     return this.themeService.appearance;
@@ -30,12 +28,7 @@ export class SettingsPage {
   }
 
   backToFolders() {
-    if (window.history.length > 1) {
-      window.history.back();
-      return;
-    }
-
-    return this.router.navigateByUrl('/home');
+    return this.navService.backToFolders();
   }
 
   async logout() {
@@ -65,6 +58,6 @@ export class SettingsPage {
 
   private async performLogout() {
     await this.authService.logout();
-    await this.router.navigateByUrl('/login', { replaceUrl: true });
+    await this.navService.goToLogin('back');
   }
 }

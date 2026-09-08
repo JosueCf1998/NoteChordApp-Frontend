@@ -1,11 +1,12 @@
 import { Component, ViewChild, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { ActionSheetController } from '@ionic/angular';
 import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 
 import { FolderService } from '../../../folders/services/folder.service';
 import { Note } from '../../models/note.model';
 import { NoteService } from '../../services/note.service';
+import { NavigationService } from '../../../../core/navigation/navigation.service';
 import { FloatingSearchActionComponent } from '../../../../shared/components/floating-search-action/floating-search-action.component';
 import { AnimatedPageTitleComponent } from '../../../../shared/components/animated-page-title/animated-page-title.component';
 
@@ -22,7 +23,7 @@ interface NoteGroup {
 })
 export class NotesPage {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
+  private readonly navService = inject(NavigationService);
   private readonly noteService = inject(NoteService);
   private readonly folderService = inject(FolderService);
   private readonly actionSheetController = inject(ActionSheetController);
@@ -84,7 +85,7 @@ export class NotesPage {
   }
 
   toggleCreateForm() {
-    void this.router.navigate(['/notes', this.folderId, 'new']);
+    void this.navService.goToCreateNote(this.folderId);
   }
 
   focusSearch() {
@@ -137,7 +138,7 @@ export class NotesPage {
   }
 
   openNote(noteId: string) {
-    return this.router.navigate(['/notes', this.folderId, noteId]);
+    return this.navService.goToNoteEditor(this.folderId, noteId);
   }
 
   deleteNote(noteId: string, title: string) {
@@ -190,15 +191,10 @@ export class NotesPage {
   }
 
   backToFolders() {
-    if (window.history.length > 1) {
-      window.history.back();
-      return;
-    }
-
-    return this.router.navigateByUrl('/home');
+    return this.navService.backToFolders();
   }
 
   openSettings() {
-    return this.router.navigateByUrl('/settings');
+    return this.navService.goToSettings();
   }
 }

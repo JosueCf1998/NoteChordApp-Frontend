@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, inject } from '@angular/core';
 
 import { AuthService } from '../../../core/auth/auth.service';
+import { NavigationService } from '../../../core/navigation/navigation.service';
 
 @Component({
   selector: 'app-login',
@@ -10,17 +10,15 @@ import { AuthService } from '../../../core/auth/auth.service';
   standalone: false
 })
 export class LoginPage {
+  private readonly authService = inject(AuthService);
+  private readonly navService = inject(NavigationService);
+
   email = '';
   password = '';
   errorMessage = '';
   isSubmitting = false;
   isRegisterMode = false;
   statusMessage = '';
-
-  constructor(
-    private readonly authService: AuthService,
-    private readonly router: Router
-  ) {}
 
   async login() {
     this.errorMessage = '';
@@ -36,7 +34,7 @@ export class LoginPage {
           window.setTimeout(() => reject(new Error('LOGIN_TIMEOUT')), 15000);
         })
       ]);
-      await this.router.navigateByUrl('/home');
+      await this.navService.goToHome(true);
     } catch (error) {
       this.errorMessage = error instanceof Error && error.message === 'LOGIN_TIMEOUT'
         ? 'La conexión con Firebase tardó demasiado. Comprueba la conexión a Internet.'

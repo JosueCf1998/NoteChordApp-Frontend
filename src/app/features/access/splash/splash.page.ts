@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
+import { NavigationService } from '../../../core/navigation/navigation.service';
 
 @Component({
   selector: 'app-splash',
@@ -11,10 +11,8 @@ import { AuthService } from '../../../core/auth/auth.service';
   standalone: false
 })
 export class SplashPage implements OnInit {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly router: Router
-  ) {}
+  private readonly authService = inject(AuthService);
+  private readonly navService = inject(NavigationService);
 
   async ngOnInit() {
     const [user] = await Promise.all([
@@ -22,6 +20,10 @@ export class SplashPage implements OnInit {
       new Promise<void>((resolve) => window.setTimeout(resolve, 700))
     ]);
 
-    await this.router.navigateByUrl(user ? '/home' : '/login', { replaceUrl: true });
+    if (user) {
+      await this.navService.goToHome(true);
+    } else {
+      await this.navService.goToLogin('forward');
+    }
   }
 }

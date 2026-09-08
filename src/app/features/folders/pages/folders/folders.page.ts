@@ -1,12 +1,12 @@
 import { Component, ViewChild, inject } from '@angular/core';
 import { ActionSheetController } from '@ionic/angular';
-import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 
 import { AuthService } from '../../../../core/auth/auth.service';
 import { Folder } from '../../models/folder.model';
 import { FolderService } from '../../services/folder.service';
 import { NoteService } from '../../../notes/services/note.service';
+import { NavigationService } from '../../../../core/navigation/navigation.service';
 import { FloatingSearchActionComponent } from '../../../../shared/components/floating-search-action/floating-search-action.component';
 
 @Component({
@@ -19,7 +19,7 @@ export class FoldersPage {
   private readonly authService = inject(AuthService);
   private readonly folderService = inject(FolderService);
   private readonly noteService = inject(NoteService);
-  private readonly router = inject(Router);
+  private readonly navService = inject(NavigationService);
   private readonly actionSheetController = inject(ActionSheetController);
 
   private readonly defaultFolderColor = '#3164F4';
@@ -55,7 +55,7 @@ export class FoldersPage {
   private longPressOrigin?: { x: number; y: number };
 
   openFolder(folderId: string) {
-    return this.router.navigate(['/notes', folderId]);
+    return this.navService.goToFolderNotes(folderId);
   }
 
   handleFolderClick(folderId: string) {
@@ -129,7 +129,7 @@ export class FoldersPage {
   }
 
   openSettings() {
-    return this.router.navigateByUrl('/settings');
+    return this.navService.goToSettings();
   }
 
   async focusSearch() {
@@ -221,6 +221,6 @@ export class FoldersPage {
 
   async logout() {
     await this.authService.logout();
-    return this.router.navigateByUrl('/login', { replaceUrl: true });
+    return this.navService.goToLogin('back');
   }
 }

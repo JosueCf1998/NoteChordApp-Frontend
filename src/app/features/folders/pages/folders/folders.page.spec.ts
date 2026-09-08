@@ -1,13 +1,13 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActionSheetController, IonicModule } from '@ionic/angular';
-import { Router } from '@angular/router';
 import { of } from 'rxjs';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import { AuthService } from '../../../../core/auth/auth.service';
 import { FolderService } from '../../services/folder.service';
 import { NoteService } from '../../../notes/services/note.service';
+import { NavigationService } from '../../../../core/navigation/navigation.service';
 import { FoldersPage } from './folders.page';
 
 describe('FoldersPage', () => {
@@ -33,9 +33,10 @@ describe('FoldersPage', () => {
     forFolder: () => of([])
   };
 
-  const routerMock = {
-    navigate: () => Promise.resolve(true),
-    navigateByUrl: () => Promise.resolve(true)
+  const navServiceMock = {
+    goToFolderNotes: () => Promise.resolve(true),
+    goToSettings: () => Promise.resolve(true),
+    goToLogin: () => Promise.resolve(true)
   };
 
   const actionSheetControllerMock = {
@@ -50,7 +51,7 @@ describe('FoldersPage', () => {
         { provide: AuthService, useValue: authServiceMock },
         { provide: FolderService, useValue: folderServiceMock },
         { provide: NoteService, useValue: noteServiceMock },
-        { provide: Router, useValue: routerMock },
+        { provide: NavigationService, useValue: navServiceMock },
         { provide: ActionSheetController, useValue: actionSheetControllerMock }
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]

@@ -1,5 +1,5 @@
 import { Component, OnDestroy, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { Keyboard } from '@capacitor/keyboard';
 import { Observable, Subscription, of } from 'rxjs';
 import { AlertController } from '@ionic/angular';
@@ -7,6 +7,7 @@ import { AlertController } from '@ionic/angular';
 import { Folder } from '../../../folders/models/folder.model';
 import { FolderService } from '../../../folders/services/folder.service';
 import { NoteService } from '../../services/note.service';
+import { NavigationService } from '../../../../core/navigation/navigation.service';
 
 interface NoteSection {
   title: string;
@@ -21,7 +22,7 @@ interface NoteSection {
 })
 export class NoteEditorPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
+  private readonly navService = inject(NavigationService);
   private readonly noteService = inject(NoteService);
   private readonly folderService = inject(FolderService);
   private readonly alertController = inject(AlertController);
@@ -122,7 +123,7 @@ export class NoteEditorPage implements OnDestroy {
   }
 
   createAnotherNote() {
-    void this.router.navigate(['/notes', this.folderId, 'new']);
+    void this.navService.goToCreateNote(this.folderId);
   }
 
   closeOptions() {
@@ -174,7 +175,7 @@ export class NoteEditorPage implements OnDestroy {
         this.isDirty = false;
         this.statusMessage = 'Guardado';
         this.subscribeToNote(note.id);
-        await this.router.navigate(['/notes', this.folderId, note.id], { replaceUrl: true });
+        await this.navService.replaceNoteUrl(this.folderId, note.id);
         return;
       }
 
@@ -189,12 +190,7 @@ export class NoteEditorPage implements OnDestroy {
   }
 
   backToNotes() {
-    if (window.history.length > 1) {
-      window.history.back();
-      return;
-    }
-
-    return this.router.navigate(['/notes', this.folderId]);
+    return this.navService.backToNotes(this.folderId);
   }
 
   markDirty() {

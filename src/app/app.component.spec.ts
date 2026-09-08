@@ -2,6 +2,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach } from 'vitest';
 
+import { NavigationService } from './core/navigation/navigation.service';
 import { AppComponent } from './app.component';
 import { ThemeService } from './core/theme/theme.service';
 
@@ -10,11 +11,17 @@ describe('AppComponent', () => {
     appearance: 'system'
   };
 
+  const navigationServiceMock = {
+    initHardwareBackButton: () => {},
+    setRouterOutlet: () => {}
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [AppComponent],
       providers: [
-        { provide: ThemeService, useValue: themeServiceMock }
+        { provide: ThemeService, useValue: themeServiceMock },
+        { provide: NavigationService, useValue: navigationServiceMock }
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     })
