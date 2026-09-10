@@ -1,5 +1,7 @@
 {
   "name": "notechord",
-  "integrations": {},
+  "integrations": {
+    "capacitor": {}
+  },
   "type": "angular"
 }
