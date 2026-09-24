@@ -20,9 +20,12 @@ ion-list {
   border-radius: var(--nc-radius-lg);
   box-shadow: var(--nc-shadow-sm);
   contain: paint;
+  margin: 0 !important;
   max-width: 100%;
   min-width: 0;
   overflow: hidden;
-  padding: 0;
+  padding: 0 !important;
+  padding-bottom: 0 !important;
+  padding-top: 0 !important;
   width: 100%;
 }

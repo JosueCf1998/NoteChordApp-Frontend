@@ -8,7 +8,7 @@
           [value]="searchTerm"
           (input)="onSearchInput($event)"
           type="text"
-          placeholder="Buscar páginas y carpetas..."
+          placeholder="Buscar notas y carpetas…"
           autocomplete="off"
           autocorrect="off"
           spellcheck="false"
@@ -45,29 +45,30 @@
             <ion-icon name="search-outline"></ion-icon>
           </div>
           <h3>Sin resultados</h3>
-          <p>No encontramos páginas ni carpetas para “{{ searchTerm }}”.</p>
+          <p>No encontramos notas ni carpetas para “{{ searchTerm }}”.</p>
         </div>
 
-        <!-- SECCIÓN 1: PÁGINAS (NOTAS) -->
+        <!-- SECCIÓN 1: NOTAS -->
         <section class="search-section" *ngIf="data.notes && data.notes.length > 0">
-          <h2 class="search-section-title">Páginas ({{ data.notes.length }})</h2>
+          <h2 class="search-section-title">Notas ({{ data.notes.length }})</h2>
           <div class="search-results-card">
             <ion-item
               *ngFor="let note of data.notes"
               button
               detail="false"
               lines="none"
-              class="search-result-row"
+              class="search-result-row search-note-row"
               (click)="selectNote(note)"
             >
-              <div class="item-icon-wrapper note-icon" slot="start" aria-hidden="true">
-                <ion-icon name="document-text-outline"></ion-icon>
-              </div>
-              <ion-label>
+              <ion-label class="note-result-label">
                 <h3 class="result-title">{{ note.title }}</h3>
-                <p class="result-subtitle" *ngIf="note.content">
-                  <span>{{ note.updatedAt | appNoteDate }}</span>
-                  <span>{{ note.content | appNotePreview }}</span>
+                <p class="result-subtitle">
+                  <span class="note-date">{{ note.updatedAt | appNoteDate }}</span>
+                  <span class="note-preview" *ngIf="note.content">{{ note.content | appNotePreview }}</span>
+                </p>
+                <p class="result-folder" *ngIf="note.folderName">
+                  <ion-icon name="folder-outline" aria-hidden="true"></ion-icon>
+                  <span>{{ note.folderName }}</span>
                 </p>
               </ion-label>
               <ion-icon
@@ -118,7 +119,7 @@
           <ion-icon name="search-outline"></ion-icon>
         </div>
         <h3>Buscar en NoteChord</h3>
-        <p>Escribe el nombre de una página o carpeta para encontrarla rápidamente.</p>
+        <p>Escribe el nombre de una nota o carpeta para encontrarla rápidamente.</p>
       </div>
     </ng-template>
   </main>

@@ -106,10 +106,25 @@ export class NotesListPage {
     return this.navService.push('/search');
   }
 
+  private getNoteDate(note: Note): Date | null {
+    const ts = note.updatedAt;
+    if (!ts) return null;
+    if (ts instanceof Date) return ts;
+    if (typeof (ts as any).toDate === 'function') return (ts as any).toDate();
+    if (typeof (ts as any).seconds === 'number') return new Date((ts as any).seconds * 1000);
+    const parsed = new Date(ts as any);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  private getNoteTime(note: Note): number {
+    return this.getNoteDate(note)?.getTime() ?? 0;
+  }
+
   private groupNotes(notes: Note[]): NoteGroup[] {
+    const sortedNotes = [...notes].sort((a, b) => this.getNoteTime(b) - this.getNoteTime(a));
     const groups = new Map<string, NoteGroup>();
 
-    for (const note of notes) {
+    for (const note of sortedNotes) {
       const label = this.noteGroupLabel(note);
       const group = groups.get(label);
 
@@ -123,8 +138,8 @@ export class NotesListPage {
     return [...groups.values()];
   }
 
-  private noteGroupLabel(note: Note) {
-    const date = note.updatedAt?.toDate?.();
+  private noteGroupLabel(note: Note): string {
+    const date = this.getNoteDate(note);
 
     if (!date) {
       return 'Recientes';
@@ -135,20 +150,31 @@ export class NotesListPage {
     const noteDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const daysAgo = Math.floor((today.getTime() - noteDay.getTime()) / 86400000);
 
-    if (daysAgo >= 0 && daysAgo < 7) {
+    // Mismo día (hoy) o futuro por desfase
+    if (daysAgo <= 0) {
+      return 'Hoy';
+    }
+
+    // Últimos 7 días (de 1 a 7 días atrás)
+    if (daysAgo <= 7) {
       return 'Últimos 7 días';
     }
 
-    if (daysAgo >= 0 && daysAgo < 30) {
+    // Últimos 30 días (de 8 a 30 días atrás)
+    if (daysAgo <= 30) {
       return 'Últimos 30 días';
     }
 
+    // Meses del año actual
+    const month = new Intl.DateTimeFormat('es-PE', { month: 'long' }).format(date);
+    const capitalizedMonth = month.charAt(0).toLocaleUpperCase() + month.slice(1);
+
     if (date.getFullYear() === now.getFullYear()) {
-      const month = new Intl.DateTimeFormat('es-PE', { month: 'long' }).format(date);
-      return month.charAt(0).toLocaleUpperCase() + month.slice(1);
+      return capitalizedMonth;
     }
 
-    return String(date.getFullYear());
+    // Meses + Año para años anteriores
+    return `${capitalizedMonth} de ${date.getFullYear()}`;
   }
 
   deleteNote(noteId: string, title: string) {

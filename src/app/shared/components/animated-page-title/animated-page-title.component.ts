@@ -1,8 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-const COLLAPSE_THRESHOLD = 4;
-const GESTURE_THRESHOLD = 6;
+const COLLAPSE_THRESHOLD = 45;
 
 @Component({
   selector: 'app-animated-page-title',
@@ -26,12 +25,8 @@ export class AnimatedPageTitleComponent {
     this.gestureStartY = event.touches[0]?.clientY;
   }
 
-  handleGestureMove(event: TouchEvent) {
-    const currentY = event.touches[0]?.clientY;
-
-    if (this.gestureStartY !== undefined && currentY !== undefined && this.gestureStartY - currentY > GESTURE_THRESHOLD) {
-      this.setCollapsed(true);
-    }
+  handleGestureMove(_event: TouchEvent) {
+    // Scroll events handle collapse state at the appropriate threshold
   }
 
   async handleGestureEnd(event: TouchEvent) {
@@ -44,7 +39,7 @@ export class AnimatedPageTitleComponent {
 
     const scrollElement = await content.getScrollElement();
 
-    if (scrollElement.scrollHeight <= scrollElement.clientHeight + 1) {
+    if (scrollElement.scrollTop <= COLLAPSE_THRESHOLD || scrollElement.scrollHeight <= scrollElement.clientHeight + 1) {
       this.setCollapsed(false);
     }
   }

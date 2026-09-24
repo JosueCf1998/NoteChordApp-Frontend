@@ -14,4 +14,5 @@ export class TopNavbarComponent {
   @Input() subtitle = '';
   @Input() showTitle = false;
   @Input() floatingControls = false;
+  @Input() overlay = false;
 }

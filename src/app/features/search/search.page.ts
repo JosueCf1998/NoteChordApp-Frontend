@@ -11,6 +11,10 @@ import { GetFoldersUseCase } from '../../core/use-cases/folders';
 import { NavigationService } from '../../core/navigation/navigation.service';
 import { SharedModule } from '../../shared/shared.module';
 
+export interface SearchNoteItem extends Note {
+  folderName: string;
+}
+
 @Component({
   selector: 'app-search',
   templateUrl: './search.page.html',
@@ -35,19 +39,31 @@ export class SearchPage implements AfterViewInit {
     map((res) => res.data || [])
   );
 
-  readonly matchingNotes$: Observable<Note[]> = combineLatest([
+  readonly matchingNotes$: Observable<SearchNoteItem[]> = combineLatest([
     this.allNotes$,
+    this.folders$,
     this.searchTerm$
   ]).pipe(
-    map(([notes, term]) => {
+    map(([notes, folders, term]) => {
       const cleanTerm = term.trim().toLocaleLowerCase();
       if (!cleanTerm) {
         return [];
       }
-      return notes.filter((note) =>
-        note.title.toLocaleLowerCase().includes(cleanTerm) ||
-        note.content.toLocaleLowerCase().includes(cleanTerm)
-      );
+      const folderMap = new Map<string, string>(folders.map((f) => [f.id, f.name]));
+      return notes
+        .filter((note) =>
+          note.title.toLocaleLowerCase().includes(cleanTerm) ||
+          note.content.toLocaleLowerCase().includes(cleanTerm)
+        )
+        .sort((a, b) => {
+          const timeA = (a.updatedAt as any)?.toMillis?.() ?? (a.updatedAt as any)?.seconds * 1000 ?? 0;
+          const timeB = (b.updatedAt as any)?.toMillis?.() ?? (b.updatedAt as any)?.seconds * 1000 ?? 0;
+          return timeB - timeA;
+        })
+        .map((note) => ({
+          ...note,
+          folderName: folderMap.get(note.folderId) || 'Notas'
+        }));
     })
   );
 

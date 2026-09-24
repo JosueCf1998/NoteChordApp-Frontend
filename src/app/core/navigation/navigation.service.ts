@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationStart, Router } from '@angular/router';
 import { App } from '@capacitor/app';
 import { IonRouterOutlet, NavController, Platform } from '@ionic/angular';
 
@@ -12,6 +12,34 @@ export class NavigationService {
   private isNavigating = false;
   private readonly navigationLockMs = 150;
   private routerOutlet?: IonRouterOutlet;
+
+  constructor() {
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        this.blurActiveElement();
+      }
+    });
+  }
+
+  private blurActiveElement() {
+    if (typeof document === 'undefined') return;
+
+    try {
+      let active: Element | null = document.activeElement;
+      while (active?.shadowRoot?.activeElement) {
+        active = active.shadowRoot.activeElement;
+      }
+
+      if (active instanceof HTMLElement) {
+        active.blur();
+      }
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    } catch {
+      // Ignore if DOM is not ready
+    }
+  }
 
   setRouterOutlet(outlet?: IonRouterOutlet) {
     this.routerOutlet = outlet;
@@ -42,6 +70,7 @@ export class NavigationService {
   async push(path: string | any[], state?: any): Promise<void> {
     if (this.isNavigating) return;
     this.isNavigating = true;
+    this.blurActiveElement();
     try {
       await this.navCtrl.navigateForward(path as any, {
         animated: true,
@@ -59,6 +88,7 @@ export class NavigationService {
   async back(): Promise<void> {
     if (this.isNavigating) return;
     this.isNavigating = true;
+    this.blurActiveElement();
     try {
       await this.navCtrl.back({ animated: true, animationDirection: 'back' });
     } finally {
@@ -77,6 +107,7 @@ export class NavigationService {
   ): Promise<void> {
     if (this.isNavigating) return;
     this.isNavigating = true;
+    this.blurActiveElement();
     try {
       await this.navCtrl.navigateRoot(path as any, {
         animated,

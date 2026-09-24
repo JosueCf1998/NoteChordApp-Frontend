@@ -1,17 +1,40 @@
-/* ─── Header & Toolbar (Apple Notes iOS style) ─────────────────────────────── */
+/* ─── Header & Toolbar (NoteChord Design System) ─────────────────────────── */
 
 .search-header {
-  background: var(--nc-background-secondary);
+  background: transparent;
+  border: 0;
+  border-bottom: 0;
+  box-shadow: none;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    bottom: -24px;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--nc-background-secondary) 80%, transparent) 0%,
+      color-mix(in srgb, var(--nc-background-secondary) 35%, transparent) 45%,
+      transparent 100%
+    );
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    mask-image: linear-gradient(to bottom, black 0%, black 35%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, black 35%, transparent 100%);
+    pointer-events: none;
+    z-index: -1;
+  }
 }
 
 .search-toolbar {
-  --background: var(--nc-background-secondary);
+  --background: transparent;
   --border-width: 0;
-  --min-height: 60px;
+  --min-height: calc(56px + env(safe-area-inset-top));
   --padding-bottom: var(--nc-space-2);
   --padding-end: var(--nc-page-gutter);
   --padding-start: var(--nc-page-gutter);
-  --padding-top: var(--nc-space-2);
+  --padding-top: calc(var(--nc-space-2) + env(safe-area-inset-top));
 }
 
 .search-bar-row {
@@ -26,21 +49,21 @@
 .search-input-pill {
   align-items: center;
   background: var(--nc-surface);
-  border: 1px solid var(--nc-border);
+  border: 1px solid color-mix(in srgb, var(--nc-border) 60%, transparent);
   border-radius: var(--nc-radius-round);
-  box-shadow: var(--nc-shadow-sm);
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.06);
   box-sizing: border-box;
   display: flex;
   flex: 1;
   height: 44px;
   min-width: 0;
-  padding: 0 10px 0 14px;
+  padding: 0 12px 0 14px;
   position: relative;
   transition: border-color var(--nc-transition-fast), box-shadow var(--nc-transition-fast);
 
   &:focus-within {
-    border-color: var(--nc-primary);
-    box-shadow: 0 0 0 3px var(--nc-focus-ring);
+    border-color: color-mix(in srgb, var(--nc-primary) 35%, var(--nc-border));
+    box-shadow: 0 4px 14px rgba(16, 24, 40, 0.09);
   }
 
   .search-icon {
@@ -48,6 +71,7 @@
     flex-shrink: 0;
     font-size: 19px;
     margin-right: 8px;
+    opacity: 0.8;
   }
 
   input {
@@ -68,7 +92,7 @@
 
     &::placeholder {
       color: var(--nc-text-secondary);
-      opacity: 0.8;
+      opacity: 0.7;
     }
   }
 
@@ -83,10 +107,13 @@
     font-size: 18px;
     justify-content: center;
     margin: 0;
+    opacity: 0.7;
     padding: 4px;
+    transition: opacity var(--nc-transition-fast);
 
-    &:hover {
-      color: var(--nc-text);
+    &:hover,
+    &:active {
+      opacity: 1;
     }
   }
 }
@@ -99,13 +126,14 @@
   flex-shrink: 0;
   font-family: var(--nc-font-family);
   font-size: var(--nc-font-size-body);
-  font-weight: var(--nc-font-weight-semibold);
+  font-weight: var(--nc-font-weight-regular);
   margin: 0;
   padding: 8px 4px;
   white-space: nowrap;
+  transition: opacity var(--nc-transition-fast);
 
   &:active {
-    opacity: 0.65;
+    opacity: 0.6;
   }
 }
 
@@ -140,7 +168,7 @@
 
 .search-results-card {
   background: var(--nc-surface-raised);
-  border: 1px solid var(--nc-border);
+  border: 0;
   border-radius: var(--nc-radius-lg);
   box-shadow: var(--nc-shadow-sm);
   overflow: hidden;
@@ -152,7 +180,7 @@
   --border-width: 0 0 1px 0;
   --inner-padding-end: var(--nc-space-3);
   --min-height: 56px;
-  --padding-start: var(--nc-space-3);
+  --padding-start: var(--nc-space-4);
   cursor: pointer;
   transition: background var(--nc-transition-fast);
 
@@ -167,29 +195,26 @@
 
 .item-icon-wrapper {
   align-items: center;
-  border-radius: var(--nc-radius-sm);
   display: flex;
-  flex: 0 0 32px;
-  height: 32px;
+  flex: 0 0 28px;
+  height: 28px;
   justify-content: center;
   margin-right: var(--nc-space-3);
-  width: 32px;
+  width: 28px;
 
   &.note-icon {
-    background: var(--nc-primary-soft);
-    color: var(--nc-primary);
+    color: var(--nc-text-secondary);
 
     ion-icon {
-      font-size: 20px;
+      font-size: 22px;
     }
   }
 
   &.folder-icon {
-    background: color-mix(in srgb, #f59e0b 14%, transparent);
-    color: #f59e0b;
+    color: var(--nc-primary);
 
     ion-icon {
-      font-size: 20px;
+      font-size: 22px;
     }
   }
 }
@@ -232,6 +257,44 @@
   }
 }
 
+.search-note-row {
+  --min-height: 64px;
+  --padding-start: var(--nc-space-4);
+}
+
+.note-result-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 10px 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.result-folder {
+  align-items: center;
+  color: var(--nc-text-secondary);
+  display: inline-flex;
+  font-family: var(--nc-font-family);
+  font-size: var(--nc-font-size-caption);
+  gap: 5px;
+  margin: 2px 0 0;
+  opacity: 0.85;
+
+  ion-icon {
+    font-size: 13px;
+    height: 13px;
+    width: 13px;
+    flex-shrink: 0;
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 .row-chevron {
   color: var(--nc-text-secondary);
   font-size: 16px;
@@ -246,7 +309,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin: 4.5rem auto 0;
+  margin: 5rem auto 0;
   max-width: 320px;
   padding: 0 var(--nc-space-4);
   text-align: center;
@@ -254,17 +317,20 @@
   .empty-icon,
   .hint-icon {
     align-items: center;
-    background: var(--nc-primary-soft);
+    background: var(--nc-surface);
+    border: 1px solid color-mix(in srgb, var(--nc-border) 60%, transparent);
     border-radius: var(--nc-radius-round);
-    color: var(--nc-primary);
+    box-shadow: 0 2px 10px rgba(16, 24, 40, 0.06);
+    color: var(--nc-text-secondary);
     display: flex;
-    height: 64px;
+    height: 60px;
     justify-content: center;
     margin-bottom: var(--nc-space-4);
-    width: 64px;
+    width: 60px;
 
     ion-icon {
-      font-size: 30px;
+      font-size: 28px;
+      opacity: 0.85;
     }
   }
 
@@ -273,6 +339,7 @@
     font-family: var(--nc-font-family);
     font-size: var(--nc-font-size-section);
     font-weight: var(--nc-font-weight-bold);
+    letter-spacing: -0.02em;
     margin: 0 0 var(--nc-space-2);
   }
 
@@ -284,4 +351,3 @@
     margin: 0;
   }
 }
-

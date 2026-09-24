@@ -8,11 +8,11 @@
   --nc-primary-rgb: 49, 100, 244;
   --nc-primary-soft: #edf2ff;
 
-  /* Fondos y Superficies */
-  --nc-background: #ffffff;             /* Fondo de notas y modales */
-  --nc-background-secondary: #f5f7fb;   /* Fondo detrás de listas (canvas) */
-  --nc-surface: #ffffff;                /* Superficie de celdas y barras */
-  --nc-surface-raised: #ffffff;         /* Superficies elevadas y popovers */
+  /* Fondos y Superficies (Escala de 3 tonalidades de blanco) */
+  --nc-background: #f8f9fb;             /* Tono 2 (Intermedio): Fondo de notas y modales (el que usa items) */
+  --nc-background-secondary: #eaedf3;   /* Tono 1 (Menos blanco): Fondo detrás de listas (canvas) */
+  --nc-surface: #ffffff;                /* Tono 3 (Más blanco): Cabeceras, barras y controles */
+  --nc-surface-raised: #f8f9fb;         /* Tono 2 (Intermedio): Superficie de celdas e items */
 
   /* Textos */
   --nc-text: #101828;                   /* Texto principal y títulos */
@@ -89,7 +89,7 @@
   --ion-color-danger-rgb: var(--nc-danger-rgb);
 
   --ion-background-color: var(--nc-background-secondary);
-  --ion-background-color-rgb: 245, 247, 251;
+  --ion-background-color-rgb: 234, 237, 243;
   --ion-text-color: var(--nc-text);
   --ion-text-color-rgb: 16, 24, 40;
   --ion-toolbar-background: var(--nc-surface);
