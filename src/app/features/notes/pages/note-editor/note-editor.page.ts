@@ -1,17 +1,20 @@
 import { Component, OnDestroy, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Keyboard } from '@capacitor/keyboard';
-import { Observable, Subscription, of } from 'rxjs';
+import { Subject, Subscription, debounceTime } from 'rxjs';
 import { DialogService } from '../../../../core/dialog/dialog.service';
-import { Folder } from '../../../folders/models/folder.model';
-import { FolderService } from '../../../folders/services/folder.service';
 import { NoteService } from '../../services/note.service';
 import { NavigationService } from '../../../../core/navigation/navigation.service';
 
-interface NoteSection {
-  title: string;
-  content: string;
-}
+/** Umbral de scroll (px) al que se considera "arriba" y se muestra la fecha. */
+const SCROLL_TOP_THRESHOLD = 8;
+/** Diferencia mínima de scroll hacia abajo para ocultar la fecha. */
+const SCROLL_DOWN_DELTA = 4;
+/** Diferencia mínima de scroll hacia arriba (cerca del top) para mostrar la fecha. */
+const SCROLL_UP_DELTA = -8;
+/** Scroll máximo (px) dentro del cual el scroll rápido arriba muestra la fecha. */
+const SCROLL_NEAR_TOP = 120;
+/** Milisegundos de inactividad tras dejar de tocar antes de ocultar la fecha. */
+const DATE_HIDE_DELAY_MS = 3000;
 
 @Component({
   selector: 'app-note-editor',
@@ -23,34 +26,43 @@ export class NoteEditorPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly navService = inject(NavigationService);
   private readonly noteService = inject(NoteService);
-  private readonly folderService = inject(FolderService);
   private readonly dialogService = inject(DialogService);
 
   folderId = '';
   noteId = '';
-  folder$: Observable<Folder | null> = of(null);
   title = '';
   content = '';
   errorMessage = '';
-  statusMessage = '';
   isLoading = true;
-  isSaving = false;
   isDirty = false;
-  isViewMode = false;
   isOptionsOpen = false;
-  updatedAtLabel = '';
-  sections: NoteSection[] = [];
+  formattedFullDate = '';
+  isDateVisible = false;
+
+  private lastScrollTop = 0;
+  private gestureStartY?: number;
+  private dateHideTimeout?: ReturnType<typeof setTimeout>;
+
+  private readonly saveSubject = new Subject<void>();
+  private readonly autoSaveSubscription: Subscription;
   private noteSubscription?: Subscription;
   private readonly routeSubscription: Subscription;
 
   constructor() {
+    this.autoSaveSubscription = this.saveSubject.pipe(
+      debounceTime(800)
+    ).subscribe(() => {
+      if (this.isDirty) {
+        void this.save();
+      }
+    });
+
     this.routeSubscription = this.route.paramMap.subscribe((params) => {
       const folderId = params.get('folderId') ?? '';
       const noteId = params.get('noteId') ?? '';
 
       if (folderId !== this.folderId) {
         this.folderId = folderId;
-        this.folder$ = this.folderService.watch(this.folderId);
       }
 
       if (noteId !== this.noteId) {
@@ -61,8 +73,7 @@ export class NoteEditorPage implements OnDestroy {
           this.noteSubscription = undefined;
           this.title = '';
           this.content = '';
-          this.sections = [];
-          this.updatedAtLabel = '';
+          this.formattedFullDate = this.formatFullDate(new Date());
           this.isLoading = false;
           this.isDirty = false;
         } else {
@@ -80,8 +91,7 @@ export class NoteEditorPage implements OnDestroy {
         if (note && !this.isDirty) {
           this.title = note.title;
           this.content = note.content;
-          this.updatedAtLabel = this.formatUpdatedAt(note.updatedAt?.toDate?.());
-          this.updateSections();
+          this.formattedFullDate = this.formatFullDate(note.updatedAt?.toDate?.() || new Date());
         }
         this.isLoading = false;
       },
@@ -92,41 +102,89 @@ export class NoteEditorPage implements OnDestroy {
     });
   }
 
-  async setViewMode(isViewMode: boolean) {
-    if (this.isViewMode === isViewMode) {
-      return;
+  // ─── Scroll / Gesture handlers ────────────────────────────────────────────
+
+  handleScroll(event: Event) {
+    const scrollTop = (event as CustomEvent<{ scrollTop: number }>).detail?.scrollTop ?? 0;
+    const delta = scrollTop - this.lastScrollTop;
+
+    if (scrollTop <= SCROLL_TOP_THRESHOLD && delta <= 0) {
+      // Está cerca del tope (incluyendo rubber-band negativo)
+      this.setDateVisible(true);
+    } else if (delta > SCROLL_DOWN_DELTA) {
+      // Desplazamiento notable hacia abajo → ocultar
+      this.setDateVisible(false);
+    } else if (delta < SCROLL_UP_DELTA && scrollTop < SCROLL_NEAR_TOP) {
+      // Deslizamiento rápido hacia arriba cerca del top → mostrar
+      this.setDateVisible(true);
     }
 
-    if (isViewMode) {
-      (document.activeElement as HTMLElement | null)?.blur?.();
-      await Keyboard.hide().catch(() => undefined);
+    this.lastScrollTop = Math.max(0, scrollTop);
+  }
+
+  handleGestureStart(event: TouchEvent) {
+    this.gestureStartY = event.touches[0]?.clientY;
+  }
+
+  handleGestureMove(event: TouchEvent) {
+    const currentY = event.touches[0]?.clientY;
+
+    if (this.gestureStartY !== undefined && currentY !== undefined) {
+      const deltaY = currentY - this.gestureStartY;
+      if (deltaY > 10 && this.lastScrollTop <= 12) {
+        this.setDateVisible(true);
+      } else if (deltaY < -10) {
+        this.setDateVisible(false);
+      }
     }
-
-    this.isViewMode = isViewMode;
   }
 
-  toggleViewMode() {
-    return this.setViewMode(!this.isViewMode);
+  handleGestureEnd() {
+    this.gestureStartY = undefined;
+    if (this.isDateVisible && this.lastScrollTop > SCROLL_TOP_THRESHOLD) {
+      clearTimeout(this.dateHideTimeout);
+      this.dateHideTimeout = setTimeout(() => {
+        this.setDateVisible(false);
+      }, DATE_HIDE_DELAY_MS);
+    }
   }
+
+  handleGestureCancel() {
+    this.gestureStartY = undefined;
+  }
+
+  private setDateVisible(visible: boolean) {
+    if (this.isDateVisible !== visible) {
+      this.isDateVisible = visible;
+    }
+  }
+
+  // ─── Options popover ──────────────────────────────────────────────────────
 
   openOptions() {
     this.isOptionsOpen = true;
   }
 
-  shareNote() {
-    const share = navigator.share;
+  closeOptions() {
+    this.isOptionsOpen = false;
+  }
 
-    if (share) {
-      void share.call(navigator, { title: this.title || 'Nota', text: this.content });
+  // ─── Actions ─────────────────────────────────────────────────────────────
+
+  shareNote() {
+    if (navigator.share) {
+      void navigator.share({
+        title: this.title || 'Nota',
+        text: `${this.title ? this.title + '\n\n' : ''}${this.content}`
+      });
     }
   }
 
   createAnotherNote() {
+    if (this.isDirty) {
+      void this.save();
+    }
     void this.navService.goToCreateNote(this.folderId);
-  }
-
-  closeOptions() {
-    this.isOptionsOpen = false;
   }
 
   async deleteNote() {
@@ -134,7 +192,7 @@ export class NoteEditorPage implements OnDestroy {
 
     const confirmed = await this.dialogService.confirm({
       title: 'Eliminar nota',
-      message: `¿Estás seguro de que deseas eliminar “${this.title || 'esta nota'}”? Esta acción no se puede deshacer.`,
+      message: `¿Estás seguro de que deseas eliminar "${this.title || 'esta nota'}"? Esta acción no se puede deshacer.`,
       confirmText: 'Eliminar',
       cancelText: 'Cancelar',
       variant: 'danger',
@@ -148,119 +206,72 @@ export class NoteEditorPage implements OnDestroy {
 
   private async performDelete() {
     try {
-      await this.noteService.delete(this.noteId);
+      if (this.noteId !== 'new') {
+        await this.noteService.delete(this.noteId);
+      }
       await this.backToNotes();
     } catch {
       this.errorMessage = 'No se pudo eliminar la nota.';
     }
   }
 
-  async save() {
-    this.errorMessage = '';
-    this.statusMessage = '';
+  onTitleChange() {
+    this.isDirty = true;
+    this.saveSubject.next();
+  }
 
-    if (!this.title.trim()) {
-      this.errorMessage = 'El título es obligatorio.';
+  onContentChange() {
+    this.isDirty = true;
+    this.saveSubject.next();
+  }
+
+  async save() {
+    const effectiveTitle = this.title.trim() || (this.content.trim().split('\n')[0]?.trim() || '');
+    if (!effectiveTitle) {
       return;
     }
 
-    this.isSaving = true;
-
     try {
       if (this.noteId === 'new') {
-        const note = await this.noteService.create(this.folderId, this.title, this.content);
+        const note = await this.noteService.create(this.folderId, effectiveTitle, this.content);
         this.noteId = note.id;
         this.isDirty = false;
-        this.statusMessage = 'Guardado';
         this.subscribeToNote(note.id);
         await this.navService.replaceNoteUrl(this.folderId, note.id);
         return;
       }
 
-      await this.noteService.update(this.noteId, this.title, this.content);
+      await this.noteService.update(this.noteId, effectiveTitle, this.content);
       this.isDirty = false;
-      this.statusMessage = 'Guardado';
     } catch {
       this.errorMessage = 'No se pudo guardar la nota.';
-    } finally {
-      this.isSaving = false;
     }
   }
 
-  backToNotes() {
+  async backToNotes() {
+    if (this.isDirty) {
+      await this.save();
+    }
     return this.navService.backToNotes(this.folderId);
   }
 
-  markDirty() {
-    this.isDirty = true;
-    this.statusMessage = '';
-  }
+  // ─── Helpers ─────────────────────────────────────────────────────────────
 
-  onContentChange() {
-    this.markDirty();
-    this.updateSections();
-  }
-
-  private formatUpdatedAt(date?: Date) {
-    if (!date) {
-      return 'Guardando…';
-    }
-
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const noteDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const difference = Math.round((today.getTime() - noteDay.getTime()) / 86400000);
-    const time = new Intl.DateTimeFormat('es-PE', { hour: '2-digit', minute: '2-digit' }).format(date);
-
-    if (difference === 0) {
-      return `Hoy, ${time}`;
-    }
-
-    if (difference === 1) {
-      return `Ayer, ${time}`;
-    }
-
-    return new Intl.DateTimeFormat('es-PE', { day: 'numeric', month: 'short' }).format(date);
-  }
-
-  private updateSections() {
-    const lines = this.content.split(/\r?\n/);
-    const sections: NoteSection[] = [];
-    let currentSection: NoteSection | null = null;
-    let unsectionedContent: string[] = [];
-
-    for (const line of lines) {
-      const heading = line.match(/^\s*(.+?):\s*$/);
-
-      if (heading) {
-        if (currentSection) {
-          sections.push(currentSection);
-        } else if (unsectionedContent.some((item) => item.trim())) {
-          sections.push({ title: 'Contenido', content: unsectionedContent.join('\n').trim() });
-        }
-
-        currentSection = { title: heading[1].trim(), content: '' };
-        unsectionedContent = [];
-        continue;
-      }
-
-      if (currentSection) {
-        currentSection.content += `${currentSection.content ? '\n' : ''}${line}`;
-      } else {
-        unsectionedContent.push(line);
-      }
-    }
-
-    if (currentSection) {
-      sections.push(currentSection);
-    } else if (unsectionedContent.some((item) => item.trim())) {
-      sections.push({ title: 'Contenido', content: unsectionedContent.join('\n').trim() });
-    }
-
-    this.sections = sections;
+  private formatFullDate(date: Date): string {
+    const day = date.getDate();
+    const month = new Intl.DateTimeFormat('es-PE', { month: 'long' }).format(date);
+    const year = date.getFullYear();
+    const time = new Intl.DateTimeFormat('es-PE', { hour: 'numeric', minute: '2-digit', hour12: true }).format(date);
+    return `${day} de ${month} de ${year} a las ${time}`;
   }
 
   ngOnDestroy() {
+    clearTimeout(this.dateHideTimeout);
+    // Guardar antes de cancelar suscripciones para no perder cambios pendientes
+    if (this.isDirty) {
+      void this.save();
+    }
+    this.autoSaveSubscription.unsubscribe();
     this.noteSubscription?.unsubscribe();
     this.routeSubscription.unsubscribe();
   }
