@@ -11,7 +11,7 @@ ion-content {
 
 .note-count {
   color: var(--nc-text-secondary);
-  font-size: 0.8125rem;
+  font-size: var(--nc-font-size-small);
   margin: var(--nc-space-1) 0 0;
 }
 
@@ -44,8 +44,8 @@ ion-label {
 
 ion-label h2 {
   color: var(--nc-text);
-  font-size: 0.875rem;
-  font-weight: 650;
+  font-size: var(--nc-font-size-small);
+  font-weight: var(--nc-font-weight-semibold);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -54,8 +54,8 @@ ion-label h2 {
 
 ion-label p {
   color: var(--nc-text-secondary);
-  font-size: 0.75rem;
   display: flex;
+  font-size: var(--nc-font-size-caption);
   gap: var(--nc-space-3);
   margin: 3px 0 0;
   overflow: hidden;
@@ -76,6 +76,7 @@ ion-label p span:last-child {
 }
 
 .error-message {
+  color: var(--nc-danger);
   font-size: var(--nc-font-size-small);
   margin: var(--nc-space-4) 0;
 }
@@ -111,15 +112,15 @@ ion-label p span:last-child {
 
 .empty-state h2 {
   color: var(--nc-text);
-  font-size: clamp(1.5rem, 2.4vw, 1.9rem);
-  font-weight: 700;
+  font-size: var(--nc-font-size-title);
+  font-weight: var(--nc-font-weight-bold);
   line-height: 1.1;
   margin: 0;
 }
 
 .empty-description {
   color: var(--nc-text-secondary);
-  font-size: 0.85rem;
+  font-size: var(--nc-font-size-small);
   line-height: 1.5;
   margin: var(--nc-space-3) 0 0;
   max-width: 320px;

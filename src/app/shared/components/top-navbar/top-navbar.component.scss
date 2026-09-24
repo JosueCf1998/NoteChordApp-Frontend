@@ -23,8 +23,8 @@ ion-toolbar {
 
 ion-title {
   color: var(--nc-text);
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: var(--nc-font-size-small);
+  font-weight: var(--nc-font-weight-bold);
   left: 50%;
   opacity: 0;
   padding: 0;
@@ -33,103 +33,62 @@ ion-title {
   transform: translate(-50%, calc(-50% + 5px));
   transition: opacity var(--nc-transition-fast), transform var(--nc-transition-fast);
   width: max-content;
-}
 
-ion-title.visible {
-  opacity: 1;
-  transform: translate(-50%, -50%);
-}
+  &.visible {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
 
-ion-title span,
-ion-title small {
-  display: block;
-  line-height: 1.15;
-  text-align: center;
-}
+  span,
+  small {
+    display: block;
+    line-height: 1.15;
+    text-align: center;
+  }
 
-ion-title small {
-  color: var(--nc-text-secondary);
-  font-size: 0.75rem;
-  font-weight: 500;
-  margin-top: 2px;
+  small {
+    color: var(--nc-text-secondary);
+    font-size: var(--nc-font-size-caption);
+    font-weight: var(--nc-font-weight-regular);
+    margin-top: 2px;
+  }
 }
 
 ::ng-deep ion-buttons[nav-start],
 ::ng-deep ion-buttons[nav-end] {
+  align-items: center;
+  display: flex;
   margin: 0;
-}
 
-::ng-deep ion-buttons[nav-start] ion-button,
-::ng-deep ion-buttons[nav-end] ion-button {
-  --background: var(--nc-surface-raised);
-  --border-radius: var(--nc-radius-round);
-  --box-shadow: var(--nc-shadow-md);
-  --color: var(--nc-primary);
-  --padding-end: 0;
-  --padding-start: 0;
-  border: 1px solid var(--nc-border);
-  border-radius: 50%;
-  flex: 0 0 44px;
-  height: 44px;
-  margin: 0;
-  min-height: 44px;
-  min-width: 44px;
-  overflow: hidden;
-  width: 44px;
-}
+  ion-button {
+    --background: var(--nc-surface-raised);
+    --border-radius: var(--nc-radius-round);
+    --box-shadow: var(--nc-shadow-md);
+    --color: var(--nc-primary);
+    --padding-end: 0;
+    --padding-start: 0;
+    border: 1px solid var(--nc-border);
+    border-radius: var(--nc-radius-round);
+    flex: 0 0 44px;
+    height: 44px;
+    margin: 0;
+    min-height: 44px;
+    min-width: 44px;
+    overflow: hidden;
+    width: 44px;
+  }
 
-::ng-deep ion-buttons[nav-start] ion-icon,
-::ng-deep ion-buttons[nav-end] ion-icon {
-  font-size: 20px;
-  height: 20px;
-  width: 20px;
+  ion-icon {
+    font-size: 20px;
+    height: 20px;
+    width: 20px;
+  }
 }
 
 ion-header.floating-controls ion-toolbar {
   --background: var(--nc-background-secondary);
   --min-height: 64px;
-  --padding-top: 0;
   --padding-bottom: 0;
+  --padding-top: 0;
   padding-inline: 12px;
-}
-
-ion-header.floating-controls ::ng-deep ion-buttons[nav-start],
-ion-header.floating-controls ::ng-deep ion-buttons[nav-end] {
-  align-items: center;
-  display: flex;
-  margin: 0;
-}
-
-ion-header.floating-controls ::ng-deep ion-buttons[nav-start] ion-button,
-ion-header.floating-controls ::ng-deep ion-buttons[nav-end] ion-button {
-  --background: var(--nc-surface-raised);
-  --border-radius: var(--nc-radius-round);
-  --box-shadow: var(--nc-shadow-md);
-  --color: var(--nc-primary);
-  border: 1px solid var(--nc-border);
-  flex: 0 0 44px;
-  height: 44px;
-  margin: 0;
-  min-height: 44px;
-  min-width: 44px;
-  width: 44px;
-}
-
-ion-header.floating-controls ::ng-deep ion-buttons[nav-start] ion-icon {
-  font-size: 20px;
-  height: 20px;
-  width: 20px;
-}
-
-ion-header.floating-controls ::ng-deep ion-buttons[nav-end] ion-icon {
-  font-size: 20px;
-  height: 20px;
-  width: 20px;
-}
-
-@media (prefers-color-scheme: dark) {
-  ion-header.floating-controls ::ng-deep ion-buttons[nav-start] ion-button,
-  ion-header.floating-controls ::ng-deep ion-buttons[nav-end] ion-button {
-    --background: color-mix(in srgb, var(--nc-surface-raised) 92%, transparent);
-  }
 }

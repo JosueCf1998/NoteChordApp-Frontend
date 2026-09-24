@@ -4,8 +4,8 @@
 
 h2 {
   color: var(--nc-text);
-  font-size: 1.125rem;
-  font-weight: 700;
+  font-size: var(--nc-font-size-section);
+  font-weight: var(--nc-font-weight-bold);
   letter-spacing: -0.02em;
   line-height: var(--nc-line-height-tight);
   margin: 0 0 var(--nc-space-3);
@@ -14,8 +14,8 @@ h2 {
 ion-list {
   background: var(--nc-surface-raised);
   border: 0;
-  border-radius: 18px;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.035);
+  border-radius: var(--nc-radius-lg);
+  box-shadow: var(--nc-shadow-sm);
   overflow: hidden;
   padding: 0;
 }

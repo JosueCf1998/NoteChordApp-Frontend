@@ -1,132 +1,138 @@
 :root {
-	color-scheme: light;
+  color-scheme: light;
 
-	/* NoteChord color foundations */
-	--nc-primary: #3164f4;
-	--nc-primary-rgb: 49, 100, 244;
-	--nc-primary-dark: #10275e;
-	--nc-primary-soft: #edf2ff;
-	--nc-accent: #6578ff;
-	--nc-background: #ffffff;
-	--nc-background-secondary: #f5f7fb;
-	--nc-surface: #ffffff;
-	--nc-surface-raised: #ffffff;
-	--nc-text: #101828;
-	--nc-text-secondary: #667085;
-	--nc-border: #e5e7eb;
-	--nc-danger: #ef4444;
-	--nc-success: #22c55e;
-	--nc-focus-ring: rgba(49, 100, 244, 0.32);
+  /* ==========================================================================
+     1. COLORES BÁSICOS (NoteChord Palette)
+     ========================================================================== */
+  --nc-primary: #3164f4;
+  --nc-primary-rgb: 49, 100, 244;
+  --nc-primary-soft: #edf2ff;
 
-	/* Typography */
-	--nc-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-	--nc-font-size-caption: 0.75rem;
-	--nc-font-size-small: 0.875rem;
-	--nc-font-size-body: 1rem;
-	--nc-font-size-section: 1.125rem;
-	--nc-font-size-title: clamp(1.5rem, 1.35rem + 0.5vw, 1.75rem);
-	--nc-line-height-tight: 1.25;
-	--nc-line-height-body: 1.5;
-	--nc-line-height-chords: 1.65;
+  /* Fondos y Superficies */
+  --nc-background: #ffffff;             /* Fondo de notas y modales */
+  --nc-background-secondary: #f5f7fb;   /* Fondo detrás de listas (canvas) */
+  --nc-surface: #ffffff;                /* Superficie de celdas y barras */
+  --nc-surface-raised: #ffffff;         /* Superficies elevadas y popovers */
 
-	/* Spacing */
-	--nc-space-1: 4px;
-	--nc-space-2: 8px;
-	--nc-space-3: 12px;
-	--nc-space-4: 16px;
-	--nc-space-5: 20px;
-	--nc-space-6: 24px;
-	--nc-space-8: 32px;
+  /* Textos */
+  --nc-text: #101828;                   /* Texto principal y títulos */
+  --nc-text-secondary: #667085;         /* Fechas, conteos y subtítulos */
 
-	/* Shape and depth */
-	--nc-radius-sm: 8px;
-	--nc-radius-md: 12px;
-	--nc-radius-lg: 16px;
-	--nc-radius-xl: 20px;
-	--nc-radius-round: 999px;
-	--nc-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
-	--nc-shadow-md: 0 8px 24px rgba(16, 24, 40, 0.08);
-	--nc-shadow-overlay: 0 18px 48px rgba(16, 24, 40, 0.16);
-	--nc-transition-fast: 150ms ease;
-	--nc-transition-normal: 220ms ease;
+  /* Bordes y Acciones */
+  --nc-border: #e5e7eb;
+  --nc-danger: #ef4444;
+  --nc-danger-rgb: 239, 68, 68;
+  --nc-focus-ring: rgba(49, 100, 244, 0.32);
 
-	/* Responsive content widths */
-	--nc-content-narrow: 440px;
-	--nc-content-reading: 760px;
-	--nc-content-wide: 920px;
-	--nc-page-gutter: clamp(16px, 3vw, 32px);
+  /* ==========================================================================
+     2. TIPOGRAFÍA ESTÁNDAR
+     ========================================================================== */
+  --nc-font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, Helvetica, Arial, sans-serif;
+  --nc-font-chords: "SF Mono", Monaco, Menlo, Consolas, monospace;
 
-	/* Ionic semantic bridge */
-	--ion-font-family: var(--nc-font-family);
-	--ion-color-primary: var(--nc-primary);
-	--ion-color-primary-rgb: var(--nc-primary-rgb);
-	--ion-color-primary-contrast: #ffffff;
-	--ion-color-primary-contrast-rgb: 255, 255, 255;
-	--ion-color-primary-shade: #2b58d7;
-	--ion-color-primary-tint: #4674f5;
-	--ion-color-secondary: var(--nc-accent);
-	--ion-color-secondary-rgb: 101, 120, 255;
-	--ion-color-secondary-contrast: #ffffff;
-	--ion-color-secondary-contrast-rgb: 255, 255, 255;
-	--ion-color-secondary-shade: #596ae0;
-	--ion-color-secondary-tint: #7486ff;
-	--ion-color-danger: var(--nc-danger);
-	--ion-color-danger-rgb: 239, 68, 68;
-	--ion-color-danger-contrast: #ffffff;
-	--ion-color-danger-contrast-rgb: 255, 255, 255;
-	--ion-color-danger-shade: #d23c3c;
-	--ion-color-danger-tint: #f15757;
-	--ion-color-success: var(--nc-success);
-	--ion-color-success-rgb: 34, 197, 94;
-	--ion-color-success-contrast: #071a0e;
-	--ion-color-success-contrast-rgb: 7, 26, 14;
-	--ion-color-success-shade: #1ead53;
-	--ion-color-success-tint: #38cb6e;
-	--ion-background-color: var(--nc-background-secondary);
-	--ion-background-color-rgb: 245, 247, 251;
-	--ion-text-color: var(--nc-text);
-	--ion-text-color-rgb: 16, 24, 40;
-	--ion-toolbar-background: var(--nc-surface);
-	--ion-item-background: var(--nc-surface);
-	--ion-card-background: var(--nc-surface-raised);
-	--ion-border-color: var(--nc-border);
-	--ion-color-medium: var(--nc-text-secondary);
+  /* Pesos */
+  --nc-font-weight-regular: 400;
+  --nc-font-weight-semibold: 600;
+  --nc-font-weight-bold: 700;
 
-	/* Backward-compatible aliases; pages migrate progressively. */
-	--notechord-radius: var(--nc-radius-lg);
-	--notechord-radius-small: var(--nc-radius-md);
-	--notechord-shadow: var(--nc-shadow-md);
-	--notechord-content-width: var(--nc-content-wide);
+  /* Escala de Tamaños */
+  --nc-font-size-title: clamp(1.75rem, 1.55rem + 0.6vw, 2.15rem); /* Título grande de notas y carpetas */
+  --nc-font-size-section: 1.125rem;                                /* Encabezados de grupo "Últimos 7 días" */
+  --nc-font-size-body: 1rem;                                       /* Lectura de notas y acordes */
+  --nc-font-size-small: 0.875rem;                                  /* Celdas de listas y opciones */
+  --nc-font-size-caption: 0.75rem;                                 /* Fechas arriba de nota y conteos */
+
+  /* Interlineado */
+  --nc-line-height-tight: 1.25;
+  --nc-line-height-body: 1.5;
+  --nc-line-height-chords: 1.65;
+
+  /* ==========================================================================
+     3. ESPACIADOS (Base 4px / 8px)
+     ========================================================================== */
+  --nc-space-1: 4px;
+  --nc-space-2: 8px;
+  --nc-space-3: 12px;
+  --nc-space-4: 16px;
+  --nc-space-5: 20px;
+  --nc-space-6: 24px;
+  --nc-space-8: 32px;
+
+  /* Layout */
+  --nc-page-gutter: clamp(16px, 3vw, 32px);
+  --nc-content-narrow: 440px;
+  --nc-content-reading: 760px;
+  --nc-content-wide: 920px;
+
+  /* ==========================================================================
+     4. RADIOS, SOMBRAS Y ANIMACIONES
+     ========================================================================== */
+  --nc-radius-sm: 8px;
+  --nc-radius-md: 12px;
+  --nc-radius-lg: 16px;
+  --nc-radius-round: 999px;
+
+  --nc-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --nc-shadow-md: 0 4px 16px rgba(16, 24, 40, 0.08);
+
+  --nc-transition-fast: 150ms ease;
+  --nc-transition-normal: 220ms ease;
+
+  /* ==========================================================================
+     5. PUENTE SEMÁNTICO CON IONIC
+     ========================================================================== */
+  --ion-font-family: var(--nc-font-family);
+  --ion-color-primary: var(--nc-primary);
+  --ion-color-primary-rgb: var(--nc-primary-rgb);
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-danger: var(--nc-danger);
+  --ion-color-danger-rgb: var(--nc-danger-rgb);
+
+  --ion-background-color: var(--nc-background-secondary);
+  --ion-background-color-rgb: 245, 247, 251;
+  --ion-text-color: var(--nc-text);
+  --ion-text-color-rgb: 16, 24, 40;
+  --ion-toolbar-background: var(--nc-surface);
+  --ion-item-background: var(--nc-surface);
+  --ion-card-background: var(--nc-surface-raised);
+  --ion-border-color: var(--nc-border);
+  --ion-color-medium: var(--nc-text-secondary);
 }
 
+/* ==========================================================================
+   MODO OSCURO (Mapeo exacto 1:1)
+   ========================================================================== */
 :root.nc-theme-dark {
-		color-scheme: dark;
-		--nc-background: #080f1c;
-		--nc-background-secondary: #080f1c;
-		--nc-surface: #121c2b;
-		--nc-surface-raised: #192434;
-		--nc-text: #f8fafc;
-		--nc-text-secondary: #a9b4c5;
-		--nc-border: #293548;
-		--nc-primary-soft: #172957;
-		--nc-focus-ring: rgba(101, 120, 255, 0.5);
-		--nc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
-		--nc-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.28);
-		--nc-shadow-overlay: 0 18px 48px rgba(0, 0, 0, 0.42);
-		--ion-background-color: var(--nc-background);
-		--ion-background-color-rgb: 8, 15, 28;
-		--ion-text-color: var(--nc-text);
-		--ion-text-color-rgb: 248, 250, 252;
-		--ion-toolbar-background: var(--nc-surface);
-		--ion-item-background: var(--nc-surface);
-		--ion-card-background: var(--nc-surface-raised);
-		--ion-border-color: var(--nc-border);
-		--ion-color-medium: var(--nc-text-secondary);
+  color-scheme: dark;
+
+  --nc-background: #080f1c;
+  --nc-background-secondary: #080f1c;
+  --nc-surface: #121c2b;
+  --nc-surface-raised: #192434;
+
+  --nc-text: #f8fafc;
+  --nc-text-secondary: #94a3b8;
+  --nc-border: #293548;
+  --nc-primary-soft: #172957;
+  --nc-focus-ring: rgba(101, 120, 255, 0.45);
+
+  --nc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --nc-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+
+  --ion-background-color: var(--nc-background);
+  --ion-background-color-rgb: 8, 15, 28;
+  --ion-text-color: var(--nc-text);
+  --ion-text-color-rgb: 248, 250, 252;
+  --ion-toolbar-background: var(--nc-surface);
+  --ion-item-background: var(--nc-surface);
+  --ion-card-background: var(--nc-surface-raised);
+  --ion-border-color: var(--nc-border);
+  --ion-color-medium: var(--nc-text-secondary);
 }
 
 @media (prefers-reduced-motion: reduce) {
-	:root {
-		--nc-transition-fast: 0ms;
-		--nc-transition-normal: 0ms;
-	}
+  :root {
+    --nc-transition-fast: 0ms;
+    --nc-transition-normal: 0ms;
+  }
 }

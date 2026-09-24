@@ -4,8 +4,8 @@
 
 h1 {
   color: var(--nc-text);
-  font-size: clamp(1.625rem, 1.5rem + 0.5vw, 1.875rem);
-  font-weight: 720;
+  font-size: var(--nc-font-size-title);
+  font-weight: var(--nc-font-weight-bold);
   letter-spacing: -0.035em;
   line-height: var(--nc-line-height-tight);
   margin: 0;

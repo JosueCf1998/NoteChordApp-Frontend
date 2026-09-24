@@ -10,8 +10,8 @@ ion-content {
 
 .settings-title {
   color: var(--nc-text);
-  font-size: clamp(2rem, 1.7rem + 1vw, 2.4rem);
-  font-weight: 750;
+  font-size: var(--nc-font-size-title);
+  font-weight: var(--nc-font-weight-bold);
   letter-spacing: -0.035em;
   margin: 0 0 var(--nc-space-5);
 }
@@ -21,7 +21,7 @@ ion-content {
   align-items: center;
   background: var(--nc-surface);
   border: 1px solid var(--nc-border);
-  border-radius: var(--nc-radius-lg, 16px);
+  border-radius: var(--nc-radius-lg);
   box-shadow: var(--nc-shadow-sm);
   display: flex;
   gap: 14px;
@@ -31,12 +31,12 @@ ion-content {
 .profile-avatar {
   align-items: center;
   background: var(--nc-primary-soft);
-  border-radius: 50%;
+  border-radius: var(--nc-radius-round);
   color: var(--nc-primary);
   display: flex;
   flex: 0 0 46px;
-  font-size: 1.125rem;
-  font-weight: 700;
+  font-size: var(--nc-font-size-section);
+  font-weight: var(--nc-font-weight-bold);
   height: 46px;
   justify-content: center;
 }
@@ -47,14 +47,14 @@ ion-content {
 
   h2 {
     color: var(--nc-text);
-    font-size: 0.9375rem;
-    font-weight: 650;
+    font-size: var(--nc-font-size-body);
+    font-weight: var(--nc-font-weight-semibold);
     margin: 0;
   }
 
   p {
     color: var(--nc-text-secondary);
-    font-size: 0.8125rem;
+    font-size: var(--nc-font-size-small);
     margin: 2px 0 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -71,9 +71,9 @@ ion-content {
   align-items: center;
   color: var(--nc-text);
   display: flex;
-  font-size: 0.875rem;
-  font-weight: 650;
-  gap: 8px;
+  font-size: var(--nc-font-size-small);
+  font-weight: var(--nc-font-weight-semibold);
+  gap: var(--nc-space-2);
   margin-bottom: var(--nc-space-3);
 
   ion-icon {
@@ -91,13 +91,13 @@ ion-content {
     align-items: center;
     background: var(--nc-surface);
     border: 1px solid var(--nc-border);
-    border-radius: var(--nc-radius-lg, 16px);
+    border-radius: var(--nc-radius-lg);
     color: var(--nc-text);
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    font-size: 0.8125rem;
-    font-weight: 550;
+    font-size: var(--nc-font-size-small);
+    font-weight: var(--nc-font-weight-semibold);
     gap: 10px;
     min-height: 104px;
     padding: 14px 10px 12px;
@@ -128,8 +128,8 @@ ion-content {
 }
 
 .theme-preview {
-  border: 1px solid #cdd4df;
-  border-radius: 6px;
+  border: 1px solid var(--nc-border);
+  border-radius: var(--nc-radius-sm);
   display: block;
   height: 48px;
   overflow: hidden;
@@ -144,18 +144,18 @@ ion-content {
   }
 }
 
-.light-preview { background: #fff; border-color: #cbd5e1; }
+.light-preview { background: #ffffff; border-color: #cbd5e1; }
 .light-preview i { background: #e2e8f0; }
-.dark-preview { background: #0b1321; border-color: #26334a; }
-.dark-preview i { background: #26334a; }
-.system-preview { background: linear-gradient(90deg, #fff 50%, #0b1321 50%); border-color: #94a3b8; }
+.dark-preview { background: #080f1c; border-color: #293548; }
+.dark-preview i { background: #293548; }
+.system-preview { background: linear-gradient(90deg, #ffffff 50%, #080f1c 50%); border-color: #94a3b8; }
 .system-preview i { background: #64748b; }
 
 /* Tarjeta agrupada de opciones */
 .settings-card {
   background: var(--nc-surface);
   border: 1px solid var(--nc-border);
-  border-radius: var(--nc-radius-lg, 16px);
+  border-radius: var(--nc-radius-lg);
   box-shadow: var(--nc-shadow-sm);
   margin-top: var(--nc-space-6);
   overflow: hidden;
@@ -188,18 +188,18 @@ ion-content {
 .row-label {
   color: var(--nc-text);
   flex: 1;
-  font-size: 0.9375rem;
-  font-weight: 550;
+  font-size: var(--nc-font-size-body);
+  font-weight: var(--nc-font-weight-semibold);
 }
 
 .row-detail {
   color: var(--nc-text-secondary);
-  font-size: 0.8125rem;
+  font-size: var(--nc-font-size-small);
 }
 
 .status-dot {
-  background: var(--nc-success);
-  border-radius: 50%;
+  background: var(--nc-primary);
+  border-radius: var(--nc-radius-round);
   height: 7px;
   width: 7px;
 }
@@ -225,14 +225,14 @@ ion-content {
   align-items: center;
   background: var(--nc-surface);
   border: 1px solid var(--nc-border);
-  border-radius: var(--nc-radius-lg, 16px);
-  box-shadow: var(--nc-shadow-xs);
+  border-radius: var(--nc-radius-lg);
+  box-shadow: var(--nc-shadow-sm);
   color: var(--nc-danger);
   cursor: pointer;
   display: flex;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  gap: 8px;
+  font-size: var(--nc-font-size-body);
+  font-weight: var(--nc-font-weight-semibold);
+  gap: var(--nc-space-2);
   height: 50px;
   justify-content: center;
   transition: background var(--nc-transition-fast), transform var(--nc-transition-fast);
