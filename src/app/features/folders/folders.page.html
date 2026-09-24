@@ -30,7 +30,7 @@
 
     <ng-container *ngIf="filteredFolders$ | async as filteredFolders">
       <app-grouped-list class="folder-list" *ngIf="filteredFolders.length; else emptyState">
-        <ion-item-sliding *ngFor="let folder of filteredFolders">
+        <ion-item-sliding *ngFor="let folder of filteredFolders; trackBy: trackByFolderId">
           <ion-item
             button
             detail="false"

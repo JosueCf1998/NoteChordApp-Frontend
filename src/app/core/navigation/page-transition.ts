@@ -36,23 +36,27 @@ export const appPageTransition = (
 
   const enteringPage = createAnimation()
     .addElement(opts.enteringEl)
-    .beforeRemoveClass('ion-page-invisible');
+    .beforeRemoveClass('ion-page-invisible')
+    .beforeRemoveClass('ion-page-hidden');
 
   if (isBack) {
     // Navigating back: entering page slides in subtly from the left
     enteringPage
+      .beforeStyles({ 'z-index': '10', display: 'flex' })
       .fromTo('transform', `translateX(${isRTL ? '25%' : '-25%'})`, 'translateX(0%)')
       .fromTo('opacity', 0.92, 1)
-      .afterClearStyles(['transform', 'opacity']);
+      .afterClearStyles(['transform', 'opacity', 'z-index', 'display']);
   } else {
     // Navigating forward: entering page slides in from the right edge with a soft drop shadow
     enteringPage
       .beforeStyles({
+        'z-index': '11',
+        display: 'flex',
         'box-shadow': isRTL ? '4px 0 20px rgba(0, 0, 0, 0.12)' : '-4px 0 20px rgba(0, 0, 0, 0.12)'
       })
       .fromTo('transform', `translateX(${isRTL ? '-100%' : '100%'})`, 'translateX(0%)')
       .fromTo('opacity', 1, 1)
-      .afterClearStyles(['transform', 'opacity', 'box-shadow']);
+      .afterClearStyles(['transform', 'opacity', 'box-shadow', 'z-index', 'display']);
   }
 
   rootAnimation.addAnimation(enteringPage);
@@ -61,20 +65,30 @@ export const appPageTransition = (
     const leavingPage = createAnimation().addElement(opts.leavingEl);
 
     if (isBack) {
-      // Navigating back: leaving page (including its header and buttons) slides completely off to the right
+      // Navigating back: leaving page slides completely off to the right and is hidden immediately
+      // without clearing transform to prevent it from snapping back into view before destruction.
       leavingPage
         .beforeStyles({
+          'z-index': '11',
           'box-shadow': isRTL ? '4px 0 20px rgba(0, 0, 0, 0.12)' : '-4px 0 20px rgba(0, 0, 0, 0.12)'
         })
         .fromTo('transform', 'translateX(0%)', `translateX(${isRTL ? '-100%' : '100%'})`)
         .fromTo('opacity', 1, 1)
-        .afterClearStyles(['transform', 'opacity', 'box-shadow']);
+        .afterStyles({ display: 'none' })
+        .afterClearStyles(['box-shadow', 'z-index']);
+
+      rootAnimation.afterAddWrite(() => {
+        if (opts.leavingEl) {
+          opts.leavingEl.style.setProperty('display', 'none');
+        }
+      });
     } else {
       // Navigating forward: leaving page slides slightly to the left and dims
       leavingPage
+        .beforeStyles({ 'z-index': '10' })
         .fromTo('transform', 'translateX(0%)', `translateX(${isRTL ? '25%' : '-25%'})`)
         .fromTo('opacity', 1, 0.92)
-        .afterClearStyles(['transform', 'opacity']);
+        .afterClearStyles(['transform', 'opacity', 'z-index']);
     }
 
     rootAnimation.addAnimation(leavingPage);
