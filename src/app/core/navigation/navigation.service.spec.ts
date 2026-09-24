@@ -85,6 +85,11 @@ describe('NavigationService', () => {
     expect(navCtrlMock.navigateForward).toHaveBeenCalledWith('/settings');
   });
 
+  it('should navigate to search with forward animation', async () => {
+    await service.goToSearch();
+    expect(navCtrlMock.navigateForward).toHaveBeenCalledWith('/search');
+  });
+
   it('should navigate to login as root', async () => {
     await service.goToLogin('back');
     expect(navCtrlMock.navigateRoot).toHaveBeenCalledWith('/login', {

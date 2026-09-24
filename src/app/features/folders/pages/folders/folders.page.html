@@ -1,5 +1,8 @@
 <app-top-navbar title="Carpetas" [showTitle]="isHeaderCollapsed" [floatingControls]="true">
     <ion-buttons nav-end slot="end">
+      <ion-button (click)="openSearch()" aria-label="Buscar">
+        <ion-icon slot="icon-only" name="search-outline"></ion-icon>
+      </ion-button>
       <ion-button (click)="openSettings()" aria-label="Abrir ajustes">
         <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
       </ion-button>
@@ -65,20 +68,19 @@
 
   </main>
 
-  <app-floating-search-action
-    slot="fixed"
-    [(value)]="searchTerm"
-    [value]="searchTerm"
-    (valueChange)="onSearchChange($event)"
-    searchLabel="Buscar carpetas"
-    actionLabel="Nueva carpeta"
-    (action)="openCreateFolder()"
-  >
-    <span action-icon class="folder-add-icon" aria-hidden="true">
-      <ion-icon class="folder-shape" name="folder-outline"></ion-icon>
-      <ion-icon class="plus-shape" name="add-outline"></ion-icon>
-    </span>
-  </app-floating-search-action>
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button
+      class="action-fab"
+      size="small"
+      (click)="openCreateFolder()"
+      aria-label="Nueva carpeta"
+    >
+      <span class="folder-add-icon" aria-hidden="true">
+        <ion-icon class="folder-shape" name="folder-outline"></ion-icon>
+        <ion-icon class="plus-shape" name="add-outline"></ion-icon>
+      </span>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>
 
 <ion-modal class="folder-modal" [animated]="false" [isOpen]="isFolderFormOpen" (didDismiss)="closeFolderForm()">

@@ -28,6 +28,11 @@ const routes: Routes = [
     loadChildren: () => import('./features/settings/pages/settings/settings.module').then((m) => m.SettingsPageModule),
     canActivate: [authGuard]
   },
+  {
+    path: 'search',
+    loadChildren: () => import('./features/search/search.module').then((m) => m.SearchPageModule),
+    canActivate: [authGuard]
+  },
 ];
 
 @NgModule({

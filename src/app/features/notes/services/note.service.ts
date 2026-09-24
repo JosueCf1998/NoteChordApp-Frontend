@@ -49,6 +49,29 @@ export class NoteService {
     shareReplay({ bufferSize: 1, refCount: true })
   );
 
+  readonly allNotes$: Observable<Note[]> = this.authService.user$.pipe(
+    switchMap((user) => {
+      if (!user || !this.firestore) {
+        return of([] as Note[]);
+      }
+
+      const notesQuery = query(
+        collection(this.firestore, 'notes'),
+        where('userId', '==', user.uid)
+      );
+
+      return new Observable<Note[]>((subscriber) => onSnapshot(
+        notesQuery,
+        (snapshot) => subscriber.next(snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data()
+        } as Note))),
+        (error) => subscriber.error(error)
+      ));
+    }),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
   constructor(private readonly authService: AuthService) {}
 
   forFolder(folderId: string): Observable<Note[]> {

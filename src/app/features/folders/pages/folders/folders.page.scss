@@ -93,3 +93,14 @@ ion-label h2 {
   font-size: var(--nc-font-size-small);
   margin: var(--nc-space-4) 0;
 }
+
+.action-fab {
+  --background: color-mix(in srgb, var(--nc-surface-raised) 85%, transparent);
+  --background-activated: color-mix(in srgb, var(--nc-surface-raised) 72%, transparent);
+  --border-radius: var(--nc-radius-round);
+  --box-shadow: var(--nc-shadow-md);
+  --color: var(--nc-primary);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+

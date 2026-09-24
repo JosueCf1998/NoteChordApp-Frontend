@@ -74,6 +74,10 @@ export class NavigationService {
     return this.navCtrl.navigateForward('/settings');
   }
 
+  goToSearch() {
+    return this.navCtrl.navigateForward('/search');
+  }
+
   backToFolders() {
     return this.navCtrl.navigateBack('/home');
   }

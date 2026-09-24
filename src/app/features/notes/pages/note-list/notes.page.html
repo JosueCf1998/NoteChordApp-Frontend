@@ -12,6 +12,9 @@
         </ion-button>
       </ion-buttons>
       <ion-buttons nav-end slot="end">
+        <ion-button (click)="openSearch()" aria-label="Buscar">
+          <ion-icon slot="icon-only" name="search-outline"></ion-icon>
+        </ion-button>
         <ion-button (click)="openSettings()" aria-label="Ajustes">
           <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
         </ion-button>
@@ -75,16 +78,16 @@
         </ng-template>
       </main>
 
-      <app-floating-search-action
-        slot="fixed"
-        [value]="searchTerm"
-        (valueChange)="onSearchChange($event)"
-        searchLabel="Buscar notas"
-        actionLabel="Nueva nota"
-        (action)="toggleCreateForm()"
-      >
-        <ion-icon action-icon class="create-note-icon" name="create-outline" aria-hidden="true"></ion-icon>
-      </app-floating-search-action>
+      <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+        <ion-fab-button
+          class="action-fab"
+          size="small"
+          (click)="toggleCreateForm()"
+          aria-label="Nueva nota"
+        >
+          <ion-icon name="create-outline"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
     </ion-content>
   </ng-container>
 </ng-container>

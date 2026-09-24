@@ -7,7 +7,6 @@ import { FolderService } from '../../../folders/services/folder.service';
 import { Note } from '../../models/note.model';
 import { NoteService } from '../../services/note.service';
 import { NavigationService } from '../../../../core/navigation/navigation.service';
-import { FloatingSearchActionComponent } from '../../../../shared/components/floating-search-action/floating-search-action.component';
 import { AnimatedPageTitleComponent } from '../../../../shared/components/animated-page-title/animated-page-title.component';
 
 interface NoteGroup {
@@ -28,7 +27,6 @@ export class NotesPage {
   private readonly folderService = inject(FolderService);
   private readonly actionSheetController = inject(ActionSheetController);
 
-  @ViewChild(FloatingSearchActionComponent) notesSearch?: FloatingSearchActionComponent;
   @ViewChild(AnimatedPageTitleComponent) pageTitle?: AnimatedPageTitleComponent;
 
   readonly folderId = this.route.snapshot.paramMap.get('folderId') ?? '';
@@ -88,8 +86,8 @@ export class NotesPage {
     void this.navService.goToCreateNote(this.folderId);
   }
 
-  focusSearch() {
-    this.notesSearch?.focus();
+  openSearch() {
+    return this.navService.goToSearch();
   }
 
   private groupNotes(notes: Note[]): NoteGroup[] {

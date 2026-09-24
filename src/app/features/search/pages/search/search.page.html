@@ -1,0 +1,126 @@
+<ion-header class="ion-no-border search-header">
+  <ion-toolbar class="search-toolbar">
+    <div class="search-bar-row">
+      <div class="search-input-pill">
+        <ion-icon name="search-outline" class="search-icon" aria-hidden="true"></ion-icon>
+        <input
+          #searchInput
+          [value]="searchTerm"
+          (input)="onSearchInput($event)"
+          type="text"
+          placeholder="Buscar páginas y carpetas..."
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        />
+        <button
+          type="button"
+          class="clear-btn"
+          *ngIf="searchTerm"
+          (click)="clearSearch()"
+          aria-label="Borrar búsqueda"
+        >
+          <ion-icon name="close-circle"></ion-icon>
+        </button>
+      </div>
+      <button type="button" class="cancel-btn" (click)="cancel()">
+        Cancelar
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="search-page-content">
+  <main class="search-page-container">
+    <!-- Resultados si el usuario escribió algo -->
+    <ng-container *ngIf="searchTerm.trim(); else searchHint">
+      <ng-container *ngIf="{ notes: matchingNotes$ | async, folders: matchingFolders$ | async } as data">
+
+        <!-- Estado vacío cuando no hay resultados en ninguna categoría -->
+        <div
+          *ngIf="(data.notes?.length || 0) === 0 && (data.folders?.length || 0) === 0"
+          class="search-empty-state"
+        >
+          <div class="empty-icon">
+            <ion-icon name="search-outline"></ion-icon>
+          </div>
+          <h3>Sin resultados</h3>
+          <p>No encontramos páginas ni carpetas para “{{ searchTerm }}”.</p>
+        </div>
+
+        <!-- SECCIÓN 1: PÁGINAS (NOTAS) -->
+        <section class="search-section" *ngIf="data.notes && data.notes.length > 0">
+          <h2 class="search-section-title">Páginas ({{ data.notes.length }})</h2>
+          <div class="search-results-card">
+            <ion-item
+              *ngFor="let note of data.notes"
+              button
+              detail="false"
+              lines="none"
+              class="search-result-row"
+              (click)="selectNote(note)"
+            >
+              <div class="item-icon-wrapper note-icon" slot="start" aria-hidden="true">
+                <ion-icon name="document-text-outline"></ion-icon>
+              </div>
+              <ion-label>
+                <h3 class="result-title">{{ note.title }}</h3>
+                <p class="result-subtitle" *ngIf="note.content">
+                  <span>{{ note.updatedAt | appNoteDate }}</span>
+                  <span>{{ note.content | appNotePreview }}</span>
+                </p>
+              </ion-label>
+              <ion-icon
+                slot="end"
+                name="chevron-forward-outline"
+                class="row-chevron"
+                aria-hidden="true"
+              ></ion-icon>
+            </ion-item>
+          </div>
+        </section>
+
+        <!-- SECCIÓN 2: CARPETAS -->
+        <section class="search-section" *ngIf="data.folders && data.folders.length > 0">
+          <h2 class="search-section-title">Carpetas ({{ data.folders.length }})</h2>
+          <div class="search-results-card">
+            <ion-item
+              *ngFor="let folder of data.folders"
+              button
+              detail="false"
+              lines="none"
+              class="search-result-row"
+              (click)="selectFolder(folder)"
+            >
+              <div class="item-icon-wrapper folder-icon" slot="start" aria-hidden="true">
+                <ion-icon name="folder-outline"></ion-icon>
+              </div>
+              <ion-label>
+                <h3 class="result-title">{{ folder.name }}</h3>
+              </ion-label>
+              <ion-icon
+                slot="end"
+                name="chevron-forward-outline"
+                class="row-chevron"
+                aria-hidden="true"
+              ></ion-icon>
+            </ion-item>
+          </div>
+        </section>
+
+      </ng-container>
+    </ng-container>
+
+    <!-- Mensaje orientativo al abrir el buscador sin escribir -->
+    <ng-template #searchHint>
+      <div class="search-initial-hint">
+        <div class="hint-icon">
+          <ion-icon name="search-outline"></ion-icon>
+        </div>
+        <h3>Buscar en NoteChord</h3>
+        <p>Escribe el nombre de una página o carpeta para encontrarla rápidamente.</p>
+      </div>
+    </ng-template>
+  </main>
+</ion-content>
+

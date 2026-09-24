@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ActionSheetController } from '@ionic/angular';
 import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 
@@ -7,7 +7,6 @@ import { Folder } from '../../models/folder.model';
 import { FolderService } from '../../services/folder.service';
 import { NoteService } from '../../../notes/services/note.service';
 import { NavigationService } from '../../../../core/navigation/navigation.service';
-import { FloatingSearchActionComponent } from '../../../../shared/components/floating-search-action/floating-search-action.component';
 
 @Component({
   selector: 'app-folders',
@@ -23,7 +22,6 @@ export class FoldersPage {
   private readonly actionSheetController = inject(ActionSheetController);
 
   private readonly defaultFolderColor = '#3164F4';
-  @ViewChild(FloatingSearchActionComponent) folderSearch?: FloatingSearchActionComponent;
   readonly folders$ = this.folderService.folders$;
   readonly noteCounts$ = this.noteService.countsByFolder$;
   readonly searchTerm$ = new BehaviorSubject<string>('');
@@ -132,8 +130,8 @@ export class FoldersPage {
     return this.navService.goToSettings();
   }
 
-  async focusSearch() {
-    this.folderSearch?.focus();
+  openSearch() {
+    return this.navService.goToSearch();
   }
 
   onSearchChange(term: string) {
