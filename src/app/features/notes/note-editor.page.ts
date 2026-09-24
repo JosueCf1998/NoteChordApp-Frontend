@@ -5,7 +5,12 @@ import { IonicModule } from '@ionic/angular';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, Subscription, debounceTime } from 'rxjs';
 import { DialogService } from '../../core/dialog/dialog.service';
-import { NoteService } from './services/note.service';
+import {
+  GetNoteByIdUseCase,
+  CreateNoteUseCase,
+  UpdateNoteUseCase,
+  DeleteNoteUseCase
+} from '../../core/use-cases/notes';
 import { NavigationService } from '../../core/navigation/navigation.service';
 import { SharedModule } from '../../shared/shared.module';
 
@@ -30,7 +35,10 @@ const DATE_HIDE_DELAY_MS = 3000;
 export class NoteEditorPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly navService = inject(NavigationService);
-  private readonly noteService = inject(NoteService);
+  private readonly getNoteByIdUseCase = inject(GetNoteByIdUseCase);
+  private readonly createNoteUseCase = inject(CreateNoteUseCase);
+  private readonly updateNoteUseCase = inject(UpdateNoteUseCase);
+  private readonly deleteNoteUseCase = inject(DeleteNoteUseCase);
   private readonly dialogService = inject(DialogService);
 
   folderId = '';
@@ -91,8 +99,9 @@ export class NoteEditorPage implements OnDestroy {
 
   private subscribeToNote(noteId: string) {
     this.noteSubscription?.unsubscribe();
-    this.noteSubscription = this.noteService.watch(noteId).subscribe({
-      next: (note) => {
+    this.noteSubscription = this.getNoteByIdUseCase.execute(noteId).subscribe({
+      next: (res) => {
+        const note = res.data;
         if (note && !this.isDirty) {
           this.title = note.title;
           this.content = note.content;
@@ -212,7 +221,11 @@ export class NoteEditorPage implements OnDestroy {
   private async performDelete() {
     try {
       if (this.noteId !== 'new') {
-        await this.noteService.delete(this.noteId);
+        const res = await this.deleteNoteUseCase.execute({ id: this.noteId });
+        if (!res.success) {
+          this.errorMessage = res.message || 'No se pudo eliminar la nota.';
+          return;
+        }
       }
       await this.backToNotes();
     } catch {
@@ -238,7 +251,16 @@ export class NoteEditorPage implements OnDestroy {
 
     try {
       if (this.noteId === 'new') {
-        const note = await this.noteService.create(this.folderId, effectiveTitle, this.content);
+        const res = await this.createNoteUseCase.execute({
+          folderId: this.folderId,
+          title: effectiveTitle,
+          content: this.content
+        });
+        if (!res.success || !res.data) {
+          this.errorMessage = res.message || 'No se pudo crear la nota.';
+          return;
+        }
+        const note = res.data;
         this.noteId = note.id;
         this.isDirty = false;
         this.subscribeToNote(note.id);
@@ -246,7 +268,15 @@ export class NoteEditorPage implements OnDestroy {
         return;
       }
 
-      await this.noteService.update(this.noteId, effectiveTitle, this.content);
+      const res = await this.updateNoteUseCase.execute({
+        id: this.noteId,
+        title: effectiveTitle,
+        content: this.content
+      });
+      if (!res.success) {
+        this.errorMessage = res.message || 'No se pudo guardar la nota.';
+        return;
+      }
       this.isDirty = false;
     } catch {
       this.errorMessage = 'No se pudo guardar la nota.';

@@ -1,21 +1,21 @@
 import { TestBed } from '@angular/core/testing';
-import { ModalController } from '@ionic/angular';
+import { AlertController } from '@ionic/angular';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { DialogService } from './dialog.service';
 
 describe('DialogService', () => {
   let service: DialogService;
-  let modalCtrlMock: { create: ReturnType<typeof vi.fn> };
+  let alertCtrlMock: { create: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    modalCtrlMock = {
+    alertCtrlMock = {
       create: vi.fn()
     };
 
     TestBed.configureTestingModule({
       providers: [
         DialogService,
-        { provide: ModalController, useValue: modalCtrlMock }
+        { provide: AlertController, useValue: alertCtrlMock }
       ]
     });
 
@@ -26,12 +26,15 @@ describe('DialogService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should present confirm modal and return true when confirmed', async () => {
-    const modalElementMock = {
+  it('should present confirm dialog and return true when confirmed', async () => {
+    const alertElementMock = {
       present: vi.fn().mockResolvedValue(undefined),
-      onDidDismiss: vi.fn().mockResolvedValue({ data: true })
+      onDidDismiss: vi.fn().mockResolvedValue({ role: undefined })
     };
-    modalCtrlMock.create.mockResolvedValue(modalElementMock);
+    alertCtrlMock.create.mockImplementation(async (config: any) => {
+      config.buttons[1].handler();
+      return alertElementMock;
+    });
 
     const result = await service.confirm({
       title: 'Cerrar sesión',
@@ -40,41 +43,24 @@ describe('DialogService', () => {
       variant: 'danger'
     });
 
-    expect(modalCtrlMock.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        cssClass: 'custom-alert-modal',
-        componentProps: expect.objectContaining({
-          title: 'Cerrar sesión',
-          isConfirm: true,
-          variant: 'danger'
-        })
-      })
-    );
-    expect(modalElementMock.present).toHaveBeenCalled();
+    expect(alertCtrlMock.create).toHaveBeenCalled();
+    expect(alertElementMock.present).toHaveBeenCalled();
     expect(result).toBe(true);
   });
 
-  it('should present alert modal and resolve when dismissed', async () => {
-    const modalElementMock = {
+  it('should present alert dialog and resolve when dismissed', async () => {
+    const alertElementMock = {
       present: vi.fn().mockResolvedValue(undefined),
-      onDidDismiss: vi.fn().mockResolvedValue({ data: undefined })
+      onDidDismiss: vi.fn().mockResolvedValue({ role: 'cancel' })
     };
-    modalCtrlMock.create.mockResolvedValue(modalElementMock);
+    alertCtrlMock.create.mockResolvedValue(alertElementMock);
 
     await service.alert({
       title: 'Información',
       message: 'Operación completada'
     });
 
-    expect(modalCtrlMock.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        cssClass: 'custom-alert-modal',
-        componentProps: expect.objectContaining({
-          title: 'Información',
-          isConfirm: false
-        })
-      })
-    );
-    expect(modalElementMock.present).toHaveBeenCalled();
+    expect(alertCtrlMock.create).toHaveBeenCalled();
+    expect(alertElementMock.present).toHaveBeenCalled();
   });
 });

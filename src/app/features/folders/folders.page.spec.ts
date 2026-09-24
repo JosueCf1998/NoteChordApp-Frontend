@@ -5,7 +5,7 @@ import { of } from 'rxjs';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import { AuthService } from '../../core/auth/auth.service';
-import { NoteService } from '../notes/services/note.service';
+import { GetNotesCountByFolderUseCase } from '../../core/use-cases/notes';
 import { NavigationService } from '../../core/navigation/navigation.service';
 import { FoldersPage } from './folders.page';
 
@@ -43,9 +43,8 @@ describe('FoldersPage', () => {
     execute: () => Promise.resolve(createSuccessResult(undefined))
   };
 
-  const noteServiceMock = {
-    countsByFolder$: of({}),
-    forFolder: () => of([])
+  const getNotesCountByFolderUseCaseMock = {
+    execute: () => of(createSuccessResult({}))
   };
 
   const navServiceMock = {
@@ -68,7 +67,7 @@ describe('FoldersPage', () => {
         { provide: CreateFolderUseCase, useValue: createFolderUseCaseMock },
         { provide: UpdateFolderUseCase, useValue: updateFolderUseCaseMock },
         { provide: DeleteFolderUseCase, useValue: deleteFolderUseCaseMock },
-        { provide: NoteService, useValue: noteServiceMock },
+        { provide: GetNotesCountByFolderUseCase, useValue: getNotesCountByFolderUseCaseMock },
         { provide: NavigationService, useValue: navServiceMock },
         { provide: ActionSheetController, useValue: actionSheetControllerMock }
       ],

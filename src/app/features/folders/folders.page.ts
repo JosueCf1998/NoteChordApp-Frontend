@@ -6,7 +6,6 @@ import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { Folder } from '../../core/models/folder/folder.model';
-import { NoteService } from '../notes/services/note.service';
 import { NavigationService } from '../../core/navigation/navigation.service';
 import { SharedModule } from '../../shared/shared.module';
 import {
@@ -15,6 +14,7 @@ import {
   UpdateFolderUseCase,
   DeleteFolderUseCase
 } from '../../core/use-cases/folders';
+import { GetNotesCountByFolderUseCase } from '../../core/use-cases/notes';
 
 @Component({
   selector: 'app-folders',
@@ -29,7 +29,7 @@ export class FoldersPage {
   private readonly createFolderUseCase = inject(CreateFolderUseCase);
   private readonly updateFolderUseCase = inject(UpdateFolderUseCase);
   private readonly deleteFolderUseCase = inject(DeleteFolderUseCase);
-  private readonly noteService = inject(NoteService);
+  private readonly getNotesCountByFolderUseCase = inject(GetNotesCountByFolderUseCase);
   private readonly navService = inject(NavigationService);
   private readonly actionSheetController = inject(ActionSheetController);
 
@@ -38,7 +38,9 @@ export class FoldersPage {
   readonly folders$: Observable<Folder[]> = this.getFoldersUseCase.execute().pipe(
     map((res) => res.data || [])
   );
-  readonly noteCounts$ = this.noteService.countsByFolder$;
+  readonly noteCounts$ = this.getNotesCountByFolderUseCase.execute().pipe(
+    map((res) => res.data || {})
+  );
   readonly searchTerm$ = new BehaviorSubject<string>('');
   readonly filteredFolders$: Observable<Folder[]> = combineLatest([
     this.folders$,

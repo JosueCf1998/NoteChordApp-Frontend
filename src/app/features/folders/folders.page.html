@@ -83,54 +83,53 @@
   </ion-fab>
 </ion-content>
 
-<ion-modal class="folder-modal" [animated]="false" [isOpen]="isFolderFormOpen" (didDismiss)="closeFolderForm()">
-  <ng-template>
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>{{ editingFolder ? 'Editar carpeta' : 'Nueva carpeta' }}</ion-title>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content [scrollY]="false">
-      <form class="folder-form" (ngSubmit)="saveFolder()">
-        <div class="folder-form-icon" aria-hidden="true">
-          <ion-icon name="folder-outline"></ion-icon>
-        </div>
-        <label class="modal-field">
-          <span>Nombre</span>
-          <input [(ngModel)]="folderName" name="folderName" placeholder="Ej. Alabanza" maxlength="40" enterkeyhint="done" autofocus />
-        </label>
-        <label class="modal-field modal-field-textarea">
-          <span>Descripción (opcional)</span>
-          <textarea [(ngModel)]="folderDescription" name="folderDescription" placeholder="Describe esta carpeta..." maxlength="240" rows="4"></textarea>
-        </label>
-        <ion-text color="danger" role="alert" *ngIf="errorMessage">
-          <p class="error-message">{{ errorMessage }}</p>
-        </ion-text>
-        <button class="hidden-submit" type="submit" [disabled]="isSaving || !folderName.trim()">Guardar</button>
-      </form>
-    </ion-content>
-    <ion-footer class="modal-actions">
-      <ion-toolbar>
-        <div class="modal-action-buttons">
-          <button type="button" (click)="closeFolderForm()">Cancelar</button>
-          <button type="button" class="save-button" [disabled]="isSaving || !folderName.trim()" (click)="saveFolder()">
-            <ion-spinner *ngIf="isSaving" name="crescent" aria-hidden="true"></ion-spinner>
-            <span>{{ isSaving ? 'Guardando…' : 'Guardar' }}</span>
-          </button>
-        </div>
-      </ion-toolbar>
-    </ion-footer>
-  </ng-template>
-</ion-modal>
+<app-base-modal
+  [isOpen]="isFolderFormOpen"
+  [title]="editingFolder ? 'Editar carpeta' : 'Nueva carpeta'"
+  [description]="editingFolder ? 'Modifica los datos de tu carpeta' : 'Organiza tus acordes, letras y canciones'"
+  [primaryText]="isSaving ? 'Guardando…' : (editingFolder ? 'Guardar cambios' : 'Crear carpeta')"
+  secondaryText="Cancelar"
+  [primaryDisabled]="isSaving || !folderName.trim()"
+  [secondaryDisabled]="isSaving"
+  (closed)="closeFolderForm()"
+  (secondary)="closeFolderForm()"
+  (primary)="saveFolder()"
+>
+  <form (ngSubmit)="saveFolder()">
+    <label class="modal-field">
+      <span>Nombre</span>
+      <input
+        [(ngModel)]="folderName"
+        name="folderName"
+        placeholder="Ej. Alabanza, Acústicos, Repertorio"
+        maxlength="40"
+        enterkeyhint="done"
+        autofocus
+      />
+    </label>
+
+    <ion-text color="danger" role="alert" *ngIf="errorMessage">
+      <p class="error-message">{{ errorMessage }}</p>
+    </ion-text>
+
+    <button class="hidden-submit" type="submit" [disabled]="isSaving || !folderName.trim()">Guardar</button>
+  </form>
+</app-base-modal>
 
 <app-full-screen-loader [visible]="isSaving" message="Guardando…"></app-full-screen-loader>
 
-<app-confirm-modal
+<app-base-modal
+  size="sm"
   [isOpen]="pendingDelete !== null"
-  [title]="'Eliminar carpeta'"
-  [message]="'¿Quieres eliminar ' + (pendingDelete?.name || '') + '?'"
-  confirmText="Eliminar"
-  [isBusy]="isDeleting"
-  (cancelled)="cancelFolderDelete()"
-  (confirmed)="confirmFolderDelete()"
-></app-confirm-modal>
+  title="Eliminar carpeta"
+  [description]="'¿Quieres eliminar ' + (pendingDelete?.name || '') + '? Esta acción no se puede deshacer.'"
+  [primaryText]="isDeleting ? 'Eliminando…' : 'Eliminar'"
+  secondaryText="Cancelar"
+  primaryRole="danger"
+  [bodyless]="true"
+  [primaryDisabled]="isDeleting"
+  [secondaryDisabled]="isDeleting"
+  (closed)="cancelFolderDelete()"
+  (secondary)="cancelFolderDelete()"
+  (primary)="confirmFolderDelete()"
+></app-base-modal>

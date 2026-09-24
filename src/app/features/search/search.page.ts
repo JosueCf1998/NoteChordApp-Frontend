@@ -4,10 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 
-import { Note } from '../notes/models/note.model';
-import { NoteService } from '../notes/services/note.service';
-import { Folder } from '../folders/models/folder.model';
-import { FolderService } from '../folders/services/folder.service';
+import { Note } from '../../core/models/note/note.model';
+import { Folder } from '../../core/models/folder/folder.model';
+import { GetAllNotesUseCase } from '../../core/use-cases/notes';
+import { GetFoldersUseCase } from '../../core/use-cases/folders';
 import { NavigationService } from '../../core/navigation/navigation.service';
 import { SharedModule } from '../../shared/shared.module';
 
@@ -19,8 +19,8 @@ import { SharedModule } from '../../shared/shared.module';
   imports: [CommonModule, FormsModule, IonicModule, SharedModule]
 })
 export class SearchPage implements AfterViewInit {
-  private readonly noteService = inject(NoteService);
-  private readonly folderService = inject(FolderService);
+  private readonly getAllNotesUseCase = inject(GetAllNotesUseCase);
+  private readonly getFoldersUseCase = inject(GetFoldersUseCase);
   private readonly navService = inject(NavigationService);
 
   @ViewChild('searchInput') searchInputElement?: ElementRef<HTMLInputElement>;
@@ -28,8 +28,15 @@ export class SearchPage implements AfterViewInit {
   readonly searchTerm$ = new BehaviorSubject<string>('');
   searchTerm = '';
 
+  private readonly allNotes$: Observable<Note[]> = this.getAllNotesUseCase.execute().pipe(
+    map((res) => res.data || [])
+  );
+  private readonly folders$: Observable<Folder[]> = this.getFoldersUseCase.execute().pipe(
+    map((res) => res.data || [])
+  );
+
   readonly matchingNotes$: Observable<Note[]> = combineLatest([
-    this.noteService.allNotes$,
+    this.allNotes$,
     this.searchTerm$
   ]).pipe(
     map(([notes, term]) => {
@@ -45,7 +52,7 @@ export class SearchPage implements AfterViewInit {
   );
 
   readonly matchingFolders$: Observable<Folder[]> = combineLatest([
-    this.folderService.folders$,
+    this.folders$,
     this.searchTerm$
   ]).pipe(
     map(([folders, term]) => {

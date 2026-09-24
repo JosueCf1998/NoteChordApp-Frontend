@@ -11,6 +11,8 @@ import { appPageTransition } from './core/navigation/page-transition';
 
 import { FolderRepository } from './core/repositories/folder.repository';
 import { FirestoreFolderRepository } from './core/repositories/firestore-folder.repository';
+import { NoteRepository } from './core/repositories/note.repository';
+import { FirestoreNoteRepository } from './core/repositories/firestore-note.repository';
 
 @NgModule({
   declarations: [AppComponent],
@@ -32,7 +34,8 @@ import { FirestoreFolderRepository } from './core/repositories/firestore-folder.
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    { provide: FolderRepository, useClass: FirestoreFolderRepository }
+    { provide: FolderRepository, useClass: FirestoreFolderRepository },
+    { provide: NoteRepository, useClass: FirestoreNoteRepository }
   ],
   bootstrap: [AppComponent],
 })

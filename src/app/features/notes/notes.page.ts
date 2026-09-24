@@ -3,9 +3,9 @@ import { ActivatedRoute } from '@angular/router';
 import { ActionSheetController, IonicModule } from '@ionic/angular';
 import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 
-import { FolderService } from '../folders/services/folder.service';
-import { Note } from './models/note.model';
-import { NoteService } from './services/note.service';
+import { Note } from '../../core/models/note/note.model';
+import { GetNotesByFolderUseCase, DeleteNoteUseCase } from '../../core/use-cases/notes';
+import { GetFolderByIdUseCase } from '../../core/use-cases/folders';
 import { NavigationService } from '../../core/navigation/navigation.service';
 import { AnimatedPageTitleComponent } from '../../shared/components/animated-page-title/animated-page-title.component';
 
@@ -28,15 +28,20 @@ interface NoteGroup {
 export class NotesPage {
   private readonly route = inject(ActivatedRoute);
   private readonly navService = inject(NavigationService);
-  private readonly noteService = inject(NoteService);
-  private readonly folderService = inject(FolderService);
+  private readonly getNotesByFolderUseCase = inject(GetNotesByFolderUseCase);
+  private readonly getFolderByIdUseCase = inject(GetFolderByIdUseCase);
+  private readonly deleteNoteUseCase = inject(DeleteNoteUseCase);
   private readonly actionSheetController = inject(ActionSheetController);
 
   @ViewChild(AnimatedPageTitleComponent) pageTitle?: AnimatedPageTitleComponent;
 
   readonly folderId = this.route.snapshot.paramMap.get('folderId') ?? '';
-  readonly notes$ = this.noteService.forFolder(this.folderId);
-  readonly folder$ = this.folderService.watch(this.folderId);
+  readonly notes$ = this.getNotesByFolderUseCase.execute(this.folderId).pipe(
+    map((res) => res.data || [])
+  );
+  readonly folder$ = this.getFolderByIdUseCase.execute({ id: this.folderId }).pipe(
+    map((res) => res.data)
+  );
   readonly searchTerm$ = new BehaviorSubject<string>('');
 
   readonly filteredNotes$: Observable<Note[]> = combineLatest([
@@ -184,7 +189,10 @@ export class NotesPage {
 
   private async performNoteDelete(noteId: string) {
     try {
-      await this.noteService.delete(noteId);
+      const res = await this.deleteNoteUseCase.execute({ id: noteId });
+      if (!res.success) {
+        this.errorMessage = res.message || 'No se pudo eliminar la nota.';
+      }
     } catch {
       this.errorMessage = 'No se pudo eliminar la nota.';
     } finally {

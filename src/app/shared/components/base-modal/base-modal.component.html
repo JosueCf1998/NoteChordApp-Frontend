@@ -1,0 +1,58 @@
+<ion-modal
+  [cssClass]="modalClass"
+  [isOpen]="isOpen"
+  [animated]="animated"
+  [backdropDismiss]="backdropDismiss"
+  (didDismiss)="handleDidDismiss()">
+  <ng-template>
+    <section class="base-modal__panel" role="dialog" [attr.aria-label]="title">
+      <header *ngIf="showHeader" class="base-modal__header">
+        <div class="base-modal__heading">
+          <h2>{{ title }}</h2>
+          <p *ngIf="description">{{ description }}</p>
+        </div>
+
+        <button
+          *ngIf="showClose"
+          type="button"
+          class="base-modal__close"
+          aria-label="Cerrar"
+          (click)="requestClose()">
+          <ion-icon src="assets/icon/cross.svg"></ion-icon>
+        </button>
+      </header>
+
+      <div
+        *ngIf="!bodyless"
+        class="base-modal__body"
+        [class.base-modal__body--static]="!bodyScrollable">
+        <ng-content></ng-content>
+      </div>
+
+      <footer
+        *ngIf="primaryText || secondaryText"
+        class="base-modal__footer"
+        [class.base-modal__footer--reverse]="reverseActions">
+        <button
+          *ngIf="secondaryText"
+          type="button"
+          class="base-modal__button base-modal__button--secondary"
+          [disabled]="secondaryDisabled"
+          (click)="secondary.emit()">
+          {{ secondaryText }}
+        </button>
+
+        <button
+          *ngIf="primaryText"
+          type="button"
+          class="base-modal__button base-modal__button--primary"
+          [class.base-modal__button--danger]="primaryRole === 'danger'"
+          [disabled]="primaryDisabled"
+          (click)="primary.emit()">
+          {{ primaryText }}
+        </button>
+      </footer>
+    </section>
+  </ng-template>
+</ion-modal>
+

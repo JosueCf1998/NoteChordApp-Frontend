@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { ModalController } from '@ionic/angular';
-import { AlertVariant, CustomAlertComponent } from '../../shared/components/custom-alert/custom-alert.component';
+import { AlertController } from '@ionic/angular';
+
+export type AlertVariant = 'primary' | 'danger' | 'warning' | 'info';
 
 export interface AlertOptions {
   title: string;
@@ -21,46 +22,48 @@ export interface ConfirmOptions {
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
-  private readonly modalCtrl = inject(ModalController);
+  private readonly alertCtrl = inject(AlertController);
 
   async confirm(options: ConfirmOptions): Promise<boolean> {
-    const modal = await this.modalCtrl.create({
-      component: CustomAlertComponent,
-      cssClass: 'custom-alert-modal',
-      backdropDismiss: true,
-      componentProps: {
-        title: options.title,
-        message: options.message || '',
-        confirmText: options.confirmText || 'Confirmar',
-        cancelText: options.cancelText || 'Cancelar',
-        variant: options.variant || 'primary',
-        icon: options.icon || (options.variant === 'danger' ? 'alert-circle-outline' : 'help-circle-outline'),
-        isConfirm: true
+    return new Promise(async (resolve) => {
+      const alert = await this.alertCtrl.create({
+        header: options.title,
+        message: options.message,
+        buttons: [
+          {
+            text: options.cancelText || 'Cancelar',
+            role: 'cancel',
+            handler: () => resolve(false)
+          },
+          {
+            text: options.confirmText || 'Confirmar',
+            role: options.variant === 'danger' ? 'destructive' : undefined,
+            handler: () => resolve(true)
+          }
+        ]
+      });
+
+      await alert.present();
+      const result = await alert.onDidDismiss();
+      if (result.role === 'cancel' || result.role === 'backdrop') {
+        resolve(false);
       }
     });
-
-    await modal.present();
-    const { data } = await modal.onDidDismiss<boolean>();
-    return Boolean(data);
   }
 
   async alert(options: AlertOptions): Promise<void> {
-    const modal = await this.modalCtrl.create({
-      component: CustomAlertComponent,
-      cssClass: 'custom-alert-modal',
-      backdropDismiss: true,
-      componentProps: {
-        title: options.title,
-        message: options.message || '',
-        confirmText: options.buttonText || 'Entendido',
-        variant: options.variant || 'primary',
-        icon: options.icon || 'information-circle-outline',
-        isConfirm: false
-      }
+    const alert = await this.alertCtrl.create({
+      header: options.title,
+      message: options.message,
+      buttons: [
+        {
+          text: options.buttonText || 'Entendido',
+          role: 'cancel'
+        }
+      ]
     });
 
-    await modal.present();
-    await modal.onDidDismiss();
+    await alert.present();
+    await alert.onDidDismiss();
   }
 }
-

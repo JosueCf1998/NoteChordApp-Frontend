@@ -5,11 +5,12 @@ import { of } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import { SearchPage } from './search.page';
-import { NoteService } from '../notes/services/note.service';
-import { FolderService } from '../folders/services/folder.service';
+import { GetAllNotesUseCase } from '../../core/use-cases/notes';
+import { GetFoldersUseCase } from '../../core/use-cases/folders';
 import { NavigationService } from '../../core/navigation/navigation.service';
-import { Note } from '../notes/models/note.model';
-import { Folder } from '../folders/models/folder.model';
+import { Note } from '../../core/models/note/note.model';
+import { Folder } from '../../core/models/folder/folder.model';
+import { createSuccessResult } from '../../core/models/result.model';
 
 describe('SearchPage', () => {
   let component: SearchPage;
@@ -57,12 +58,12 @@ describe('SearchPage', () => {
     }
   ];
 
-  const noteServiceMock = {
-    allNotes$: of(mockNotes)
+  const getAllNotesUseCaseMock = {
+    execute: () => of(createSuccessResult(mockNotes))
   };
 
-  const folderServiceMock = {
-    folders$: of(mockFolders)
+  const getFoldersUseCaseMock = {
+    execute: () => of(createSuccessResult(mockFolders))
   };
 
   const navServiceMock = {
@@ -76,8 +77,8 @@ describe('SearchPage', () => {
     await TestBed.configureTestingModule({
       imports: [IonicModule.forRoot(), SearchPage],
       providers: [
-        { provide: NoteService, useValue: noteServiceMock },
-        { provide: FolderService, useValue: folderServiceMock },
+        { provide: GetAllNotesUseCase, useValue: getAllNotesUseCaseMock },
+        { provide: GetFoldersUseCase, useValue: getFoldersUseCaseMock },
         { provide: NavigationService, useValue: navServiceMock }
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]

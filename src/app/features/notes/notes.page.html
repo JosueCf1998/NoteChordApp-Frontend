@@ -92,12 +92,18 @@
   </ng-container>
 </ng-container>
 
-<app-confirm-modal
+<app-base-modal
+  size="sm"
   [isOpen]="pendingDelete !== null"
-  [title]="'Eliminar nota'"
-  [message]="'¿Quieres eliminar ' + (pendingDelete?.title || '') + '?'"
-  confirmText="Eliminar"
-  [isBusy]="isDeleting"
-  (cancelled)="cancelNoteDelete()"
-  (confirmed)="confirmNoteDelete()"
-></app-confirm-modal>
+  title="Eliminar nota"
+  [description]="'¿Quieres eliminar ' + (pendingDelete?.title || '') + '? Esta acción no se puede deshacer.'"
+  [primaryText]="isDeleting ? 'Eliminando…' : 'Eliminar'"
+  secondaryText="Cancelar"
+  primaryRole="danger"
+  [bodyless]="true"
+  [primaryDisabled]="isDeleting"
+  [secondaryDisabled]="isDeleting"
+  (closed)="cancelNoteDelete()"
+  (secondary)="cancelNoteDelete()"
+  (primary)="confirmNoteDelete()"
+></app-base-modal>
