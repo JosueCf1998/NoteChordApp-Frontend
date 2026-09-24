@@ -4,7 +4,7 @@ import { Timestamp } from 'firebase/firestore';
 @Pipe({
   name: 'appNoteCount',
   pure: true,
-  standalone: false
+  standalone: true
 })
 export class NoteCountPipe implements PipeTransform {
   transform(count: number | null | undefined): string {
@@ -19,7 +19,7 @@ export class NoteCountPipe implements PipeTransform {
 @Pipe({
   name: 'appNoteDate',
   pure: true,
-  standalone: false
+  standalone: true
 })
 export class NoteDatePipe implements PipeTransform {
   transform(timestamp: Timestamp | Date | null | undefined): string {
@@ -70,7 +70,7 @@ export class NoteDatePipe implements PipeTransform {
 @Pipe({
   name: 'appNotePreview',
   pure: true,
-  standalone: false
+  standalone: true
 })
 export class NotePreviewPipe implements PipeTransform {
   transform(content: string | null | undefined): string {

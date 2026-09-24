@@ -1,6 +1,4 @@
-import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
 
 import { ConfirmModalComponent } from './components/confirm-modal/confirm-modal.component';
 import { FloatingSearchActionComponent } from './components/floating-search-action/floating-search-action.component';
@@ -12,33 +10,22 @@ import { TopNavbarComponent } from './components/top-navbar/top-navbar.component
 import { CustomAlertComponent } from './components/custom-alert/custom-alert.component';
 import { NoteCountPipe, NoteDatePipe, NotePreviewPipe } from './pipes/note-format.pipe';
 
+const SHARED_DIRECTIVES = [
+  AnimatedPageTitleComponent,
+  ConfirmModalComponent,
+  CustomAlertComponent,
+  FloatingSearchActionComponent,
+  FullScreenLoaderComponent,
+  GroupedListComponent,
+  SwipeActionsComponent,
+  TopNavbarComponent,
+  NoteCountPipe,
+  NoteDatePipe,
+  NotePreviewPipe
+];
+
 @NgModule({
-  declarations: [
-    AnimatedPageTitleComponent,
-    ConfirmModalComponent,
-    CustomAlertComponent,
-    FloatingSearchActionComponent,
-    FullScreenLoaderComponent,
-    GroupedListComponent,
-    SwipeActionsComponent,
-    TopNavbarComponent,
-    NoteCountPipe,
-    NoteDatePipe,
-    NotePreviewPipe
-  ],
-  imports: [CommonModule, IonicModule],
-  exports: [
-    AnimatedPageTitleComponent,
-    ConfirmModalComponent,
-    CustomAlertComponent,
-    FloatingSearchActionComponent,
-    FullScreenLoaderComponent,
-    GroupedListComponent,
-    SwipeActionsComponent,
-    TopNavbarComponent,
-    NoteCountPipe,
-    NoteDatePipe,
-    NotePreviewPipe
-  ]
+  imports: [...SHARED_DIRECTIVES],
+  exports: [...SHARED_DIRECTIVES]
 })
 export class SharedModule {}

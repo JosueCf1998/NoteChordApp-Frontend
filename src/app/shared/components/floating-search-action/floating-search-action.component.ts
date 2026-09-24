@@ -1,10 +1,13 @@
 import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { IonicModule } from '@ionic/angular';
 
 @Component({
   selector: 'app-floating-search-action',
   templateUrl: './floating-search-action.component.html',
   styleUrls: ['./floating-search-action.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, IonicModule]
 })
 export class FloatingSearchActionComponent {
   @Input() value = '';

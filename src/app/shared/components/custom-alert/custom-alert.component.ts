@@ -1,5 +1,6 @@
 import { Component, Input, inject } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { CommonModule } from '@angular/common';
+import { IonicModule, ModalController } from '@ionic/angular';
 
 export type AlertVariant = 'primary' | 'danger' | 'warning' | 'info';
 
@@ -7,7 +8,8 @@ export type AlertVariant = 'primary' | 'danger' | 'warning' | 'info';
   selector: 'app-custom-alert',
   templateUrl: './custom-alert.component.html',
   styleUrls: ['./custom-alert.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, IonicModule]
 })
 export class CustomAlertComponent {
   private readonly modalCtrl = inject(ModalController);

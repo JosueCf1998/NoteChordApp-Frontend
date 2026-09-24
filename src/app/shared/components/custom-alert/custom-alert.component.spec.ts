@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { IonicModule, ModalController } from '@ionic/angular';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { CustomAlertComponent } from './custom-alert.component';
 
@@ -15,12 +15,16 @@ describe('CustomAlertComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [CustomAlertComponent],
+      imports: [IonicModule.forRoot(), CustomAlertComponent],
       providers: [
         { provide: ModalController, useValue: modalCtrlMock }
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
-    }).compileComponents();
+    })
+    .overrideComponent(CustomAlertComponent, {
+      set: { template: '<div></div>', imports: [] }
+    })
+    .compileComponents();
 
     fixture = TestBed.createComponent(CustomAlertComponent);
     component = fixture.componentInstance;

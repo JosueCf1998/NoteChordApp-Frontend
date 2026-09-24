@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 const COLLAPSE_THRESHOLD = 4;
 const GESTURE_THRESHOLD = 6;
@@ -7,7 +8,8 @@ const GESTURE_THRESHOLD = 6;
   selector: 'app-animated-page-title',
   templateUrl: './animated-page-title.component.html',
   styleUrls: ['./animated-page-title.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule]
 })
 export class AnimatedPageTitleComponent {
   @Input() title = '';

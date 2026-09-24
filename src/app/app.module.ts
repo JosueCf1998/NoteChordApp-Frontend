@@ -9,6 +9,9 @@ import { AppRoutingModule } from './app-routing.module';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { appPageTransition } from './core/navigation/page-transition';
 
+import { FolderRepository } from './core/repositories/folder.repository';
+import { FirestoreFolderRepository } from './core/repositories/firestore-folder.repository';
+
 @NgModule({
   declarations: [AppComponent],
   imports: [
@@ -29,6 +32,7 @@ import { appPageTransition } from './core/navigation/page-transition';
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    { provide: FolderRepository, useClass: FirestoreFolderRepository }
   ],
   bootstrap: [AppComponent],
 })

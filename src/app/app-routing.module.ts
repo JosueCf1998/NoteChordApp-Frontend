@@ -6,33 +6,42 @@ import { authGuard } from './core/auth/auth.guard';
 const routes: Routes = [
   {
     path: '',
-    loadChildren: () => import('./features/access/splash/splash.module').then((m) => m.SplashPageModule),
+    loadComponent: () => import('./features/access/splash.page').then((m) => m.SplashPage),
     pathMatch: 'full'
   },
   {
     path: 'login',
-    loadChildren: () => import('./features/access/login/login.module').then((m) => m.LoginPageModule)
+    loadComponent: () => import('./features/access/login.page').then((m) => m.LoginPage)
   },
   {
     path: 'home',
-    loadChildren: () => import('./features/folders/pages/folders/folders.module').then((m) => m.FoldersPageModule),
+    loadComponent: () => import('./features/folders/folders.page').then((m) => m.FoldersPage),
     canActivate: [authGuard]
   },
   {
     path: 'notes/:folderId',
-    loadChildren: () => import('./features/notes/notes.module').then((m) => m.NotesPageModule),
+    loadComponent: () => import('./features/notes/notes.page').then((m) => m.NotesPage),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'notes/:folderId/:noteId',
+    loadComponent: () => import('./features/notes/note-editor.page').then((m) => m.NoteEditorPage),
     canActivate: [authGuard]
   },
   {
     path: 'settings',
-    loadChildren: () => import('./features/settings/pages/settings/settings.module').then((m) => m.SettingsPageModule),
+    loadComponent: () => import('./features/settings/settings.page').then((m) => m.SettingsPage),
     canActivate: [authGuard]
   },
   {
     path: 'search',
-    loadChildren: () => import('./features/search/search.module').then((m) => m.SearchPageModule),
+    loadComponent: () => import('./features/search/search.page').then((m) => m.SearchPage),
     canActivate: [authGuard]
   },
+  {
+    path: '**',
+    redirectTo: ''
+  }
 ];
 
 @NgModule({
@@ -41,4 +50,4 @@ const routes: Routes = [
   ],
   exports: [RouterModule]
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

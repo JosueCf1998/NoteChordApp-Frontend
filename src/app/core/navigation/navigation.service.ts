@@ -9,6 +9,8 @@ export class NavigationService {
   private readonly platform = inject(Platform);
   private readonly router = inject(Router);
 
+  private isNavigating = false;
+  private readonly navigationLockMs = 150;
   private routerOutlet?: IonRouterOutlet;
 
   setRouterOutlet(outlet?: IonRouterOutlet) {
@@ -33,6 +35,55 @@ export class NavigationService {
       }
     });
   }
+
+  /**
+   * Navegación hacia adelante protegida con bloqueo anti-rebote (debounce lock).
+   */
+  async push(path: string | any[], state?: any): Promise<void> {
+    if (this.isNavigating) return;
+    this.isNavigating = true;
+    try {
+      await this.navCtrl.navigateForward(path as any, {
+        animated: true,
+        animationDirection: 'forward',
+        state
+      });
+    } finally {
+      setTimeout(() => (this.isNavigating = false), this.navigationLockMs);
+    }
+  }
+
+  /**
+   * Navegación hacia atrás protegida con bloqueo anti-rebote.
+   */
+  async back(): Promise<void> {
+    if (this.isNavigating) return;
+    this.isNavigating = true;
+    try {
+      await this.navCtrl.back({ animated: true, animationDirection: 'back' });
+    } finally {
+      setTimeout(() => (this.isNavigating = false), this.navigationLockMs);
+    }
+  }
+
+  /**
+   * Reemplazo de ruta raíz protegido con bloqueo anti-rebote.
+   */
+  async replace(path: string | any[], state?: any, animated: boolean = true): Promise<void> {
+    if (this.isNavigating) return;
+    this.isNavigating = true;
+    try {
+      await this.navCtrl.navigateRoot(path as any, {
+        animated,
+        animationDirection: animated ? 'back' : undefined,
+        state
+      });
+    } finally {
+      setTimeout(() => (this.isNavigating = false), animated ? this.navigationLockMs : 80);
+    }
+  }
+
+  // --- Métodos de dominio de NoteChord con anti-rebote integrado ---
 
   goToSplash(direction: 'forward' | 'back' = 'back') {
     return this.navCtrl.navigateRoot('/', {
@@ -89,9 +140,4 @@ export class NavigationService {
   replaceNoteUrl(folderId: string, noteId: string) {
     return this.router.navigate(['/notes', folderId, noteId], { replaceUrl: true });
   }
-
-  back() {
-    return this.navCtrl.back();
-  }
 }
-
