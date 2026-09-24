@@ -24,11 +24,6 @@ const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'notes/:folderId/:noteId',
-    loadComponent: () => import('./features/notes/note-editor.page').then((m) => m.NoteEditorPage),
-    canActivate: [authGuard]
-  },
-  {
     path: 'settings',
     loadComponent: () => import('./features/settings/settings.page').then((m) => m.SettingsPage),
     canActivate: [authGuard]

@@ -4,7 +4,12 @@ import { ActionSheetController, IonicModule } from '@ionic/angular';
 import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 
 import { Note } from '../../core/models/note/note.model';
-import { GetNotesByFolderUseCase, DeleteNoteUseCase } from '../../core/use-cases/notes';
+import {
+  GetNotesByFolderUseCase,
+  CreateNoteUseCase,
+  UpdateNoteUseCase,
+  DeleteNoteUseCase
+} from '../../core/use-cases/notes';
 import { GetFolderByIdUseCase } from '../../core/use-cases/folders';
 import { NavigationService } from '../../core/navigation/navigation.service';
 import { AnimatedPageTitleComponent } from '../../shared/components/animated-page-title/animated-page-title.component';
@@ -30,6 +35,8 @@ export class NotesPage {
   private readonly navService = inject(NavigationService);
   private readonly getNotesByFolderUseCase = inject(GetNotesByFolderUseCase);
   private readonly getFolderByIdUseCase = inject(GetFolderByIdUseCase);
+  private readonly createNoteUseCase = inject(CreateNoteUseCase);
+  private readonly updateNoteUseCase = inject(UpdateNoteUseCase);
   private readonly deleteNoteUseCase = inject(DeleteNoteUseCase);
   private readonly actionSheetController = inject(ActionSheetController);
 
@@ -67,6 +74,14 @@ export class NotesPage {
   pendingDelete: { id: string; title: string } | null = null;
   errorMessage = '';
 
+  // Formulario modal de creación / edición de nota
+  isNoteFormOpen = false;
+  editingNote: Note | null = null;
+  noteTitle = '';
+  noteContent = '';
+  isSaving = false;
+  formErrorMessage = '';
+
   onSearchChange(term: string) {
     this.searchTerm = term;
     this.searchTerm$.next(term);
@@ -93,11 +108,71 @@ export class NotesPage {
   }
 
   toggleCreateForm() {
-    void this.navService.goToCreateNote(this.folderId);
+    this.editingNote = null;
+    this.noteTitle = '';
+    this.noteContent = '';
+    this.formErrorMessage = '';
+    this.isNoteFormOpen = true;
+  }
+
+  openNote(note: Note) {
+    this.editingNote = note;
+    this.noteTitle = note.title;
+    this.noteContent = note.content || '';
+    this.formErrorMessage = '';
+    this.isNoteFormOpen = true;
+  }
+
+  closeNoteForm() {
+    this.isNoteFormOpen = false;
+    this.editingNote = null;
+    this.noteTitle = '';
+    this.noteContent = '';
+    this.formErrorMessage = '';
+  }
+
+  async saveNote() {
+    const title = this.noteTitle.trim();
+    if (!title || this.isSaving) return;
+
+    this.isSaving = true;
+    this.formErrorMessage = '';
+
+    try {
+      if (this.editingNote) {
+        const res = await this.updateNoteUseCase.execute({
+          id: this.editingNote.id,
+          title,
+          content: this.noteContent.trim()
+        });
+        if (!res.success) {
+          this.formErrorMessage = res.message || 'No se pudo actualizar la nota.';
+          this.isSaving = false;
+          return;
+        }
+      } else {
+        const res = await this.createNoteUseCase.execute({
+          folderId: this.folderId,
+          title,
+          content: this.noteContent.trim()
+        });
+        if (!res.success) {
+          this.formErrorMessage = res.message || 'No se pudo crear la nota.';
+          this.isSaving = false;
+          return;
+        }
+      }
+
+      this.closeNoteForm();
+    } catch {
+      this.formErrorMessage = 'Ocurrió un error inesperado al guardar la nota.';
+    } finally {
+      this.isSaving = false;
+    }
   }
 
   openSearch() {
-    return this.navService.goToSearch();
+    return this.navService.push('/search');
   }
 
   private groupNotes(notes: Note[]): NoteGroup[] {
@@ -145,10 +220,6 @@ export class NotesPage {
     return String(date.getFullYear());
   }
 
-  openNote(noteId: string) {
-    return this.navService.goToNoteEditor(this.folderId, noteId);
-  }
-
   deleteNote(noteId: string, title: string) {
     this.pendingDelete = { id: noteId, title };
   }
@@ -173,7 +244,7 @@ export class NotesPage {
         {
           text: 'Editar',
           icon: 'pencil-outline',
-          handler: () => void this.openNote(note.id)
+          handler: () => void this.openNote(note)
         },
         {
           text: 'Eliminar',
@@ -202,10 +273,10 @@ export class NotesPage {
   }
 
   backToFolders() {
-    return this.navService.backToFolders();
+    return this.navService.back();
   }
 
   openSettings() {
-    return this.navService.goToSettings();
+    return this.navService.push('/settings');
   }
 }

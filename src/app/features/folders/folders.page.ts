@@ -71,7 +71,7 @@ export class FoldersPage {
   private longPressOrigin?: { x: number; y: number };
 
   openFolder(folderId: string) {
-    return this.navService.goToFolderNotes(folderId);
+    return this.navService.push(['/notes', folderId]);
   }
 
   handleFolderClick(folderId: string) {
@@ -145,11 +145,11 @@ export class FoldersPage {
   }
 
   openSettings() {
-    return this.navService.goToSettings();
+    return this.navService.push('/settings');
   }
 
   openSearch() {
-    return this.navService.goToSearch();
+    return this.navService.push('/search');
   }
 
   onSearchChange(term: string) {
@@ -256,6 +256,6 @@ export class FoldersPage {
 
   async logout() {
     await this.authService.logout();
-    return this.navService.goToLogin('back');
+    return this.navService.replace('/login', undefined, true, 'back');
   }
 }

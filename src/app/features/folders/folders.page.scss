@@ -7,6 +7,10 @@ ion-content {
   margin: 0 auto;
   max-width: var(--nc-content-wide);
   padding: var(--nc-space-2) var(--nc-page-gutter) calc(76px + env(safe-area-inset-bottom));
+
+  @media (min-width: 768px) {
+    padding-top: var(--nc-space-6);
+  }
 }
 
 .folder-add-icon {

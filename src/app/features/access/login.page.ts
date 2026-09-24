@@ -25,7 +25,7 @@ export class LoginPage {
   statusMessage = '';
 
   backToSplash() {
-    return this.navService.goToSplash('back');
+    return this.navService.replace('/', undefined, true, 'back');
   }
 
   async login() {
@@ -42,7 +42,7 @@ export class LoginPage {
           window.setTimeout(() => reject(new Error('LOGIN_TIMEOUT')), 15000);
         })
       ]);
-      await this.navService.goToHome(true);
+      await this.navService.replace('/home');
     } catch (error) {
       this.errorMessage = error instanceof Error && error.message === 'LOGIN_TIMEOUT'
         ? 'La conexión con Firebase tardó demasiado. Comprueba la conexión a Internet.'

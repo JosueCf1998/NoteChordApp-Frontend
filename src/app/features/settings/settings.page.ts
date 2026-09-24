@@ -32,7 +32,7 @@ export class SettingsPage {
   }
 
   backToFolders() {
-    return this.navService.backToFolders();
+    return this.navService.back();
   }
 
   async logout() {
@@ -70,6 +70,6 @@ export class SettingsPage {
 
   private async performLogout() {
     await this.authService.logout();
-    await this.navService.goToSplash('back');
+    await this.navService.replace('/', undefined, true, 'back');
   }
 }

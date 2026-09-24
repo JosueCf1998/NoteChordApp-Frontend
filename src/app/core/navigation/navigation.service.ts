@@ -29,7 +29,7 @@ export class NavigationService {
       } else if (this.routerOutlet?.canGoBack()) {
         void this.routerOutlet.pop();
       } else if (currentUrl === '/login') {
-        void this.goToSplash('back');
+        void this.replace('/', undefined, true, 'back');
       } else {
         void App.exitApp();
       }
@@ -69,75 +69,22 @@ export class NavigationService {
   /**
    * Reemplazo de ruta raíz protegido con bloqueo anti-rebote.
    */
-  async replace(path: string | any[], state?: any, animated: boolean = true): Promise<void> {
+  async replace(
+    path: string | any[],
+    state?: any,
+    animated: boolean = true,
+    animationDirection: 'forward' | 'back' = 'forward'
+  ): Promise<void> {
     if (this.isNavigating) return;
     this.isNavigating = true;
     try {
       await this.navCtrl.navigateRoot(path as any, {
         animated,
-        animationDirection: animated ? 'back' : undefined,
+        animationDirection: animated ? animationDirection : undefined,
         state
       });
     } finally {
       setTimeout(() => (this.isNavigating = false), animated ? this.navigationLockMs : 80);
     }
-  }
-
-  // --- Métodos de dominio de NoteChord con anti-rebote integrado ---
-
-  goToSplash(direction: 'forward' | 'back' = 'back') {
-    return this.navCtrl.navigateRoot('/', {
-      animated: true,
-      animationDirection: direction
-    });
-  }
-
-  goToHome(asRoot = false) {
-    if (asRoot) {
-      return this.navCtrl.navigateRoot('/home', {
-        animated: true,
-        animationDirection: 'forward'
-      });
-    }
-    return this.navCtrl.navigateBack('/home');
-  }
-
-  goToLogin(direction: 'forward' | 'back' = 'forward') {
-    return this.navCtrl.navigateRoot('/login', {
-      animated: true,
-      animationDirection: direction
-    });
-  }
-
-  goToFolderNotes(folderId: string) {
-    return this.navCtrl.navigateForward(['/notes', folderId]);
-  }
-
-  goToNoteEditor(folderId: string, noteId: string) {
-    return this.navCtrl.navigateForward(['/notes', folderId, noteId]);
-  }
-
-  goToCreateNote(folderId: string) {
-    return this.navCtrl.navigateForward(['/notes', folderId, 'new']);
-  }
-
-  goToSettings() {
-    return this.navCtrl.navigateForward('/settings');
-  }
-
-  goToSearch() {
-    return this.navCtrl.navigateForward('/search');
-  }
-
-  backToFolders() {
-    return this.navCtrl.navigateBack('/home');
-  }
-
-  backToNotes(folderId: string) {
-    return this.navCtrl.navigateBack(['/notes', folderId]);
-  }
-
-  replaceNoteUrl(folderId: string, noteId: string) {
-    return this.router.navigate(['/notes', folderId, noteId], { replaceUrl: true });
   }
 }

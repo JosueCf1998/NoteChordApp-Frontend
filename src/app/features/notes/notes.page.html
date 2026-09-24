@@ -49,7 +49,7 @@
               [heading]="group.label"
             >
               <ion-item-sliding *ngFor="let note of group.notes">
-                <ion-item button detail="false" (click)="openNote(note.id)">
+                <ion-item button detail="false" (click)="openNote(note)">
                   <ion-label>
                     <h2>{{ note.title }}</h2>
                     <p>
@@ -59,7 +59,7 @@
                   </ion-label>
                 </ion-item>
                 <app-swipe-actions
-                  (edit)="openNote(note.id)"
+                  (edit)="openNote(note)"
                   (remove)="deleteNote(note.id, note.title)"
                 ></app-swipe-actions>
               </ion-item-sliding>
@@ -91,6 +91,52 @@
     </ion-content>
   </ng-container>
 </ng-container>
+
+<app-base-modal
+  size="lg"
+  [isOpen]="isNoteFormOpen"
+  [title]="editingNote ? 'Editar nota' : 'Nueva nota'"
+  [description]="editingNote ? 'Modifica el contenido de tu nota' : 'Escribe tus acordes, letras o apuntes'"
+  [primaryText]="isSaving ? 'Guardando…' : (editingNote ? 'Guardar cambios' : 'Crear nota')"
+  secondaryText="Cancelar"
+  [primaryDisabled]="isSaving || !noteTitle.trim()"
+  [secondaryDisabled]="isSaving"
+  (closed)="closeNoteForm()"
+  (secondary)="closeNoteForm()"
+  (primary)="saveNote()"
+>
+  <form (ngSubmit)="saveNote()">
+    <label class="modal-field">
+      <span>Título</span>
+      <input
+        [(ngModel)]="noteTitle"
+        name="noteTitle"
+        placeholder="Ej. Título de la canción, acordes..."
+        maxlength="120"
+        enterkeyhint="next"
+        autofocus
+      />
+    </label>
+
+    <label class="modal-field modal-field--textarea">
+      <span>Contenido</span>
+      <textarea
+        [(ngModel)]="noteContent"
+        name="noteContent"
+        placeholder="Escribe aquí notas, acordes o letra..."
+        rows="8"
+      ></textarea>
+    </label>
+
+    <ion-text color="danger" role="alert" *ngIf="formErrorMessage">
+      <p class="error-message">{{ formErrorMessage }}</p>
+    </ion-text>
+
+    <button class="hidden-submit" type="submit" [disabled]="isSaving || !noteTitle.trim()">Guardar</button>
+  </form>
+</app-base-modal>
+
+<app-full-screen-loader [visible]="isSaving" message="Guardando…"></app-full-screen-loader>
 
 <app-base-modal
   size="sm"

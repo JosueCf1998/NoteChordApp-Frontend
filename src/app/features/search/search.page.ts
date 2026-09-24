@@ -89,11 +89,11 @@ export class SearchPage implements AfterViewInit {
   }
 
   selectNote(note: Note) {
-    return this.navService.goToNoteEditor(note.folderId, note.id);
+    return this.navService.push(['/notes', note.folderId]);
   }
 
   selectFolder(folder: Folder) {
-    return this.navService.goToFolderNotes(folder.id);
+    return this.navService.push(['/notes', folder.id]);
   }
 }
 

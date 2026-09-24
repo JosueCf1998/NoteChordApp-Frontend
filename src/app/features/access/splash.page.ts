@@ -53,13 +53,13 @@ export class SplashPage implements OnInit {
     }
 
     if (isAuthenticated) {
-      await this.navService.goToHome(true);
+      await this.navService.replace('/home');
     } else {
-      await this.navService.goToLogin('forward');
+      await this.navService.replace('/login');
     }
   }
 
   goToLogin() {
-    return this.navService.goToLogin('forward');
+    return this.navService.replace('/login');
   }
 }
