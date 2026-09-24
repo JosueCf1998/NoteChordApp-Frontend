@@ -5,9 +5,6 @@ ion-content {
 app-top-navbar ::ng-deep {
   ion-buttons[nav-start] ion-button,
   ion-buttons[nav-end] ion-button {
-    --background: var(--nc-surface);
-    --box-shadow: 0 2px 8px rgba(16, 24, 40, 0.08);
-    border-color: color-mix(in srgb, var(--nc-border) 60%, transparent);
     transition: opacity var(--nc-transition-fast);
 
     &[disabled] {
@@ -19,14 +16,19 @@ app-top-navbar ::ng-deep {
 
   .format-t-icon {
     color: var(--nc-primary);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     font-family: var(--nc-font-family);
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    text-align: center;
     user-select: none;
     -webkit-user-select: none;
   }

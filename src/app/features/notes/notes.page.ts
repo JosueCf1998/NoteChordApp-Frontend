@@ -158,9 +158,8 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
         const note = res.data;
         if (note) {
           this.formattedFullDate = this.formatFullDate(note.updatedAt?.toDate?.() || new Date());
-          const isFocused = this.isEditorActive();
-          // NUNCA sobreescribir el HTML si el usuario está en el editor para evitar que el cursor salte al inicio
-          if (!isFocused && !this.isDirty && !this.isSaving) {
+          // Solo poblar el editor en la carga inicial para nunca sobreescribir ni alterar el DOM mientras el usuario edita
+          if (this.isLoading) {
             this.title = note.title === 'Sin título' ? '' : note.title;
             this.content = note.content;
             this.setEditorContent(this.title, this.content);
