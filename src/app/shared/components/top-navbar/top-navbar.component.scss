@@ -60,6 +60,10 @@ ion-title {
   display: flex;
   margin: 0;
 
+  ion-button + ion-button {
+    margin-inline-start: 12px;
+  }
+
   ion-button {
     --background: var(--nc-surface-raised);
     --border-radius: var(--nc-radius-round);

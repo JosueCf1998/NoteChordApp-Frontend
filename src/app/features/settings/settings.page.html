@@ -70,7 +70,7 @@
 
     <!-- Opciones de información en tarjeta agrupada limpia -->
     <section class="settings-card">
-      <button type="button" class="settings-row" (click)="showInformation('Sincronización', 'Tus carpetas y notas se sincronizan automáticamente en tiempo real mediante Cloud Firestore.')">
+      <button type="button" class="settings-row" (click)="showInformation('Sincronización', 'Tus carpetas y notas se sincronizan automáticamente en tiempo real mediante Cloud Firestore.', 'sync-outline')">
         <ion-icon class="row-icon" name="sync-outline"></ion-icon>
         <span class="row-label">Sincronización</span>
         <span class="row-detail">Automática</span>
@@ -79,7 +79,7 @@
 
       <div class="row-divider"></div>
 
-      <button type="button" class="settings-row" (click)="showInformation('Ayuda', 'Crea carpetas, añade notas con letras y acordes, y usa el modo Vista para interpretar tus cifrados sin editarlos por error.')">
+      <button type="button" class="settings-row" (click)="showInformation('Ayuda', 'Crea carpetas, añade notas con letras y acordes, y usa el modo Vista para interpretar tus cifrados sin editarlos por error.', 'help-circle-outline')">
         <ion-icon class="row-icon" name="help-circle-outline"></ion-icon>
         <span class="row-label">Ayuda</span>
         <ion-icon class="chevron-icon" name="chevron-forward-outline"></ion-icon>
@@ -87,7 +87,7 @@
 
       <div class="row-divider"></div>
 
-      <button type="button" class="settings-row" (click)="showInformation('Acerca de NoteChord', 'NoteChord v1.0.0 · Una libreta moderna y sincronizada diseñada para músicos.')">
+      <button type="button" class="settings-row" (click)="showInformation('Acerca de NoteChord', 'NoteChord v1.0.0 · Una libreta moderna y sincronizada diseñada para músicos.', 'cube-outline')">
         <ion-icon class="row-icon" name="information-circle-outline"></ion-icon>
         <span class="row-label">Acerca de</span>
         <ion-icon class="chevron-icon" name="chevron-forward-outline"></ion-icon>
@@ -96,10 +96,46 @@
 
     <!-- Cerrar sesión -->
     <section class="logout-section">
-      <button type="button" class="logout-button" (click)="logout()">
+      <button type="button" class="logout-button" (click)="openLogoutConfirm()">
         <ion-icon name="log-out-outline"></ion-icon>
         <span>Cerrar sesión</span>
       </button>
     </section>
   </main>
 </ion-content>
+
+<!-- Modal base para confirmación de cierre de sesión -->
+<app-base-modal
+  size="sm"
+  [isOpen]="isLogoutConfirmOpen"
+  title="Cerrar sesión"
+  description="Tus datos sincronizados permanecerán disponibles cuando vuelvas a iniciar sesión."
+  [primaryText]="isLoggingOut ? 'Cerrando…' : 'Cerrar sesión'"
+  secondaryText="Cancelar"
+  primaryRole="danger"
+  [bodyless]="true"
+  [primaryDisabled]="isLoggingOut"
+  [secondaryDisabled]="isLoggingOut"
+  (closed)="closeLogoutConfirm()"
+  (secondary)="closeLogoutConfirm()"
+  (primary)="confirmLogout()"
+></app-base-modal>
+
+<!-- Modal base para alertas informativas (sin header, contenido en body) -->
+<app-base-modal
+  size="sm"
+  [isOpen]="infoModal !== null"
+  [showHeader]="false"
+  [title]="infoModal?.title || 'Información'"
+  primaryText="Entendido"
+  (closed)="closeInfoModal()"
+  (primary)="closeInfoModal()"
+>
+  <div class="base-modal__alert-content">
+    <div class="base-modal__alert-icon">
+      <ion-icon [name]="infoModal?.icon || 'information-circle-outline'"></ion-icon>
+    </div>
+    <h3 class="base-modal__alert-title">{{ infoModal?.title }}</h3>
+    <p class="base-modal__alert-message">{{ infoModal?.message }}</p>
+  </div>
+</app-base-modal>
