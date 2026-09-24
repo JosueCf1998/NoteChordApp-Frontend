@@ -78,11 +78,19 @@ ion-item-sliding:last-child ion-item {
   }
 }
 
+ion-label {
+  min-width: 0;
+  overflow: hidden;
+}
+
 ion-label h2 {
   color: var(--nc-text);
   font-size: var(--nc-font-size-small);
   font-weight: var(--nc-font-weight-semibold);
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .folder-count {

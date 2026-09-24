@@ -12,7 +12,9 @@ ion-content {
   box-sizing: border-box;
   margin: 0 auto;
   max-width: var(--nc-content-wide);
+  min-width: 0;
   padding: var(--nc-space-4) var(--nc-page-gutter) calc(76px + env(safe-area-inset-bottom));
+  width: 100%;
 }
 
 .note-count {
@@ -24,10 +26,25 @@ ion-content {
 .note-groups {
   display: grid;
   gap: var(--nc-space-8);
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
+}
+
+.note-list {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
 }
 
 ion-item-sliding {
   background: var(--nc-surface-raised);
+  display: block !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  width: 100% !important;
 }
 
 ion-item {
@@ -37,42 +54,84 @@ ion-item {
   --inner-padding-end: var(--nc-space-3);
   --min-height: 60px;
   --padding-start: var(--nc-space-5);
+  display: block !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  width: 100% !important;
+
+  &::part(native) {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    width: 100% !important;
+  }
 }
 
 ion-item-sliding:last-child ion-item {
   --border-width: 0;
 }
 
-ion-label {
+ion-label,
+.note-item-label {
+  display: block !important;
+  flex: 1 1 0% !important;
   margin-block: 8px;
-  min-width: 0;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  width: 0 !important;
 }
 
-ion-label h2 {
+ion-label h2,
+.note-item-title {
   color: var(--nc-text);
+  display: block !important;
   font-size: var(--nc-font-size-small);
   font-weight: var(--nc-font-weight-semibold);
   margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  width: 100% !important;
 }
 
-ion-label p {
+ion-label p,
+.note-subtitle {
+  align-items: baseline;
   color: var(--nc-text-secondary);
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
   font-size: var(--nc-font-size-caption);
   gap: var(--nc-space-3);
   margin: 3px 0 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  width: 100% !important;
 
-ion-label p span:last-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  .note-date,
+  span:first-child {
+    display: inline-block !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  .note-preview,
+  span:last-child {
+    display: block !important;
+    flex: 1 1 0% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    width: 0 !important;
+  }
 }
 
 .create-note-icon {

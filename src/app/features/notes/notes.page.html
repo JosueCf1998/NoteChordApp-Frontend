@@ -23,7 +23,7 @@
   (touchend)="handleGestureEnd()"
   (touchcancel)="handleGestureCancel()"
 >
-  <main class="editor-container" *ngIf="!isLoading; else loadingState">
+  <main class="editor-container" (click)="onContainerClick($event)" *ngIf="!isLoading; else loadingState">
 
     <!-- Fecha animada: se revela al deslizar hacia arriba -->
     <div
@@ -35,31 +35,27 @@
       <p class="note-date">{{ formattedFullDate }}</p>
     </div>
 
-    <ion-input
-      [(ngModel)]="title"
-      (ngModelChange)="onTitleChange()"
-      name="title"
-      class="note-title"
-      placeholder="Título"
-      maxlength="120"
-      aria-label="Título de la nota"
-      autocapitalize="sentences"
-    ></ion-input>
-
-    <ion-textarea
-      id="note-content"
-      [(ngModel)]="content"
-      (ngModelChange)="onContentChange()"
-      name="content"
-      class="note-content"
-      placeholder="Escribe aquí notas, acordes o letra..."
-      maxlength="20000"
-      aria-label="Contenido de la nota"
-      auto-grow="true"
-      autocorrect="on"
-      autocapitalize="sentences"
-      spellcheck="true"
-    ></ion-textarea>
+    <!-- Único campo de editor: primera línea en tamaño título, salto de línea en texto normal -->
+    <div class="editor-wrapper">
+      <div class="editor-placeholder" *ngIf="!hasContent" aria-hidden="true">
+        Título
+      </div>
+      <div
+        #editor
+        class="single-note-editor"
+        style="outline: none; border: none; box-shadow: none;"
+        contenteditable="true"
+        (keydown)="onEditorKeydown($event)"
+        (keyup)="onEditorKeyup($event)"
+        (input)="onEditorInput()"
+        (paste)="onEditorPaste($event)"
+        role="textbox"
+        aria-multiline="true"
+        aria-label="Contenido de la nota"
+        autocapitalize="sentences"
+        spellcheck="true"
+      ></div>
+    </div>
 
     <p class="error-message" role="alert" aria-live="polite" *ngIf="errorMessage">
       {{ errorMessage }}

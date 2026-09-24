@@ -1,5 +1,8 @@
 :host {
   display: block;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
 }
 
 h2 {
@@ -16,6 +19,10 @@ ion-list {
   border: 0;
   border-radius: var(--nc-radius-lg);
   box-shadow: var(--nc-shadow-sm);
+  contain: paint;
+  max-width: 100%;
+  min-width: 0;
   overflow: hidden;
   padding: 0;
+  width: 100%;
 }

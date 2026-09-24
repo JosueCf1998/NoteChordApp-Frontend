@@ -206,6 +206,7 @@
 }
 
 .result-subtitle {
+  align-items: baseline;
   color: var(--nc-text-secondary);
   display: flex;
   font-family: var(--nc-font-family);
@@ -216,7 +217,15 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 
+  span:first-child {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
   span:last-child {
+    display: block;
+    flex: 1 1 0%;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

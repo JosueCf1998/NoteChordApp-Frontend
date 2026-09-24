@@ -50,11 +50,11 @@
             >
               <ion-item-sliding *ngFor="let note of group.notes">
                 <ion-item button detail="false" (click)="openNote(note)">
-                  <ion-label>
-                    <h2>{{ note.title }}</h2>
-                    <p>
-                      <span>{{ note.updatedAt | appNoteDate }}</span>
-                      <span>{{ note.content | appNotePreview }}</span>
+                  <ion-label class="note-item-label">
+                    <h2 class="note-item-title">{{ note.title }}</h2>
+                    <p class="note-subtitle">
+                      <span class="note-date">{{ note.updatedAt | appNoteDate }}</span>
+                      <span class="note-preview">{{ note.content | appNotePreview }}</span>
                     </p>
                   </ion-label>
                 </ion-item>

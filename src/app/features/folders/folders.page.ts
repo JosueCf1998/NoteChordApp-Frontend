@@ -1,13 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActionSheetController, IonicModule, ViewWillEnter } from '@ionic/angular';
+import { ActionSheetController, IonicModule } from '@ionic/angular';
 import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { Folder } from '../../core/models/folder/folder.model';
 import { NavigationService } from '../../core/navigation/navigation.service';
-import { LocalManagementService } from '../../core/services/local-management.service';
 import { SharedModule } from '../../shared/shared.module';
 import {
   GetFoldersUseCase,
@@ -24,7 +23,7 @@ import { GetNotesCountByFolderUseCase } from '../../core/use-cases/notes';
   standalone: true,
   imports: [CommonModule, FormsModule, IonicModule, SharedModule]
 })
-export class FoldersPage implements ViewWillEnter {
+export class FoldersPage {
   private readonly authService = inject(AuthService);
   private readonly getFoldersUseCase = inject(GetFoldersUseCase);
   private readonly createFolderUseCase = inject(CreateFolderUseCase);
@@ -33,22 +32,15 @@ export class FoldersPage implements ViewWillEnter {
   private readonly getNotesCountByFolderUseCase = inject(GetNotesCountByFolderUseCase);
   private readonly navService = inject(NavigationService);
   private readonly actionSheetController = inject(ActionSheetController);
-  private readonly localService = inject(LocalManagementService);
 
   private readonly defaultFolderColor = '#3164F4';
-  private readonly foldersStorageKey = 'notechord_folders_data';
-  private readonly foldersLoadedKey = 'notechord_folders_loaded';
-  private readonly noteCountsStorageKey = 'notechord_note_counts_data';
 
-  // Valor booleano que se pone en true cuando ya llamó al servicio de listado
-  isFoldersLoaded = this.localService.getVariable(this.foldersLoadedKey) === 'true';
-
-  private readonly foldersSubject = new BehaviorSubject<Folder[]>(this.getInitialFoldersFromLocal());
-  readonly folders$: Observable<Folder[]> = this.foldersSubject.asObservable();
-
-  private readonly noteCountsSubject = new BehaviorSubject<Record<string, number>>(this.getInitialCountsFromLocal());
-  readonly noteCounts$: Observable<Record<string, number>> = this.noteCountsSubject.asObservable();
-
+  readonly folders$: Observable<Folder[]> = this.getFoldersUseCase.execute().pipe(
+    map((res) => res.data || [])
+  );
+  readonly noteCounts$ = this.getNotesCountByFolderUseCase.execute().pipe(
+    map((res) => res.data || {})
+  );
   readonly searchTerm$ = new BehaviorSubject<string>('');
   readonly filteredFolders$: Observable<Folder[]> = combineLatest([
     this.folders$,
@@ -63,71 +55,8 @@ export class FoldersPage implements ViewWillEnter {
     })
   );
 
-  constructor() {
-    this.loadFolders();
-  }
-
-  ionViewWillEnter() {
-    this.loadFolders();
-  }
-
-  loadFolders() {
-    // Cuando este sea true ya no debe llamar al servicio de listado sino saltarlo
-    if (this.isFoldersLoaded) {
-      return;
-    }
-
-    // Primera vez (es false): llama al servicio de listado y guarda el dato
-    this.getFoldersUseCase.execute().subscribe((res) => {
-      if (res.success && res.data) {
-        this.isFoldersLoaded = true;
-        this.localService.setVariable(this.foldersLoadedKey, 'true');
-        this.localService.setVariable(this.foldersStorageKey, JSON.stringify(res.data));
-        this.foldersSubject.next(res.data);
-      }
-    });
-
-    this.getNotesCountByFolderUseCase.execute().subscribe((res) => {
-      if (res.success && res.data) {
-        this.localService.setVariable(this.noteCountsStorageKey, JSON.stringify(res.data));
-        this.noteCountsSubject.next(res.data);
-      }
-    });
-  }
-
   trackByFolderId(_index: number, folder: Folder): string {
     return folder.id;
-  }
-
-  private getInitialFoldersFromLocal(): Folder[] {
-    const raw = this.localService.getVariable(this.foldersStorageKey);
-    if (!raw) {
-      return [];
-    }
-    try {
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }
-
-  private getInitialCountsFromLocal(): Record<string, number> {
-    const raw = this.localService.getVariable(this.noteCountsStorageKey);
-    if (!raw) {
-      return {};
-    }
-    try {
-      const parsed = JSON.parse(raw);
-      return typeof parsed === 'object' && parsed !== null ? parsed : {};
-    } catch {
-      return {};
-    }
-  }
-
-  private saveFoldersToLocal(folders: Folder[]) {
-    this.localService.setVariable(this.foldersStorageKey, JSON.stringify(folders));
-    this.foldersSubject.next(folders);
   }
 
   folderName = '';
@@ -279,13 +208,6 @@ export class FoldersPage implements ViewWillEnter {
           this.errorMessage = result.message || 'No se pudo actualizar la carpeta.';
           return;
         }
-
-        const updated = this.foldersSubject.getValue().map((f) =>
-          f.id === this.editingFolder!.id
-            ? { ...f, name: this.folderName, color: this.folderColor, description: this.folderDescription }
-            : f
-        ).sort((a, b) => a.name.localeCompare(b.name));
-        this.saveFoldersToLocal(updated);
       } else {
         const result = await this.createFolderUseCase.execute({
           name: this.folderName,
@@ -295,11 +217,6 @@ export class FoldersPage implements ViewWillEnter {
         if (!result.success) {
           this.errorMessage = result.message || 'No se pudo crear la carpeta.';
           return;
-        }
-
-        if (result.data) {
-          const updated = [...this.foldersSubject.getValue(), result.data].sort((a, b) => a.name.localeCompare(b.name));
-          this.saveFoldersToLocal(updated);
         }
       }
       this.closeFolderForm();
@@ -332,9 +249,6 @@ export class FoldersPage implements ViewWillEnter {
       const result = await this.deleteFolderUseCase.execute({ id: folderId });
       if (!result.success) {
         this.errorMessage = result.message || 'No se pudo eliminar la carpeta.';
-      } else {
-        const updated = this.foldersSubject.getValue().filter((f) => f.id !== folderId);
-        this.saveFoldersToLocal(updated);
       }
     } catch {
       this.errorMessage = 'No se pudo eliminar la carpeta.';
@@ -345,10 +259,6 @@ export class FoldersPage implements ViewWillEnter {
   }
 
   async logout() {
-    this.localService.removeVariable(this.foldersStorageKey);
-    this.localService.removeVariable(this.foldersLoadedKey);
-    this.localService.removeVariable(this.noteCountsStorageKey);
-    this.isFoldersLoaded = false;
     await this.authService.logout();
     return this.navService.replace('/login', undefined, true, 'back');
   }

@@ -75,10 +75,12 @@ export class NoteDatePipe implements PipeTransform {
 export class NotePreviewPipe implements PipeTransform {
   transform(content: string | null | undefined): string {
     if (!content) {
-      return 'Sin contenido todavía';
+      return 'Sin texto adicional';
     }
-    const preview = content.replace(/\s+/g, ' ').trim();
-    return preview || 'Sin contenido todavía';
+    // Muestra exclusivamente la segunda línea del documento (primera línea del contenido)
+    const lines = content.split('\n');
+    const secondLine = lines[0]?.trim() || lines.find((line) => line.trim().length > 0)?.trim() || '';
+    return secondLine || 'Sin texto adicional';
   }
 }
 

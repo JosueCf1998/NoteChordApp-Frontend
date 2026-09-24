@@ -53,49 +53,169 @@ app-top-navbar ::ng-deep ion-toolbar {
   user-select: none;
 }
 
-/* ─── Título ───────────────────────────────────────────────────────────────── */
+/* ─── Editor unificado (estilo Apple Notes: 1 campo continuo) ──────────────── */
 
-.note-title {
-  --background: transparent;
-  --color: var(--nc-text);
-  --padding-bottom: 0;
-  --padding-end: 0;
-  --padding-start: 0;
-  --padding-top: 0;
-  color: var(--nc-text);
-  font-size: var(--nc-font-size-title);
-  font-weight: var(--nc-font-weight-bold);
+.editor-wrapper {
+  min-height: calc(100vh - 240px);
+  position: relative;
+  width: 100%;
+}
+
+.editor-placeholder {
+  color: var(--nc-text-tertiary, #8e8e93);
+  font-family: var(--nc-font-family);
+  font-size: 28px;
+  font-weight: 700;
   letter-spacing: -0.035em;
-  line-height: 1.2;
-  margin: 0 0 12px;
+  line-height: 1.25;
+  opacity: 0.35;
+  pointer-events: none;
+  position: absolute;
+  left: 4px;
+  top: 0;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.note-title::part(native) {
-  padding: 0;
-}
-
-/* ─── Área de contenido ────────────────────────────────────────────────────── */
-
-.note-content {
-  --background: transparent;
-  --color: var(--nc-text);
-  --padding-bottom: var(--nc-space-6);
-  --padding-end: 0;
-  --padding-start: 0;
-  --padding-top: 0;
-  border: 0;
+.single-note-editor {
+  background: transparent;
+  border: none !important;
+  box-shadow: none !important;
+  box-sizing: border-box;
+  caret-color: #e49e00; /* Cursor amarillo dorado característico de Apple Notes */
   color: var(--nc-text);
   font-family: var(--nc-font-family);
-  font-size: var(--nc-font-size-body);
+  font-size: 17px;
+  font-weight: 400;
   letter-spacing: -0.015em;
-  line-height: var(--nc-line-height-chords);
-  margin-top: 4px;
+  line-height: 1.5;
   min-height: calc(100vh - 240px);
+  outline: none !important;
+  padding: 0;
+  user-select: text;
+  -webkit-user-select: text;
+  white-space: pre-wrap;
+  word-break: break-word;
+
+  &:focus,
+  &:focus-visible,
+  &:focus-within {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
 }
 
-.note-content::part(native) {
-  line-height: var(--nc-line-height-chords);
-  padding: 0;
+:host ::ng-deep {
+  .single-note-editor {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    white-space: pre-wrap;
+
+    &:focus,
+    &:focus-visible,
+    &:focus-within {
+      border: none !important;
+      box-shadow: none !important;
+      outline: none !important;
+    }
+
+    *,
+    *:focus,
+    *:focus-visible {
+      border: none !important;
+      box-shadow: none !important;
+      outline: none !important;
+    }
+
+    /* 1. TÍTULO: Primera línea (28px, negrita) */
+    h1,
+    .block-title,
+    .note-title-line,
+    > :first-child {
+      color: var(--nc-text);
+      font-size: 28px !important;
+      font-weight: 700 !important;
+      letter-spacing: -0.035em !important;
+      line-height: 1.25 !important;
+      margin: 0 0 10px 0 !important;
+      min-height: 1.25em;
+      outline: none !important;
+      border: none !important;
+    }
+
+    /* 2. SECCIÓN: fila que contiene ':' (la izquierda en 22px semi-negrita, la derecha en 17px regular) */
+    .block-section-line,
+    .block-section,
+    p.block-section,
+    div.block-section,
+    [data-block="section"] {
+      color: var(--nc-text);
+      font-size: 17px !important;
+      font-weight: 400 !important;
+      letter-spacing: -0.015em !important;
+      line-height: 1.45 !important;
+      margin: 14px 0 3px 0 !important;
+      min-height: 1.45em;
+      outline: none !important;
+      border: none !important;
+
+      .section-prefix {
+        color: var(--nc-text);
+        font-size: 22px !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.025em !important;
+        line-height: 1.3 !important;
+        display: inline;
+      }
+
+      .section-suffix {
+        color: var(--nc-text);
+        font-size: 17px !important;
+        font-weight: 400 !important;
+        letter-spacing: -0.015em !important;
+        line-height: 1.45 !important;
+        display: inline;
+      }
+    }
+
+    /* 3. TEXTO: Cuerpo normal tras el salto de línea (17px, regular) */
+    p:not(.block-section):not(.block-title):not(.block-list-item):not(:first-child),
+    .block-text:not(.block-list-item),
+    .note-body-line,
+    div:not(.block-section):not(.block-title):not(.block-list-item):not(:first-child),
+    [data-block="text"] {
+      color: var(--nc-text);
+      font-size: 17px !important;
+      font-weight: 400 !important;
+      letter-spacing: -0.015em !important;
+      line-height: 1.45 !important;
+      margin: 0 0 2px 0 !important;
+      min-height: 1.45em;
+      outline: none !important;
+      border: none !important;
+    }
+
+    /* 4. VIÑETAS Y LISTAS (17px, regular estilo Apple Notes con sangría y espacio simétrico a la izquierda y derecha) */
+    .block-list-item,
+    [data-block="list"] {
+      box-sizing: border-box !important;
+      color: var(--nc-text);
+      font-size: 17px !important;
+      font-weight: 400 !important;
+      letter-spacing: -0.015em !important;
+      line-height: 1.55 !important;
+      margin: 4px 0 !important;
+      min-height: 1.55em;
+      outline: none !important;
+      border: none !important;
+      padding-left: 28px !important;
+      padding-right: 28px !important;
+      text-indent: -18px !important;
+      white-space: pre-wrap !important;
+    }
+  }
 }
 
 /* ─── FAB nueva nota ───────────────────────────────────────────────────────── */
