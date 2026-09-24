@@ -61,8 +61,11 @@
 
     <ng-template #emptyState>
       <section class="empty-state">
-        <h1>Aún no tienes carpetas</h1>
-        <p>Crea una carpeta para empezar a organizar tus notas.</p>
+        <div class="empty-icon"><ion-icon name="folder-outline"></ion-icon></div>
+        <h2>{{ searchTerm ? 'Sin resultados' : 'Sin carpetas' }}</h2>
+        <p class="empty-description">
+          {{ searchTerm ? 'Prueba con otra palabra clave o limpia la búsqueda.' : 'Crea tu primera carpeta para empezar a organizar tus notas.' }}
+        </p>
       </section>
     </ng-template>
 

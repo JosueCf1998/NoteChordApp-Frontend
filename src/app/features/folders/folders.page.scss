@@ -98,6 +98,51 @@ ion-label h2 {
   margin: var(--nc-space-4) 0;
 }
 
+.empty-state {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 3rem auto 0;
+  min-height: 220px;
+  padding: 0 var(--nc-space-6);
+  text-align: center;
+}
+
+.empty-icon {
+  align-items: center;
+  background: transparent;
+  border-radius: 0;
+  color: var(--nc-text);
+  display: flex;
+  height: auto;
+  justify-content: center;
+  margin: 0 auto var(--nc-space-4);
+  width: auto;
+}
+
+.empty-icon ion-icon {
+  color: var(--nc-text-secondary);
+  font-size: 36px;
+  opacity: 0.9;
+}
+
+.empty-state h2 {
+  color: var(--nc-text);
+  font-size: var(--nc-font-size-title);
+  font-weight: var(--nc-font-weight-bold);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.empty-description {
+  color: var(--nc-text-secondary);
+  font-size: var(--nc-font-size-small);
+  line-height: 1.5;
+  margin: var(--nc-space-3) 0 0;
+  max-width: 320px;
+}
+
 .action-fab {
   --background: color-mix(in srgb, var(--nc-surface-raised) 92%, transparent);
   --background-activated: color-mix(in srgb, var(--nc-surface-raised) 78%, transparent);
