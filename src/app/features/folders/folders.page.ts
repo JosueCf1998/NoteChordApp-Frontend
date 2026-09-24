@@ -71,7 +71,7 @@ export class FoldersPage {
   private longPressOrigin?: { x: number; y: number };
 
   openFolder(folderId: string) {
-    return this.navService.push(['/notes', folderId]);
+    return this.navService.push(['/notes-list', folderId]);
   }
 
   handleFolderClick(folderId: string) {

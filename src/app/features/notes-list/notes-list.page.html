@@ -1,0 +1,108 @@
+<ng-container *ngIf="folder$ | async as folder">
+  <ng-container *ngIf="notes$ | async as notes">
+    <app-top-navbar
+      [title]="folder?.name || 'Notas'"
+      [subtitle]="notes.length | appNoteCount"
+      [showTitle]="isHeaderCollapsed"
+      [floatingControls]="true"
+    >
+      <ion-buttons nav-start slot="start">
+        <ion-button (click)="backToFolders()" aria-label="Volver a carpetas">
+          <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <ion-buttons nav-end slot="end">
+        <ion-button (click)="openSearch()" aria-label="Buscar">
+          <ion-icon slot="icon-only" name="search-outline"></ion-icon>
+        </ion-button>
+        <ion-button (click)="openSettings()" aria-label="Ajustes">
+          <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </app-top-navbar>
+
+    <ion-content
+      [scrollEvents]="true"
+      (ionScroll)="handleScroll($event)"
+      (touchstart)="handleGestureStart($event)"
+      (touchmove)="handleGestureMove($event)"
+      (touchend)="handleGestureEnd($event)"
+      (touchcancel)="handleGestureCancel()"
+    >
+      <main class="notes-container">
+        <app-animated-page-title
+          [title]="folder?.name || 'Notas'"
+          (collapsedChange)="isHeaderCollapsed = $event"
+        >
+          <p class="note-count">{{ notes.length | appNoteCount }}</p>
+        </app-animated-page-title>
+
+        <ion-text color="danger" role="alert" *ngIf="errorMessage">
+          <p class="error-message">{{ errorMessage }}</p>
+        </ion-text>
+
+        <ng-container *ngIf="noteGroups$ | async as groups">
+          <section class="note-groups" *ngIf="groups.length; else emptyState">
+            <app-grouped-list
+              class="note-list"
+              *ngFor="let group of groups"
+              [heading]="group.label"
+            >
+              <ion-item-sliding *ngFor="let note of group.notes">
+                <ion-item button detail="false" (click)="openNote(note)">
+                  <ion-label>
+                    <h2>{{ note.title }}</h2>
+                    <p>
+                      <span>{{ note.updatedAt | appNoteDate }}</span>
+                      <span>{{ note.content | appNotePreview }}</span>
+                    </p>
+                  </ion-label>
+                </ion-item>
+                <app-swipe-actions
+                  (edit)="openNote(note)"
+                  (remove)="deleteNote(note.id, note.title)"
+                ></app-swipe-actions>
+              </ion-item-sliding>
+            </app-grouped-list>
+          </section>
+        </ng-container>
+
+        <ng-template #emptyState>
+          <section class="empty-state">
+            <div class="empty-icon"><ion-icon name="document-text-outline"></ion-icon></div>
+            <h2>{{ searchTerm ? 'Sin resultados' : 'Sin notas' }}</h2>
+            <p class="empty-description">
+              {{ searchTerm ? 'Prueba con otra palabra clave o limpia la búsqueda.' : 'Crea tu primera nota para guardar ideas, recordatorios y apuntes.' }}
+            </p>
+          </section>
+        </ng-template>
+      </main>
+
+      <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+        <ion-fab-button
+          class="action-fab"
+          (click)="createNote()"
+          aria-label="Nueva nota"
+        >
+          <ion-icon name="create-outline"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    </ion-content>
+  </ng-container>
+</ng-container>
+
+<app-base-modal
+  size="sm"
+  [isOpen]="pendingDelete !== null"
+  title="Eliminar nota"
+  [description]="'¿Quieres eliminar ' + (pendingDelete?.title || '') + '? Esta acción no se puede deshacer.'"
+  [primaryText]="isDeleting ? 'Eliminando…' : 'Eliminar'"
+  secondaryText="Cancelar"
+  primaryRole="danger"
+  [bodyless]="true"
+  [primaryDisabled]="isDeleting"
+  [secondaryDisabled]="isDeleting"
+  (closed)="cancelNoteDelete()"
+  (secondary)="cancelNoteDelete()"
+  (primary)="confirmNoteDelete()"
+></app-base-modal>

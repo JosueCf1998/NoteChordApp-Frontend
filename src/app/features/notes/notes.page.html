@@ -1,154 +1,120 @@
-<ng-container *ngIf="folder$ | async as folder">
-  <ng-container *ngIf="notes$ | async as notes">
-    <app-top-navbar
-      [title]="folder?.name || 'Notas'"
-      [subtitle]="notes.length | appNoteCount"
-      [showTitle]="isHeaderCollapsed"
-      [floatingControls]="true"
-    >
-      <ion-buttons nav-start slot="start">
-        <ion-button (click)="backToFolders()" aria-label="Volver a carpetas">
-          <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
-        </ion-button>
-      </ion-buttons>
-      <ion-buttons nav-end slot="end">
-        <ion-button (click)="openSearch()" aria-label="Buscar">
-          <ion-icon slot="icon-only" name="search-outline"></ion-icon>
-        </ion-button>
-        <ion-button (click)="openSettings()" aria-label="Ajustes">
-          <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
-        </ion-button>
-      </ion-buttons>
-    </app-top-navbar>
+<app-top-navbar [title]="title || 'Nota'" [showTitle]="false" [floatingControls]="true">
+  <ion-buttons nav-start slot="start">
+    <ion-button (click)="backToNotes()" aria-label="Volver a notas">
+      <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+    </ion-button>
+  </ion-buttons>
+  <ion-buttons nav-end slot="end">
+    <ion-button class="header-icon-button" (click)="shareNote()" aria-label="Compartir nota">
+      <ion-icon slot="icon-only" name="share-outline"></ion-icon>
+    </ion-button>
+    <ion-button id="note-options-trigger" (click)="openOptions()" aria-label="Más opciones">
+      <ion-icon slot="icon-only" name="ellipsis-horizontal"></ion-icon>
+    </ion-button>
+  </ion-buttons>
+</app-top-navbar>
 
-    <ion-content
-      [scrollEvents]="true"
-      (ionScroll)="handleScroll($event)"
-      (touchstart)="handleGestureStart($event)"
-      (touchmove)="handleGestureMove($event)"
-      (touchend)="handleGestureEnd($event)"
-      (touchcancel)="handleGestureCancel()"
-    >
-      <main class="notes-container">
-        <app-animated-page-title
-          [title]="folder?.name || 'Notas'"
-          (collapsedChange)="isHeaderCollapsed = $event"
-        >
-          <p class="note-count">{{ notes.length | appNoteCount }}</p>
-        </app-animated-page-title>
-
-        <ion-text color="danger" role="alert" *ngIf="errorMessage">
-          <p class="error-message">{{ errorMessage }}</p>
-        </ion-text>
-
-        <ng-container *ngIf="noteGroups$ | async as groups">
-          <section class="note-groups" *ngIf="groups.length; else emptyState">
-            <app-grouped-list
-              class="note-list"
-              *ngFor="let group of groups"
-              [heading]="group.label"
-            >
-              <ion-item-sliding *ngFor="let note of group.notes">
-                <ion-item button detail="false" (click)="openNote(note)">
-                  <ion-label>
-                    <h2>{{ note.title }}</h2>
-                    <p>
-                      <span>{{ note.updatedAt | appNoteDate }}</span>
-                      <span>{{ note.content | appNotePreview }}</span>
-                    </p>
-                  </ion-label>
-                </ion-item>
-                <app-swipe-actions
-                  (edit)="openNote(note)"
-                  (remove)="deleteNote(note.id, note.title)"
-                ></app-swipe-actions>
-              </ion-item-sliding>
-            </app-grouped-list>
-          </section>
-        </ng-container>
-
-        <ng-template #emptyState>
-          <section class="empty-state">
-            <div class="empty-icon"><ion-icon name="document-text-outline"></ion-icon></div>
-            <h2>{{ searchTerm ? 'Sin resultados' : 'Sin notas' }}</h2>
-            <p class="empty-description">
-              {{ searchTerm ? 'Prueba con otra palabra clave o limpia la búsqueda.' : 'Crea tu primera nota para guardar ideas, recordatorios y apuntes.' }}
-            </p>
-          </section>
-        </ng-template>
-      </main>
-
-      <ion-fab slot="fixed" vertical="bottom" horizontal="end">
-        <ion-fab-button
-          class="action-fab"
-          (click)="toggleCreateForm()"
-          aria-label="Nueva nota"
-        >
-          <ion-icon name="create-outline"></ion-icon>
-        </ion-fab-button>
-      </ion-fab>
-    </ion-content>
-  </ng-container>
-</ng-container>
-
-<app-base-modal
-  size="lg"
-  [isOpen]="isNoteFormOpen"
-  [title]="editingNote ? 'Editar nota' : 'Nueva nota'"
-  [description]="editingNote ? 'Modifica el contenido de tu nota' : 'Escribe tus acordes, letras o apuntes'"
-  [primaryText]="isSaving ? 'Guardando…' : (editingNote ? 'Guardar cambios' : 'Crear nota')"
-  secondaryText="Cancelar"
-  [primaryDisabled]="isSaving || !noteTitle.trim()"
-  [secondaryDisabled]="isSaving"
-  (closed)="closeNoteForm()"
-  (secondary)="closeNoteForm()"
-  (primary)="saveNote()"
+<ion-content
+  [fullscreen]="true"
+  [scrollEvents]="true"
+  (ionScroll)="handleScroll($event)"
+  (touchstart)="handleGestureStart($event)"
+  (touchmove)="handleGestureMove($event)"
+  (touchend)="handleGestureEnd()"
+  (touchcancel)="handleGestureCancel()"
 >
-  <form (ngSubmit)="saveNote()">
-    <label class="modal-field">
-      <span>Título</span>
-      <input
-        [(ngModel)]="noteTitle"
-        name="noteTitle"
-        placeholder="Ej. Título de la canción, acordes..."
-        maxlength="120"
-        enterkeyhint="next"
-        autofocus
-      />
-    </label>
+  <main class="editor-container" *ngIf="!isLoading; else loadingState">
 
-    <label class="modal-field modal-field--textarea">
-      <span>Contenido</span>
-      <textarea
-        [(ngModel)]="noteContent"
-        name="noteContent"
-        placeholder="Escribe aquí notas, acordes o letra..."
-        rows="8"
-      ></textarea>
-    </label>
+    <!-- Fecha animada: se revela al deslizar hacia arriba -->
+    <div
+      class="note-date-wrapper"
+      [class.visible]="isDateVisible"
+      *ngIf="formattedFullDate"
+      aria-hidden="true"
+    >
+      <p class="note-date">{{ formattedFullDate }}</p>
+    </div>
 
-    <ion-text color="danger" role="alert" *ngIf="formErrorMessage">
-      <p class="error-message">{{ formErrorMessage }}</p>
-    </ion-text>
+    <ion-input
+      [(ngModel)]="title"
+      (ngModelChange)="onTitleChange()"
+      name="title"
+      class="note-title"
+      placeholder="Título"
+      maxlength="120"
+      aria-label="Título de la nota"
+      autocapitalize="sentences"
+    ></ion-input>
 
-    <button class="hidden-submit" type="submit" [disabled]="isSaving || !noteTitle.trim()">Guardar</button>
-  </form>
-</app-base-modal>
+    <ion-textarea
+      id="note-content"
+      [(ngModel)]="content"
+      (ngModelChange)="onContentChange()"
+      name="content"
+      class="note-content"
+      placeholder="Escribe aquí notas, acordes o letra..."
+      maxlength="20000"
+      aria-label="Contenido de la nota"
+      auto-grow="true"
+      autocorrect="on"
+      autocapitalize="sentences"
+      spellcheck="true"
+    ></ion-textarea>
 
-<app-full-screen-loader [visible]="isSaving" message="Guardando…"></app-full-screen-loader>
+    <p class="error-message" role="alert" aria-live="polite" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </p>
 
+  </main>
+
+  <ng-template #loadingState>
+    <div class="loading-message" aria-live="polite">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>Cargando nota…</span>
+    </div>
+  </ng-template>
+
+  <!-- FAB: nueva nota -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button
+      class="new-note-fab"
+      (click)="createAnotherNote()"
+      aria-label="Nueva nota"
+    >
+      <ion-icon name="create-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
+
+<ion-popover [isOpen]="isOptionsOpen" trigger="note-options-trigger" (didDismiss)="closeOptions()">
+  <ng-template>
+    <ion-list class="options-list">
+      <ion-item button lines="none" (click)="shareNote(); closeOptions()">
+        <ion-icon slot="start" name="share-outline"></ion-icon>
+        <ion-label>Compartir nota</ion-label>
+      </ion-item>
+      <ion-item button lines="none" color="danger" (click)="openDeleteConfirm()">
+        <ion-icon slot="start" name="trash-outline"></ion-icon>
+        <ion-label>Eliminar nota</ion-label>
+      </ion-item>
+    </ion-list>
+  </ng-template>
+</ion-popover>
+
+<!-- Modal base de confirmación para eliminar nota -->
 <app-base-modal
   size="sm"
-  [isOpen]="pendingDelete !== null"
+  [isOpen]="isDeleteConfirmOpen"
   title="Eliminar nota"
-  [description]="'¿Quieres eliminar ' + (pendingDelete?.title || '') + '? Esta acción no se puede deshacer.'"
+  [description]="'¿Estás seguro de que deseas eliminar ' + (title ? '“' + title + '”' : 'esta nota') + '? Esta acción no se puede deshacer.'"
   [primaryText]="isDeleting ? 'Eliminando…' : 'Eliminar'"
   secondaryText="Cancelar"
   primaryRole="danger"
   [bodyless]="true"
   [primaryDisabled]="isDeleting"
   [secondaryDisabled]="isDeleting"
-  (closed)="cancelNoteDelete()"
-  (secondary)="cancelNoteDelete()"
-  (primary)="confirmNoteDelete()"
+  (closed)="closeDeleteConfirm()"
+  (secondary)="closeDeleteConfirm()"
+  (primary)="confirmDelete()"
 ></app-base-modal>
+

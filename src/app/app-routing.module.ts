@@ -6,12 +6,12 @@ import { authGuard } from './core/auth/auth.guard';
 const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./features/access/splash.page').then((m) => m.SplashPage),
+    loadComponent: () => import('./features/splash/splash.page').then((m) => m.SplashPage),
     pathMatch: 'full'
   },
   {
     path: 'login',
-    loadComponent: () => import('./features/access/login.page').then((m) => m.LoginPage)
+    loadComponent: () => import('./features/login/login.page').then((m) => m.LoginPage)
   },
   {
     path: 'home',
@@ -19,7 +19,12 @@ const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'notes/:folderId',
+    path: 'notes-list/:folderId',
+    loadComponent: () => import('./features/notes-list/notes-list.page').then((m) => m.NotesListPage),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'notes/:folderId/:noteId',
     loadComponent: () => import('./features/notes/notes.page').then((m) => m.NotesPage),
     canActivate: [authGuard]
   },
