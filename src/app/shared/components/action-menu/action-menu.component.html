@@ -1,0 +1,42 @@
+<ion-popover
+  [isOpen]="isOpen"
+  [trigger]="trigger"
+  [triggerAction]="triggerAction"
+  [side]="side"
+  [alignment]="alignment"
+  [arrow]="arrow"
+  [showBackdrop]="showBackdrop"
+  [cssClass]="popoverCssClass"
+  (didDismiss)="onDidDismiss()"
+>
+  <ng-template>
+    <div class="action-menu-panel" [style.minWidth]="minWidth" [style.maxWidth]="maxWidth">
+      <div *ngIf="headerText" class="action-menu-header">
+        <span class="header-text">{{ headerText }}</span>
+      </div>
+
+      <div class="action-menu-list" role="menu">
+        <ng-container *ngFor="let item of items; let isLast = last">
+          <button
+            type="button"
+            role="menuitem"
+            class="action-menu-item"
+            [class.role-danger]="item.role === 'danger'"
+            [class.role-primary]="item.role === 'primary'"
+            [disabled]="item.disabled"
+            (click)="onItemClick(item)"
+          >
+            <span class="item-icon-wrap" *ngIf="item.icon" aria-hidden="true">
+              <ion-icon [name]="item.icon"></ion-icon>
+            </span>
+            <span class="item-label">{{ item.label }}</span>
+          </button>
+
+          <div *ngIf="item.separator && !isLast" class="action-menu-separator" role="separator"></div>
+        </ng-container>
+
+        <ng-content></ng-content>
+      </div>
+    </div>
+  </ng-template>
+</ion-popover>

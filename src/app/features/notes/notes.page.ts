@@ -1,7 +1,7 @@
 import { Component, OnDestroy, inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ViewWillLeave, ViewDidEnter } from '@ionic/angular';
+import { IonicModule, ViewWillLeave, ViewDidEnter, Platform } from '@ionic/angular';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, Subscription, debounceTime } from 'rxjs';
 import {
@@ -11,7 +11,7 @@ import {
   DeleteNoteUseCase
 } from '../../core/use-cases/notes';
 import { NavigationService } from '../../core/navigation/navigation.service';
-import { SharedModule } from '../../shared/shared.module';
+import { SharedModule, ActionMenuItem } from '../../shared/shared.module';
 
 /** Umbral de scroll (px) al que se considera "arriba" y se muestra la fecha. */
 const SCROLL_TOP_THRESHOLD = 8;
@@ -39,10 +39,14 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
   private readonly navService = inject(NavigationService);
+  private readonly platform = inject(Platform);
   private readonly getNoteByIdUseCase = inject(GetNoteByIdUseCase);
   private readonly createNoteUseCase = inject(CreateNoteUseCase);
   private readonly updateNoteUseCase = inject(UpdateNoteUseCase);
   private readonly deleteNoteUseCase = inject(DeleteNoteUseCase);
+
+  isLocked = false;
+  private backButtonSub?: Subscription;
 
   folderId = '';
   noteId = '';
@@ -124,6 +128,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   }
 
   ionViewWillLeave() {
+    this.backButtonSub?.unsubscribe();
     void this.handleLeaveOrSave();
   }
 
@@ -505,6 +510,10 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   }
 
   onEditorKeydown(event: KeyboardEvent) {
+    if (this.isLocked) {
+      event.preventDefault();
+      return;
+    }
     const editor = this.editorRef?.nativeElement;
     if (!editor) return;
 
@@ -772,6 +781,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   }
 
   onEditorInput() {
+    if (this.isLocked) return;
     this.isDirty = true;
     this.normalizeBlocks();
     this.syncFromEditor();
@@ -779,6 +789,10 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   }
 
   onEditorPaste(event: ClipboardEvent) {
+    if (this.isLocked) {
+      event.preventDefault();
+      return;
+    }
     event.preventDefault();
     const text = event.clipboardData?.getData('text/plain') || '';
     if (!text) return;
@@ -857,6 +871,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   }
 
   onContainerClick(event: MouseEvent) {
+    if (this.isLocked) return;
     if (event.target === event.currentTarget && this.editorRef?.nativeElement) {
       const editor = this.editorRef.nativeElement;
       const lastChild = editor.lastElementChild || editor;
@@ -924,9 +939,44 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
     }
   }
 
+  // ─── Lock Mode ────────────────────────────────────────────────────────────
+
+  toggleLock() {
+    if (!this.hasContent && !this.isLocked) return;
+    this.isLocked = !this.isLocked;
+    if (this.isLocked) {
+      this.editorRef?.nativeElement?.blur();
+      this.closeOptions();
+      this.backButtonSub?.unsubscribe();
+      this.backButtonSub = this.platform.backButton.subscribeWithPriority(9999, () => {
+        // Bloquear retroceso de hardware mientras esté en modo bloqueo
+      });
+    } else {
+      this.backButtonSub?.unsubscribe();
+      this.backButtonSub = undefined;
+    }
+  }
+
   // ─── Options popover ──────────────────────────────────────────────────────
 
+  readonly noteMenuItems: ActionMenuItem[] = [
+    {
+      id: 'share',
+      label: 'Compartir nota',
+      icon: 'share-outline',
+      handler: () => this.shareNote()
+    },
+    {
+      id: 'delete',
+      label: 'Eliminar nota',
+      icon: 'trash-outline',
+      role: 'danger',
+      handler: () => this.openDeleteConfirm()
+    }
+  ];
+
   openOptions() {
+    if (!this.hasContent || this.isLocked) return;
     this.isOptionsOpen = true;
   }
 
@@ -936,7 +986,13 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
 
   // ─── Actions ─────────────────────────────────────────────────────────────
 
+  onFormatClick() {
+    if (!this.hasContent || this.isLocked) return;
+    // Sin acción por ahora según lo solicitado
+  }
+
   shareNote() {
+    if (this.isLocked) return;
     if (navigator.share) {
       void navigator.share({
         title: this.title || 'Nota',
@@ -946,6 +1002,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   }
 
   async createAnotherNote() {
+    if (this.isLocked) return;
     await this.handleLeaveOrSave();
     this.noteId = 'new';
     this.title = '';
@@ -963,6 +1020,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   }
 
   openDeleteConfirm() {
+    if (this.isLocked) return;
     this.closeOptions();
     this.isDeleteConfirmOpen = true;
   }
@@ -1082,6 +1140,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   }
 
   async backToNotes() {
+    if (this.isLocked) return;
     await this.handleLeaveOrSave();
     return this.navService.back();
   }
@@ -1097,6 +1156,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   }
 
   ngOnDestroy() {
+    this.backButtonSub?.unsubscribe();
     clearTimeout(this.dateHideTimeout);
     void this.handleLeaveOrSave();
     this.autoSaveSubscription.unsubscribe();

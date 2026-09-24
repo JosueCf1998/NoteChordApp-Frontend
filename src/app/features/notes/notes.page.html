@@ -1,14 +1,24 @@
 <app-top-navbar [title]="title || 'Nota'" [showTitle]="false" [floatingControls]="true">
   <ion-buttons nav-start slot="start">
-    <ion-button (click)="backToNotes()" aria-label="Volver a notas">
+    <ion-button [disabled]="isLocked" (click)="backToNotes()" aria-label="Volver a notas">
       <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
     </ion-button>
   </ion-buttons>
   <ion-buttons nav-end slot="end">
-    <ion-button class="header-icon-button" (click)="shareNote()" aria-label="Compartir nota">
-      <ion-icon slot="icon-only" name="share-outline"></ion-icon>
+    <ion-button
+      class="header-icon-button format-btn"
+      [disabled]="!hasContent || isLocked"
+      (click)="onFormatClick()"
+      aria-label="Formato de texto"
+    >
+      <span class="format-t-icon" aria-hidden="true">T</span>
     </ion-button>
-    <ion-button id="note-options-trigger" (click)="openOptions()" aria-label="Más opciones">
+    <ion-button
+      id="note-options-trigger"
+      [disabled]="!hasContent || isLocked"
+      (click)="openOptions()"
+      aria-label="Más opciones"
+    >
       <ion-icon slot="icon-only" name="ellipsis-horizontal"></ion-icon>
     </ion-button>
   </ion-buttons>
@@ -43,8 +53,9 @@
       <div
         #editor
         class="single-note-editor"
+        [class.locked]="isLocked"
         style="outline: none; border: none; box-shadow: none;"
-        contenteditable="true"
+        [attr.contenteditable]="!isLocked"
         (keydown)="onEditorKeydown($event)"
         (keyup)="onEditorKeyup($event)"
         (input)="onEditorInput()"
@@ -70,32 +81,27 @@
     </div>
   </ng-template>
 
-  <!-- FAB: nueva nota -->
+  <!-- FAB: modo bloqueo (candado, deshabilitado si no hay contenido y no está bloqueada) -->
   <ion-fab slot="fixed" vertical="bottom" horizontal="end">
     <ion-fab-button
-      class="new-note-fab"
-      (click)="createAnotherNote()"
-      aria-label="Nueva nota"
+      class="lock-fab"
+      [class.is-locked]="isLocked"
+      [disabled]="!hasContent && !isLocked"
+      (click)="toggleLock()"
+      [attr.aria-label]="isLocked ? 'Desbloquear nota' : 'Bloquear nota'"
     >
-      <ion-icon name="create-outline"></ion-icon>
+      <ion-icon [name]="isLocked ? 'lock-closed' : 'lock-open-outline'"></ion-icon>
     </ion-fab-button>
   </ion-fab>
 </ion-content>
 
-<ion-popover [isOpen]="isOptionsOpen" trigger="note-options-trigger" (didDismiss)="closeOptions()">
-  <ng-template>
-    <ion-list class="options-list">
-      <ion-item button lines="none" (click)="shareNote(); closeOptions()">
-        <ion-icon slot="start" name="share-outline"></ion-icon>
-        <ion-label>Compartir nota</ion-label>
-      </ion-item>
-      <ion-item button lines="none" color="danger" (click)="openDeleteConfirm()">
-        <ion-icon slot="start" name="trash-outline"></ion-icon>
-        <ion-label>Eliminar nota</ion-label>
-      </ion-item>
-    </ion-list>
-  </ng-template>
-</ion-popover>
+<!-- Menú de opciones de la nota -->
+<app-action-menu
+  [isOpen]="isOptionsOpen"
+  trigger="note-options-trigger"
+  [items]="noteMenuItems"
+  (closed)="closeOptions()"
+></app-action-menu>
 
 <!-- Modal base de confirmación para eliminar nota -->
 <app-base-modal
