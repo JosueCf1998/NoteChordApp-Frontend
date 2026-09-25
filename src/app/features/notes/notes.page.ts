@@ -12,6 +12,7 @@ import {
 } from '../../core/use-cases/notes';
 import { NavigationService } from '../../core/navigation/navigation.service';
 import { SharedModule, ActionMenuItem } from '../../shared/shared.module';
+import { ChordTransposerService } from '../../core/services/chord-transposer.service';
 
 /** Umbral de scroll (px) al que se considera "arriba" y se muestra la fecha. */
 const SCROLL_TOP_THRESHOLD = 8;
@@ -44,9 +45,36 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   private readonly createNoteUseCase = inject(CreateNoteUseCase);
   private readonly updateNoteUseCase = inject(UpdateNoteUseCase);
   private readonly deleteNoteUseCase = inject(DeleteNoteUseCase);
+  private readonly chordTransposer = inject(ChordTransposerService);
 
   isLocked = false;
+  isTransposeModalOpen = false;
+  semitoneOffset = 0;
+  baseContentForTranspose = '';
+  detectedOriginalKey: string | null = null;
+  preferFlatsForTranspose = false;
+  originalKeyPrefersFlats = false;
   private backButtonSub?: Subscription;
+
+  get formatButtonLabel(): string {
+    if (this.semitoneOffset === 0) return 'T';
+    const isPositive = this.semitoneOffset > 0;
+    const abs = Math.abs(this.semitoneOffset);
+    const whole = Math.floor(abs / 2);
+    const half = abs % 2 === 1;
+
+    const sign = isPositive ? '+' : '-';
+    let valueStr = '';
+    if (whole > 0 && half) {
+      valueStr = `${whole} 1/2`;
+    } else if (whole > 0) {
+      valueStr = `${whole}`;
+    } else {
+      valueStr = '1/2';
+    }
+
+    return `T: ${sign}${valueStr}`;
+  }
 
   folderId = '';
   noteId = '';
@@ -100,6 +128,9 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
           this.noteSubscription = undefined;
           this.title = '';
           this.content = '';
+          this.baseContentForTranspose = '';
+          this.semitoneOffset = 0;
+          this.isTransposeModalOpen = false;
           this.hasContent = false;
           this.setEditorContent('', '');
           this.formattedFullDate = this.formatFullDate(new Date());
@@ -162,6 +193,11 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
           if (this.isLoading) {
             this.title = note.title === 'Sin título' ? '' : note.title;
             this.content = note.content;
+            this.baseContentForTranspose = note.content;
+            this.semitoneOffset = 0;
+            this.isTransposeModalOpen = false;
+            this.detectedOriginalKey = this.chordTransposer.detectOriginalKey(this.content);
+            this.originalKeyPrefersFlats = this.chordTransposer.detectAccidentalPreference(this.content) || (this.detectedOriginalKey?.includes('b') ?? false);
             this.setEditorContent(this.title, this.content);
           }
         }
@@ -784,6 +820,15 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
     this.isDirty = true;
     this.normalizeBlocks();
     this.syncFromEditor();
+    if (this.semitoneOffset !== 0) {
+      this.baseContentForTranspose = this.chordTransposer.transposeText(
+        this.content,
+        -this.semitoneOffset,
+        this.originalKeyPrefersFlats
+      );
+    } else {
+      this.baseContentForTranspose = this.content;
+    }
     this.saveSubject.next();
   }
 
@@ -987,7 +1032,58 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
 
   onFormatClick() {
     if (!this.hasContent || this.isLocked) return;
-    // Sin acción por ahora según lo solicitado
+    this.openTransposeModal();
+  }
+
+  openTransposeModal() {
+    this.syncFromEditor();
+    if (this.semitoneOffset === 0) {
+      this.baseContentForTranspose = this.content;
+    }
+    this.detectedOriginalKey = this.chordTransposer.detectOriginalKey(this.baseContentForTranspose);
+    this.originalKeyPrefersFlats = this.chordTransposer.detectAccidentalPreference(this.baseContentForTranspose) || (this.detectedOriginalKey?.includes('b') ?? false);
+    this.preferFlatsForTranspose = false; // Conversiones con sostenidos
+    this.isTransposeModalOpen = true;
+  }
+
+  closeTransposeModal() {
+    this.isTransposeModalOpen = false;
+  }
+
+  onTransposeApplied(finalSemitones: number) {
+    this.semitoneOffset = finalSemitones;
+    this.isTransposeModalOpen = false;
+  }
+
+  onTransposeCancelled() {
+    // Si se cancela la alerta (click fuera o X), revertir cualquier cambio al estado base anterior
+    if (this.semitoneOffset !== 0) {
+      this.content = this.baseContentForTranspose;
+      this.semitoneOffset = 0;
+      this.setEditorContent(this.title, this.content);
+    }
+    this.isTransposeModalOpen = false;
+  }
+
+  onSemitonesChange(newSemitones: number) {
+    this.semitoneOffset = newSemitones;
+    if (!this.baseContentForTranspose) {
+      this.baseContentForTranspose = this.content;
+    }
+    // Si regresa a 0 semitones, restaurar exactamente el contenido original base
+    if (this.semitoneOffset === 0) {
+      this.content = this.baseContentForTranspose;
+      this.setEditorContent(this.title, this.content);
+      return;
+    }
+
+    const transposed = this.chordTransposer.transposeText(
+      this.baseContentForTranspose,
+      this.semitoneOffset,
+      false // usar sostenidos para conversiones
+    );
+    this.content = transposed;
+    this.setEditorContent(this.title, this.content);
   }
 
   shareNote() {
@@ -1048,10 +1144,19 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
     }
   }
 
-  async save(): Promise<void> {
-    this.syncFromEditor();
+  async save(forcedContent?: string): Promise<void> {
+    if (!forcedContent) {
+      this.syncFromEditor();
+    }
     const trimmedTitle = this.title.trim();
-    const trimmedContent = this.content.trim();
+
+    const rawContent = forcedContent ?? this.content;
+    // A la base de datos SIEMPRE se persiste en la tonalidad base original donde empezó,
+    // preservando al 100% todos los textos, notas y comentarios modificados
+    const contentToSave = (this.semitoneOffset !== 0 && rawContent)
+      ? (this.baseContentForTranspose || this.chordTransposer.transposeText(rawContent, -this.semitoneOffset, this.originalKeyPrefersFlats))
+      : (this.baseContentForTranspose && this.semitoneOffset === 0 ? this.baseContentForTranspose : rawContent);
+    const trimmedContent = contentToSave.trim();
 
     if (!trimmedTitle && !trimmedContent) {
       return;
@@ -1071,7 +1176,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
           const res = await this.createNoteUseCase.execute({
             folderId: this.folderId,
             title: titleToSave,
-            content: this.content
+            content: contentToSave
           });
           if (!res.success || !res.data) {
             this.errorMessage = res.message || 'No se pudo crear la nota.';
@@ -1086,7 +1191,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
           const res = await this.updateNoteUseCase.execute({
             id: this.noteId,
             title: titleToSave,
-            content: this.content
+            content: contentToSave
           });
           if (!res.success) {
             this.errorMessage = res.message || 'No se pudo guardar la nota.';
@@ -1114,11 +1219,30 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   private async handleLeaveOrSave(): Promise<void> {
     if (this.isDeleting) return;
 
+    if (this.isTransposeModalOpen) {
+      this.isTransposeModalOpen = false;
+    }
+
+    this.syncFromEditor();
+
+    // Al salir/retroceder, la nota SIEMPRE debe quedar en la misma tonalidad base donde empezó,
+    // manteniendo cualquier mensaje, comentario o texto modificado
+    if (this.semitoneOffset !== 0) {
+      if (this.isDirty && this.content) {
+        this.baseContentForTranspose = this.chordTransposer.transposeText(
+          this.content,
+          -this.semitoneOffset,
+          this.originalKeyPrefersFlats
+        );
+      }
+      this.content = this.baseContentForTranspose;
+      this.semitoneOffset = 0;
+    }
+
     if (this.isSaving && this.savePromise) {
       await this.savePromise;
     }
 
-    this.syncFromEditor();
     const isEmpty = !this.title.trim() && !this.content.trim();
 
     if (isEmpty) {
@@ -1134,7 +1258,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
     }
 
     if (this.isDirty) {
-      await this.save();
+      await this.save(this.baseContentForTranspose);
     }
   }
 

@@ -1,0 +1,178 @@
+.transpose-popover {
+  --background: transparent;
+  --box-shadow: none;
+  --backdrop-opacity: 1;
+  --width: 220px;
+  --max-width: 90vw;
+
+  &::part(backdrop) {
+    background: rgba(15, 23, 42, 0.1);
+  }
+
+  &::part(content) {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 18px;
+    overflow: visible;
+  }
+}
+
+.transpose-simple-panel {
+  box-sizing: border-box;
+  background: var(--nc-surface, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--nc-border, #e5e7eb) 75%, transparent);
+  border-radius: 18px;
+  box-shadow:
+    0 16px 40px -4px rgba(16, 24, 40, 0.16),
+    0 4px 12px -2px rgba(16, 24, 40, 0.06);
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+/* ─── Encabezado ──────────────────────────────────────────────────────────── */
+.simple-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+
+  .simple-title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--nc-text);
+  }
+
+  .simple-reset-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    padding: 2px 4px;
+    margin: 0;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--nc-primary);
+    cursor: pointer;
+    transition: opacity var(--nc-transition-fast), transform 100ms ease;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+/* ─── Caja de tonalidad (grande y clara) ──────────────────────────────────── */
+.simple-key-box {
+  background: color-mix(in srgb, var(--nc-text) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nc-border, #e5e7eb) 60%, transparent);
+  border-radius: 14px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  .key-flow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    line-height: 1.1;
+
+    .key-from {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--nc-text-secondary);
+      font-family: var(--nc-font-family);
+    }
+
+    .key-arrow {
+      font-size: 18px;
+      color: var(--nc-text-secondary);
+    }
+
+    .key-to {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--nc-primary);
+      font-family: var(--nc-font-family);
+    }
+
+    .key-single-prefix {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--nc-text-secondary);
+      font-family: var(--nc-font-family);
+    }
+  }
+}
+
+/* ─── Stepper con botones grandes y número claro (SIN letra pequeña) ──────── */
+.simple-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 6px 0;
+
+  .stepper-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    background: var(--nc-surface, #ffffff);
+    border: 1.5px solid color-mix(in srgb, var(--nc-border, #e5e7eb) 85%, transparent);
+    border-radius: 50%;
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nc-text);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    user-select: none;
+    -webkit-user-select: none;
+    transition:
+      background var(--nc-transition-fast),
+      transform 100ms ease,
+      box-shadow var(--nc-transition-fast);
+
+    ion-icon {
+      font-size: 22px;
+      stroke-width: 2.5;
+    }
+
+    &:hover {
+      background: color-mix(in srgb, var(--nc-text) 5%, transparent);
+    }
+
+    &:active {
+      transform: scale(0.92);
+      box-shadow: none;
+    }
+  }
+
+  .stepper-val {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--nc-primary);
+    user-select: none;
+    -webkit-user-select: none;
+
+    &.is-zero {
+      color: var(--nc-text);
+    }
+  }
+}
+

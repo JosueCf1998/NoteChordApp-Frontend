@@ -6,12 +6,14 @@
   </ion-buttons>
   <ion-buttons nav-end slot="end">
     <ion-button
+      id="note-format-trigger"
       class="header-icon-button format-btn"
+      [class.is-shifted]="semitoneOffset !== 0"
       [disabled]="!hasContent || isLocked"
       (click)="onFormatClick()"
-      aria-label="Formato de texto"
+      aria-label="Ajustar tonalidad"
     >
-      <span slot="icon-only" class="format-t-icon" aria-hidden="true">T</span>
+      <span slot="icon-only" class="format-t-icon" [class.is-shifted]="semitoneOffset !== 0" aria-hidden="true">{{ formatButtonLabel }}</span>
     </ion-button>
     <ion-button
       id="note-options-trigger"
@@ -102,6 +104,19 @@
   [items]="noteMenuItems"
   (closed)="closeOptions()"
 ></app-action-menu>
+
+<!-- Alertita de Tonalidad (Transposición de acordes en 1/2 tono) -->
+<app-transpose-modal
+  [isOpen]="isTransposeModalOpen"
+  trigger="note-format-trigger"
+  [semitones]="semitoneOffset"
+  [originalKey]="detectedOriginalKey"
+  [preferFlats]="preferFlatsForTranspose"
+  (semitonesChange)="onSemitonesChange($event)"
+  (applied)="onTransposeApplied($event)"
+  (cancelled)="onTransposeCancelled()"
+  (closed)="closeTransposeModal()"
+></app-transpose-modal>
 
 <!-- Modal base de confirmación para eliminar nota -->
 <app-base-modal

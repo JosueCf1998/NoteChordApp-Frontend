@@ -8,6 +8,7 @@ import { GroupedListComponent } from './components/grouped-list/grouped-list.com
 import { TopNavbarComponent } from './components/top-navbar/top-navbar.component';
 import { BaseModalComponent } from './components/base-modal/base-modal.component';
 import { ActionMenuComponent, ActionMenuItem, ActionMenuRole } from './components/action-menu/action-menu.component';
+import { TransposeModalComponent } from './components/transpose-modal/transpose-modal.component';
 import { NoteCountPipe, NoteDatePipe, NotePreviewPipe } from './pipes/note-format.pipe';
 
 const SHARED_DIRECTIVES = [
@@ -19,6 +20,7 @@ const SHARED_DIRECTIVES = [
   GroupedListComponent,
   SwipeActionsComponent,
   TopNavbarComponent,
+  TransposeModalComponent,
   NoteCountPipe,
   NoteDatePipe,
   NotePreviewPipe
@@ -31,3 +33,4 @@ const SHARED_DIRECTIVES = [
 export class SharedModule {}
 
 export { ActionMenuComponent, ActionMenuItem, ActionMenuRole } from './components/action-menu/action-menu.component';
+export { TransposeModalComponent } from './components/transpose-modal/transpose-modal.component';

@@ -212,19 +212,26 @@ ion-label p,
 }
 
 .action-fab {
+  --size: 40px;
   --background: var(--nc-surface, #ffffff);
   --background-activated: var(--nc-surface-raised, #f8f9fb);
-  --border-radius: var(--nc-radius-round);
-  --box-shadow: 0 4px 14px rgba(16, 24, 40, 0.12), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --border-radius: 50% !important;
+  --box-shadow: 0 2px 8px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04);
   --color: var(--nc-primary);
-  border-radius: var(--nc-radius-round) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 50% !important;
   overflow: hidden !important;
   border: 1px solid color-mix(in srgb, var(--nc-border) 60%, transparent);
-  height: 56px;
-  width: 56px;
+  height: 40px !important;
+  width: 40px !important;
+  min-height: 40px !important;
+  min-width: 40px !important;
+  max-height: 40px !important;
+  max-width: 40px !important;
 
   ion-icon {
-    font-size: 24px;
+    font-size: 20px;
   }
 }
 

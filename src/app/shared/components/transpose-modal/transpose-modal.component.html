@@ -1,0 +1,65 @@
+<ion-popover
+  [isOpen]="isOpen"
+  [trigger]="trigger"
+  side="bottom"
+  alignment="end"
+  [arrow]="false"
+  [showBackdrop]="true"
+  cssClass="transpose-popover"
+  (didDismiss)="onDidDismiss()"
+>
+  <ng-template>
+    <div class="transpose-simple-panel" (click)="$event.stopPropagation()">
+      <!-- Encabezado simple -->
+      <div class="simple-header">
+        <span class="simple-title">Tonalidad</span>
+        <button
+          *ngIf="semitones !== 0"
+          type="button"
+          class="simple-reset-btn"
+          (click)="reset()"
+        >
+          Restablecer
+        </button>
+      </div>
+
+      <!-- Tono: solo las notas, sin repetir el desplazamiento del stepper -->
+      <div class="simple-key-box" *ngIf="originalKey">
+        <div class="key-flow" *ngIf="semitones !== 0">
+          <span class="key-from">{{ originalKey }}</span>
+          <ion-icon name="arrow-forward-outline" class="key-arrow" aria-hidden="true"></ion-icon>
+          <span class="key-to">{{ currentKey }}</span>
+        </div>
+        <div class="key-flow" *ngIf="semitones === 0">
+          <span class="key-single-prefix">Tono:</span>
+          <span class="key-to">{{ originalKey }}</span>
+        </div>
+      </div>
+
+      <!-- Stepper simple con botones grandes, SIN letra pequeña -->
+      <div class="simple-stepper" role="group" aria-label="Ajustar tono">
+        <button
+          type="button"
+          class="stepper-btn"
+          (click)="decrease()"
+          aria-label="Bajar medio tono"
+        >
+          <ion-icon name="remove-outline"></ion-icon>
+        </button>
+
+        <span class="stepper-val" [class.is-zero]="semitones === 0">
+          {{ toneOffsetDisplay }}
+        </span>
+
+        <button
+          type="button"
+          class="stepper-btn"
+          (click)="increase()"
+          aria-label="Subir medio tono"
+        >
+          <ion-icon name="add-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </ng-template>
+</ion-popover>
