@@ -2,7 +2,7 @@
   --background: transparent;
   --box-shadow: none;
   --backdrop-opacity: 1;
-  --width: 220px;
+  --width: var(--nc-transpose-width, 220px);
   --max-width: 90vw;
 
   &::part(backdrop) {
@@ -129,8 +129,8 @@
     background: var(--nc-surface, #ffffff);
     border: 1.5px solid color-mix(in srgb, var(--nc-border, #e5e7eb) 85%, transparent);
     border-radius: 50%;
-    width: 46px;
-    height: 46px;
+    width: var(--nc-transpose-btn-size, 46px);
+    height: var(--nc-transpose-btn-size, 46px);
     padding: 0;
     margin: 0;
     display: flex;
@@ -147,7 +147,7 @@
       box-shadow var(--nc-transition-fast);
 
     ion-icon {
-      font-size: 22px;
+      font-size: calc(var(--nc-transpose-btn-size, 46px) * 0.48);
       stroke-width: 2.5;
     }
 
@@ -162,7 +162,7 @@
   }
 
   .stepper-val {
-    font-size: 24px;
+    font-size: var(--nc-transpose-value-size, 24px);
     font-weight: 800;
     line-height: 1;
     font-variant-numeric: tabular-nums;

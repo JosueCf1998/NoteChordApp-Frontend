@@ -59,10 +59,29 @@
   --nc-space-8: 32px;
 
   /* Layout */
-  --nc-page-gutter: clamp(16px, 3vw, 32px);
+  --nc-page-gutter: 20px;
   --nc-content-narrow: 440px;
-  --nc-content-reading: 760px;
-  --nc-content-wide: 920px;
+  --nc-content-reading: 100%;
+  --nc-content-wide: 100%;
+
+  /* ==========================================================================
+     3.1 TOKENS RESPONSIVOS DEL EDITOR Y CONTROLES (Móvil por defecto)
+     ========================================================================== */
+  --nc-editor-title-size: 28px;
+  --nc-editor-section-size: 18px;
+  --nc-editor-body-size: 17px;
+  --nc-editor-line-height: 1.45;
+  --nc-editor-spacing-section: 14px;
+
+  --nc-btn-size: 40px;
+  --nc-btn-pill-radius: 20px;
+  --nc-icon-size: 20px;
+  --nc-fab-size: 40px;
+  --nc-fab-icon-size: 20px;
+
+  --nc-transpose-width: 220px;
+  --nc-transpose-btn-size: 44px;
+  --nc-transpose-value-size: 24px;
 
   /* ==========================================================================
      4. RADIOS, SOMBRAS Y ANIMACIONES
@@ -136,3 +155,73 @@
     --nc-transition-normal: 0ms;
   }
 }
+
+/* ==========================================================================
+   6. BREAKPOINTS RESPONSIVOS DEL DESIGN SYSTEM
+   ========================================================================== */
+
+/* Móviles Compactos (iPhone 8, SE ≤ 380px) */
+@media (max-width: 380px) {
+  :root,
+  :root.nc-theme-dark {
+    --nc-page-gutter: 16px;
+    --nc-editor-title-size: 26px;
+    --nc-editor-section-size: 17px;
+    --nc-editor-body-size: 16px;
+    --nc-editor-spacing-section: 12px;
+    --nc-btn-size: 38px;
+    --nc-btn-pill-radius: 19px;
+    --nc-fab-size: 38px;
+  }
+}
+
+/* Tablets Estándar (iPad 10.2", 10.9", 11" ≥ 768px) */
+@media (min-width: 768px) {
+  :root,
+  :root.nc-theme-dark {
+    --nc-page-gutter: 28px;
+    --nc-content-reading: 720px;
+    --nc-content-wide: 720px;
+    --nc-editor-title-size: 32px;
+    --nc-editor-section-size: 20px;
+    --nc-editor-body-size: 18px;
+    --nc-editor-line-height: 1.5;
+    --nc-editor-spacing-section: 18px;
+
+    --nc-btn-size: 44px;
+    --nc-btn-pill-radius: 22px;
+    --nc-icon-size: 22px;
+    --nc-fab-size: 44px;
+    --nc-fab-icon-size: 22px;
+
+    --nc-transpose-width: 240px;
+    --nc-transpose-btn-size: 46px;
+    --nc-transpose-value-size: 25px;
+  }
+}
+
+/* Tablets Grandes / Atril (iPad Pro 12.9" ≥ 1024px) */
+@media (min-width: 1024px) {
+  :root,
+  :root.nc-theme-dark {
+    --nc-page-gutter: 36px;
+    --nc-content-reading: 840px;
+    --nc-content-wide: 840px;
+    --nc-editor-title-size: 34px;
+    --nc-editor-section-size: 21px;
+    --nc-editor-body-size: 19px;
+    --nc-editor-line-height: 1.55;
+    --nc-editor-spacing-section: 20px;
+
+    --nc-btn-size: 46px;
+    --nc-btn-pill-radius: 23px;
+    --nc-icon-size: 23px;
+    --nc-fab-size: 48px;
+    --nc-fab-icon-size: 24px;
+
+    --nc-transpose-width: 260px;
+    --nc-transpose-btn-size: 48px;
+    --nc-transpose-value-size: 26px;
+  }
+}
+

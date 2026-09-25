@@ -87,13 +87,13 @@ ion-title {
     border: 1px solid color-mix(in srgb, var(--nc-border) 60%, transparent) !important;
     border-radius: 50% !important;
     box-sizing: border-box !important;
-    flex: 0 0 40px !important;
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
-    min-height: 40px !important;
-    max-width: 40px !important;
-    max-height: 40px !important;
+    flex: 0 0 var(--nc-btn-size) !important;
+    width: var(--nc-btn-size) !important;
+    height: var(--nc-btn-size) !important;
+    min-width: var(--nc-btn-size) !important;
+    min-height: var(--nc-btn-size) !important;
+    max-width: var(--nc-btn-size) !important;
+    max-height: var(--nc-btn-size) !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
@@ -119,17 +119,20 @@ ion-title {
     }
 
     &.is-shifted {
-      --border-radius: 20px !important;
-      border-radius: 20px !important;
+      --border-radius: var(--nc-btn-pill-radius) !important;
+      border-radius: var(--nc-btn-pill-radius) !important;
       flex: 0 0 auto !important;
       width: auto !important;
-      min-width: 40px !important;
-      max-width: 140px !important;
+      min-width: var(--nc-btn-size) !important;
+      height: var(--nc-btn-size) !important;
+      min-height: var(--nc-btn-size) !important;
+      max-height: var(--nc-btn-size) !important;
+      max-width: 160px !important;
       padding: 0 !important;
       background: transparent !important;
 
       &::part(native) {
-        border-radius: 20px !important;
+        border-radius: var(--nc-btn-pill-radius) !important;
         padding-left: 12px !important;
         padding-right: 12px !important;
         width: 100% !important;
@@ -142,13 +145,13 @@ ion-title {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: 20px !important;
-    height: 20px !important;
-    width: 20px !important;
-    min-width: 20px !important;
-    min-height: 20px !important;
-    max-width: 20px !important;
-    max-height: 20px !important;
+    font-size: var(--nc-icon-size) !important;
+    height: var(--nc-icon-size) !important;
+    width: var(--nc-icon-size) !important;
+    min-width: var(--nc-icon-size) !important;
+    min-height: var(--nc-icon-size) !important;
+    max-width: var(--nc-icon-size) !important;
+    max-height: var(--nc-icon-size) !important;
     margin: auto !important;
     padding: 0 !important;
     line-height: 1 !important;
@@ -160,12 +163,12 @@ ion-title {
 
 ion-header.floating-controls ion-toolbar {
   --background: transparent !important;
-  --min-height: 64px;
-  --padding-bottom: 0;
-  --padding-top: 0;
+  --min-height: calc(var(--nc-btn-size) + max(env(safe-area-inset-top, 0px), 14px) + 8px);
+  --padding-bottom: 4px;
+  --padding-top: max(env(safe-area-inset-top, 0px), 14px);
   border: 0 !important;
   box-shadow: none !important;
-  padding-inline: 12px;
+  padding-inline: var(--nc-page-gutter);
 }
 
 ion-header.overlay {
@@ -202,12 +205,12 @@ ion-header.overlay {
 
   ion-toolbar {
     --background: transparent !important;
-    --min-height: calc(64px + env(safe-area-inset-top));
-    --padding-bottom: 0;
-    --padding-top: env(safe-area-inset-top);
+    --min-height: calc(var(--nc-btn-size) + max(env(safe-area-inset-top, 0px), 14px) + 8px);
+    --padding-bottom: 4px;
+    --padding-top: max(env(safe-area-inset-top, 0px), 14px);
     border: 0 !important;
     box-shadow: none !important;
-    padding-inline: 12px;
+    padding-inline: var(--nc-page-gutter);
     pointer-events: none;
   }
 

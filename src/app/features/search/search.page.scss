@@ -30,11 +30,11 @@
 .search-toolbar {
   --background: transparent;
   --border-width: 0;
-  --min-height: calc(56px + env(safe-area-inset-top));
+  --min-height: calc(52px + max(env(safe-area-inset-top, 0px), 14px));
   --padding-bottom: var(--nc-space-2);
   --padding-end: var(--nc-page-gutter);
   --padding-start: var(--nc-page-gutter);
-  --padding-top: calc(var(--nc-space-2) + env(safe-area-inset-top));
+  --padding-top: max(env(safe-area-inset-top, 0px), 14px);
 }
 
 .search-bar-row {
@@ -146,8 +146,8 @@
 .search-page-container {
   box-sizing: border-box;
   margin: 0 auto;
-  max-width: var(--nc-content-wide);
-  padding: var(--nc-space-3) var(--nc-page-gutter) calc(var(--nc-space-8) + env(safe-area-inset-bottom));
+  max-width: var(--nc-content-reading);
+  padding: var(--nc-space-3) var(--nc-page-gutter) calc(var(--nc-space-8) + max(env(safe-area-inset-bottom, 0px), 16px));
 }
 
 /* ─── Secciones de Resultados ──────────────────────────────────────────────── */

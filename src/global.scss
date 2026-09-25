@@ -176,3 +176,14 @@ ion-button[disabled] {
   opacity: 0.55;
 }
 
+/* ==========================================================================
+   5. BOTONES DE ACCIÓN FLOTANTES (FAB) CON PADDING SEGURO
+   ========================================================================== */
+
+ion-fab[slot="fixed"] {
+  --offset-y: max(calc(16px + env(safe-area-inset-bottom, 0px)), 20px) !important;
+  --offset-x: var(--nc-page-gutter) !important;
+  bottom: max(calc(16px + env(safe-area-inset-bottom, 0px)), 20px) !important;
+  inset-inline-end: var(--nc-page-gutter) !important;
+}
+
