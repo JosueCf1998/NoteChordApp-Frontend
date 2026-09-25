@@ -11,38 +11,17 @@ ion-content {
 .folders-container {
   box-sizing: border-box;
   margin: 0 auto;
-  max-width: var(--nc-content-wide);
-  padding: calc(64px + env(safe-area-inset-top) + var(--nc-space-4)) var(--nc-page-gutter) calc(56px + env(safe-area-inset-bottom));
-
-  @media (min-width: 768px) {
-    padding-top: calc(64px + env(safe-area-inset-top) + var(--nc-space-4));
-  }
+  max-width: var(--nc-content-reading);
+  padding: calc(var(--nc-btn-size) + max(env(safe-area-inset-top, 0px), 14px) + var(--nc-space-5)) var(--nc-page-gutter) calc(var(--nc-fab-size) + max(env(safe-area-inset-bottom, 0px), 16px) + var(--nc-space-5));
 }
 
-.folder-add-icon {
+.folder-add-svg {
+  color: var(--nc-primary);
   display: block;
-  height: 24px;
-  position: relative;
-  width: 24px;
-}
-
-.folder-shape {
-  font-size: 24px;
-  height: 24px;
-  left: 50%;
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 24px;
-}
-
-.plus-shape {
-  background: var(--nc-surface-raised);
-  border-radius: var(--nc-radius-round);
-  font-size: 11px;
-  position: absolute;
-  right: -3px;
-  top: -4px;
+  height: var(--nc-fab-icon-size);
+  margin: auto;
+  pointer-events: none;
+  width: var(--nc-fab-icon-size);
 }
 
 ion-item-sliding {
@@ -162,7 +141,7 @@ ion-label h2 {
 }
 
 .action-fab {
-  --size: 40px;
+  --size: var(--nc-fab-size);
   --background: var(--nc-surface, #ffffff);
   --background-activated: var(--nc-surface-raised, #f8f9fb);
   --border-radius: 50% !important;
@@ -173,15 +152,15 @@ ion-label h2 {
   border-radius: 50% !important;
   overflow: hidden !important;
   border: 1px solid color-mix(in srgb, var(--nc-border) 60%, transparent);
-  height: 40px !important;
-  width: 40px !important;
-  min-height: 40px !important;
-  min-width: 40px !important;
-  max-height: 40px !important;
-  max-width: 40px !important;
+  height: var(--nc-fab-size) !important;
+  width: var(--nc-fab-size) !important;
+  min-height: var(--nc-fab-size) !important;
+  min-width: var(--nc-fab-size) !important;
+  max-height: var(--nc-fab-size) !important;
+  max-width: var(--nc-fab-size) !important;
 
   ion-icon {
-    font-size: 20px;
+    font-size: var(--nc-fab-icon-size);
   }
 }
 
