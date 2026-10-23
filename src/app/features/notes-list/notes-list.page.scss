@@ -13,7 +13,7 @@ ion-content {
   margin: 0 auto;
   max-width: var(--nc-content-reading);
   min-width: 0;
-  padding: calc(var(--nc-btn-size) + max(env(safe-area-inset-top, 0px), 14px) + var(--nc-space-5)) var(--nc-page-gutter) calc(var(--nc-fab-size) + max(env(safe-area-inset-bottom, 0px), 16px) + var(--nc-space-5));
+  padding: calc(var(--nc-btn-size) + max(env(safe-area-inset-top, 0px), 8px) + 8px) var(--nc-page-gutter) calc(var(--nc-fab-size) + max(env(safe-area-inset-bottom, 0px), 16px) + 36px);
   width: 100%;
 }
 

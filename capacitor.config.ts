@@ -5,8 +5,8 @@ const config: CapacitorConfig = {
   appName: 'NoteChord',
   webDir: 'www',
   server: {
+    url: 'http://192.168.18.229:4200', // <-- Tu Mac en la red Wi-Fi
     cleartext: true
   }
 };
-
 export default config;

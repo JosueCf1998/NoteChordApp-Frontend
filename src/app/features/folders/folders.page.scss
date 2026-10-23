@@ -12,7 +12,7 @@ ion-content {
   box-sizing: border-box;
   margin: 0 auto;
   max-width: var(--nc-content-reading);
-  padding: calc(var(--nc-btn-size) + max(env(safe-area-inset-top, 0px), 14px) + var(--nc-space-5)) var(--nc-page-gutter) calc(var(--nc-fab-size) + max(env(safe-area-inset-bottom, 0px), 16px) + var(--nc-space-5));
+  padding: calc(max(env(safe-area-inset-top, 0px), 8px) + 6px) var(--nc-page-gutter) calc(var(--nc-fab-size) + max(env(safe-area-inset-bottom, 0px), 16px) + 36px);
 }
 
 .folder-add-svg {

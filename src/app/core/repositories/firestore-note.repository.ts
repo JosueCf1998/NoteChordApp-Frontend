@@ -34,7 +34,8 @@ export class FirestoreNoteRepository extends NoteRepository {
   getAllNotes(): Observable<Result<Note[]>> {
     return this.authService.user$.pipe(
       switchMap((user) => {
-        if (!user) {
+        const currentUser = user || this.authService.currentUser;
+        if (!currentUser) {
           return of(createSuccessResult<Note[]>([], 'Usuario no autenticado'));
         }
 
@@ -44,7 +45,7 @@ export class FirestoreNoteRepository extends NoteRepository {
 
         const notesQuery = query(
           collection(this.firestore, ENDPOINTS.NOTES.COLLECTION),
-          where('userId', '==', user.uid)
+          where('userId', '==', currentUser.uid)
         );
 
         return new Observable<Result<Note[]>>((subscriber) => {
@@ -76,7 +77,8 @@ export class FirestoreNoteRepository extends NoteRepository {
   getNotesByFolder(folderId: string): Observable<Result<Note[]>> {
     return this.authService.user$.pipe(
       switchMap((user) => {
-        if (!user || !folderId) {
+        const currentUser = user || this.authService.currentUser;
+        if (!currentUser || !folderId) {
           return of(createSuccessResult<Note[]>([]));
         }
 
@@ -86,7 +88,7 @@ export class FirestoreNoteRepository extends NoteRepository {
 
         const notesQuery = query(
           collection(this.firestore, ENDPOINTS.NOTES.COLLECTION),
-          where('userId', '==', user.uid),
+          where('userId', '==', currentUser.uid),
           where('folderId', '==', folderId)
         );
 
@@ -214,8 +216,9 @@ export class FirestoreNoteRepository extends NoteRepository {
 
       return createSuccessResult(createdNote, 'Nota creada correctamente');
     } catch (error: any) {
-      return createFailureResult<Note>('Error al crear la nota', {
-        code: 'FIRESTORE_CREATE_ERROR',
+      console.error('[FirestoreNoteRepository.create] Error en addDoc:', error);
+      return createFailureResult<Note>(`Error al crear la nota: ${error?.code || error?.message || 'Error desconocido'}`, {
+        code: error?.code || 'FIRESTORE_CREATE_ERROR',
         message: error?.message || 'Error desconocido'
       });
     }

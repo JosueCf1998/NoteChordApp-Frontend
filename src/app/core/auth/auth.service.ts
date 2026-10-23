@@ -12,7 +12,8 @@ import {
 import { Capacitor } from '@capacitor/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
-import { firebaseAuth } from '../firebase/firebase';
+import { firebaseAuth, firebaseFirestore } from '../firebase/firebase';
+import { terminate, clearIndexedDbPersistence } from 'firebase/firestore';
 import { UserSession } from './user-session.model';
 
 @Injectable({ providedIn: 'root' })
@@ -103,7 +104,7 @@ export class AuthService {
         if (typeof this.auth.authStateReady === 'function') {
           await Promise.race([
             this.auth.authStateReady(),
-            new Promise<void>((resolve) => window.setTimeout(resolve, 2000))
+            new Promise<void>((resolve) => window.setTimeout(resolve, 3500))
           ]);
         }
       } catch { }
@@ -111,14 +112,17 @@ export class AuthService {
 
     if (this.auth?.currentUser) {
       this.saveSession(this.auth.currentUser);
+      this.userSubject.next(this.auth.currentUser);
       return true;
     }
 
-    const storedSession = this.getSession();
-    if (storedSession) {
+    const session = this.getSession();
+    if (session) {
       return true;
     }
 
+    this.clearSession();
+    this.userSubject.next(null);
     return false;
   }
 
@@ -133,6 +137,7 @@ export class AuthService {
     const credential = await signInWithEmailAndPassword(auth, email, password);
     if (credential.user) {
       this.saveSession(credential.user);
+      this.userSubject.next(credential.user);
     }
     return credential;
   }
@@ -148,6 +153,7 @@ export class AuthService {
     const credential = await createUserWithEmailAndPassword(auth, email, password);
     if (credential.user) {
       this.saveSession(credential.user);
+      this.userSubject.next(credential.user);
     }
     return credential;
   }
@@ -161,8 +167,33 @@ export class AuthService {
   async logout(): Promise<void> {
     this.clearSession();
     this.userSubject.next(null);
+
     if (this.auth) {
-      await signOut(this.auth);
+      try {
+        await signOut(this.auth);
+      } catch (err) {
+        console.warn('Error al cerrar sesión en Auth:', err);
+      }
+    }
+
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+    } catch { }
+
+    try {
+      if (firebaseFirestore) {
+        await terminate(firebaseFirestore);
+        await clearIndexedDbPersistence(firebaseFirestore);
+      }
+    } catch (err) {
+      console.warn('Error al limpiar caché de Firestore:', err);
+    }
+
+    if (typeof window !== 'undefined') {
+      window.location.replace('/login');
     }
   }
 
@@ -183,10 +214,6 @@ export class AuthService {
   }
 
   private async setPersistenceWithFallback(auth: NonNullable<typeof this.auth>) {
-    if (Capacitor.isNativePlatform()) {
-      return;
-    }
-
     try {
       await Promise.race([
         setPersistence(auth, browserLocalPersistence),

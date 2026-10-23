@@ -43,3 +43,11 @@ La configuracion base esta en `capacitor.config.ts`. Las plataformas Android e i
 npx cap open android
 npx cap open ios
 ```
+
+## Pruebas de API con Postman
+
+La carpeta [`postman/`](file:///Users/josue/Documents/Proyecto%20Personal/NoteChordApp-Frontend/postman) contiene la colección y el entorno listos para importar:
+- `postman/NoteChord.postman_collection.json`
+- `postman/NoteChord.postman_environment.json`
+- Consulta el archivo [`postman/README.md`](file:///Users/josue/Documents/Proyecto%20Personal/NoteChordApp-Frontend/postman/README.md) para más detalles.
+

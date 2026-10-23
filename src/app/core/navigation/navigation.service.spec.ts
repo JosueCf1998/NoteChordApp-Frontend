@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { NavController, Platform } from '@ionic/angular';
+import { of } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import { NavigationService } from './navigation.service';
@@ -23,6 +24,7 @@ describe('NavigationService', () => {
 
   const routerMock = {
     url: '/home',
+    events: of(),
     navigate: vi.fn().mockResolvedValue(true)
   };
 

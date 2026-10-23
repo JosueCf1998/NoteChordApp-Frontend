@@ -23,6 +23,7 @@
     </app-top-navbar>
 
     <ion-content
+      [fullscreen]="true"
       [scrollEvents]="true"
       (ionScroll)="handleScroll($event)"
       (touchstart)="handleGestureStart($event)"

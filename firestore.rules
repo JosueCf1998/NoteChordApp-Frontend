@@ -1,0 +1,142 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // This security rules file assumes the following data structures:
+    //
+    // Collection: folders
+    // Document ID: auto-generated document ID (string)
+    // Fields:
+    //   - userId: string (required, immutable) - ID of the owning user (must match request.auth.uid)
+    //   - name: string (required, 1-40 chars) - Name of the folder
+    //   - color: string (optional, 0-30 chars) - Hex or CSS color string (e.g. #3164F4)
+    //   - description: string (optional, 0-500 chars) - Optional description of the folder
+    //   - createdAt: timestamp (required, immutable) - Creation timestamp
+    //   - updatedAt: timestamp (required) - Last modification timestamp
+    //
+    // Collection: notes
+    // Document ID: auto-generated document ID (string)
+    // Fields:
+    //   - userId: string (required, immutable) - ID of the owning user (must match request.auth.uid)
+    //   - folderId: string (required, 1-100 chars) - ID of the folder containing the note
+    //   - title: string (required, 1-100 chars) - Title of the note
+    //   - content: string (required, 0-50000 chars) - Lyrics and chord notation content
+    //   - createdAt: timestamp (required, immutable) - Creation timestamp
+    //   - updatedAt: timestamp (required) - Last modification timestamp
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Check if the request is from an authenticated user
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if the authenticated user matches the specified userId
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Check if the authenticated user owns the existing resource
+    function isDocOwner() {
+      return isAuthenticated() && resource != null && request.auth.uid == resource.data.userId;
+    }
+
+    // Validate that required fields exist in request resource data
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Validate that only defined fields exist in request resource data (strict schema enforcement)
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // Validate that immutable fields are not changed during an update operation
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    // Validate folder schema and field constraints
+    function isValidFolder(data) {
+      return hasOnlyAllowedFields(['userId', 'name', 'color', 'description', 'createdAt', 'updatedAt']) &&
+             hasRequiredFields(['userId', 'name', 'createdAt', 'updatedAt']) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 40 &&
+             (!('color' in data) || (data.color is string && data.color.size() <= 30)) &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 500)) &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    // Validate note schema and field constraints
+    function isValidNote(data) {
+      return hasOnlyAllowedFields(['userId', 'folderId', 'title', 'content', 'createdAt', 'updatedAt']) &&
+             hasRequiredFields(['userId', 'folderId', 'title', 'content', 'createdAt', 'updatedAt']) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.folderId is string && data.folderId.size() >= 1 && data.folderId.size() <= 100 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 100 &&
+             data.content is string && data.content.size() <= 50000 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    // ===============================================================
+    // Security Rules
+    // ===============================================================
+
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Folders collection rules
+    match /folders/{folderId} {
+      // User can only read folders they own (supports get and list/query where userId == auth.uid)
+      allow read: if isOwner(resource.data.userId);
+
+      // User can create folders where userId matches their auth.uid and data passes strict validation
+      allow create: if isOwner(request.resource.data.userId) &&
+                       isValidFolder(request.resource.data);
+
+      // User can only update their own folders; userId and createdAt are immutable
+      allow update: if isDocOwner() &&
+                       isOwner(request.resource.data.userId) &&
+                       isValidFolder(request.resource.data) &&
+                       areImmutableFieldsUnchanged(['userId', 'createdAt']);
+
+      // User can only delete folders they own
+      allow delete: if isDocOwner();
+    }
+
+    // Notes collection rules
+    match /notes/{noteId} {
+      // User can only read notes they own (supports get and list/query where userId == auth.uid)
+      allow read: if isOwner(resource.data.userId);
+
+      // User can create notes where userId matches their auth.uid and data passes strict validation
+      allow create: if isOwner(request.resource.data.userId) &&
+                       isValidNote(request.resource.data);
+
+      // User can only update their own notes; userId and createdAt are immutable
+      allow update: if isDocOwner() &&
+                       isOwner(request.resource.data.userId) &&
+                       isValidNote(request.resource.data) &&
+                       areImmutableFieldsUnchanged(['userId', 'createdAt']);
+
+      // User can only delete notes they own
+      allow delete: if isDocOwner();
+    }
+  }
+}

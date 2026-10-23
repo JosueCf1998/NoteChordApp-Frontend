@@ -26,13 +26,13 @@ describe('Note Format Pipes', () => {
     const pipe = new NotePreviewPipe();
 
     it('should return fallback for empty content', () => {
-      expect(pipe.transform('')).toBe('Sin contenido todavía');
-      expect(pipe.transform('   ')).toBe('Sin contenido todavía');
-      expect(pipe.transform(null)).toBe('Sin contenido todavía');
+      expect(pipe.transform('')).toBe('Sin texto adicional');
+      expect(pipe.transform('   ')).toBe('Sin texto adicional');
+      expect(pipe.transform(null)).toBe('Sin texto adicional');
     });
 
-    it('should collapse multiple spaces into single space and trim', () => {
-      expect(pipe.transform('  Hola   mundo  \n  test  ')).toBe('Hola mundo test');
+    it('should return first non-empty line of content', () => {
+      expect(pipe.transform('  Hola mundo  \n  test  ')).toBe('Hola mundo');
     });
   });
 

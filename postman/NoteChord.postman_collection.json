@@ -1,0 +1,657 @@
+{
+  "info": {
+    "_postman_id": "c7f99b12-9c16-4f47-897b-3b6d4ee29801",
+    "name": "NoteChord App API",
+    "description": "Colección completa de endpoints para NoteChord App. Incluye endpoints de Firebase Authentication y Cloud Firestore REST API para gestión de Usuarios, Carpetas (Folders) y Notas/Cifrados (Notes).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "FIREBASE_API_KEY",
+      "value": "AIzaSyA35vP3wruR9ofN2vlGYm5FzJBRiBf1Q_A",
+      "type": "string"
+    },
+    {
+      "key": "PROJECT_ID",
+      "value": "notejam-df4e4",
+      "type": "string"
+    },
+    {
+      "key": "FIRESTORE_BASE_URL",
+      "value": "https://firestore.googleapis.com/v1/projects/notejam-df4e4/databases/(default)/documents",
+      "type": "string"
+    },
+    {
+      "key": "FIREBASE_AUTH_URL",
+      "value": "https://identitytoolkit.googleapis.com/v1",
+      "type": "string"
+    },
+    {
+      "key": "FIREBASE_TOKEN_URL",
+      "value": "https://securetoken.googleapis.com/v1",
+      "type": "string"
+    },
+    {
+      "key": "user_email",
+      "value": "test@notechord.com",
+      "type": "string"
+    },
+    {
+      "key": "user_password",
+      "value": "Password123*",
+      "type": "string"
+    },
+    {
+      "key": "idToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "folderId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "noteId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Register (Sign Up)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var json = pm.response.json();",
+                  "    pm.environment.set('idToken', json.idToken);",
+                  "    pm.environment.set('refreshToken', json.refreshToken);",
+                  "    pm.environment.set('userId', json.localId);",
+                  "    pm.collectionVariables.set('idToken', json.idToken);",
+                  "    pm.collectionVariables.set('refreshToken', json.refreshToken);",
+                  "    pm.collectionVariables.set('userId', json.localId);",
+                  "    pm.test('Status code is 200', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "    pm.test('Token received', function () {",
+                  "        pm.expect(json.idToken).to.be.a('string');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\",\n  \"returnSecureToken\": true\n}"
+            },
+            "url": {
+              "raw": "{{FIREBASE_AUTH_URL}}/accounts:signUp?key={{FIREBASE_API_KEY}}",
+              "host": ["{{FIREBASE_AUTH_URL}}"],
+              "path": ["accounts:signUp"],
+              "query": [
+                {
+                  "key": "key",
+                  "value": "{{FIREBASE_API_KEY}}"
+                }
+              ]
+            },
+            "description": "Registra un nuevo usuario con correo electrónico y contraseña en Firebase Authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Login (Sign In)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var json = pm.response.json();",
+                  "    pm.environment.set('idToken', json.idToken);",
+                  "    pm.environment.set('refreshToken', json.refreshToken);",
+                  "    pm.environment.set('userId', json.localId);",
+                  "    pm.collectionVariables.set('idToken', json.idToken);",
+                  "    pm.collectionVariables.set('refreshToken', json.refreshToken);",
+                  "    pm.collectionVariables.set('userId', json.localId);",
+                  "    pm.test('Status code is 200', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "    pm.test('Token set in environment', function () {",
+                  "        pm.expect(json.idToken).to.not.be.empty;",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\",\n  \"returnSecureToken\": true\n}"
+            },
+            "url": {
+              "raw": "{{FIREBASE_AUTH_URL}}/accounts:signInWithPassword?key={{FIREBASE_API_KEY}}",
+              "host": ["{{FIREBASE_AUTH_URL}}"],
+              "path": ["accounts:signInWithPassword"],
+              "query": [
+                {
+                  "key": "key",
+                  "value": "{{FIREBASE_API_KEY}}"
+                }
+              ]
+            },
+            "description": "Inicia sesión con credenciales y guarda automáticamente el idToken, refreshToken y userId en las variables de entorno."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var json = pm.response.json();",
+                  "    pm.environment.set('idToken', json.id_token);",
+                  "    pm.environment.set('refreshToken', json.refresh_token);",
+                  "    pm.environment.set('userId', json.user_id);",
+                  "    pm.collectionVariables.set('idToken', json.id_token);",
+                  "    pm.collectionVariables.set('refreshToken', json.refresh_token);",
+                  "    pm.collectionVariables.set('userId', json.user_id);",
+                  "    pm.test('Token refreshed successfully', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "        pm.expect(json.id_token).to.be.a('string');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "refresh_token",
+                  "type": "text"
+                },
+                {
+                  "key": "refresh_token",
+                  "value": "{{refreshToken}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{FIREBASE_TOKEN_URL}}/token?key={{FIREBASE_API_KEY}}",
+              "host": ["{{FIREBASE_TOKEN_URL}}"],
+              "path": ["token"],
+              "query": [
+                {
+                  "key": "key",
+                  "value": "{{FIREBASE_API_KEY}}"
+                }
+              ]
+            },
+            "description": "Renueva el idToken de Firebase utilizando el refresh token existente."
+          },
+          "response": []
+        },
+        {
+          "name": "Lookup User Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"{{idToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{FIREBASE_AUTH_URL}}/accounts:lookup?key={{FIREBASE_API_KEY}}",
+              "host": ["{{FIREBASE_AUTH_URL}}"],
+              "path": ["accounts:lookup"],
+              "query": [
+                {
+                  "key": "key",
+                  "value": "{{FIREBASE_API_KEY}}"
+                }
+              ]
+            },
+            "description": "Obtiene la información del perfil del usuario autenticado (email, fecha de creación, estado de verificación, etc.)."
+          },
+          "response": []
+        },
+        {
+          "name": "Send Password Reset Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestType\": \"PASSWORD_RESET\",\n  \"email\": \"{{user_email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{FIREBASE_AUTH_URL}}/accounts:sendOobCode?key={{FIREBASE_API_KEY}}",
+              "host": ["{{FIREBASE_AUTH_URL}}"],
+              "path": ["accounts:sendOobCode"],
+              "query": [
+                {
+                  "key": "key",
+                  "value": "{{FIREBASE_API_KEY}}"
+                }
+              ]
+            },
+            "description": "Envía un correo electrónico para restablecer la contraseña al email indicado."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Folders (Carpetas)",
+      "item": [
+        {
+          "name": "Get Folders by User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{idToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"structuredQuery\": {\n    \"from\": [\n      {\n        \"collectionId\": \"folders\"\n      }\n    ],\n    \"where\": {\n      \"fieldFilter\": {\n        \"field\": {\n          \"fieldPath\": \"userId\"\n        },\n        \"op\": \"EQUAL\",\n        \"value\": {\n          \"stringValue\": \"{{userId}}\"\n        }\n      }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{FIRESTORE_BASE_URL}}:runQuery",
+              "host": ["{{FIRESTORE_BASE_URL}}"],
+              "path": [":runQuery"]
+            },
+            "description": "Consulta todas las carpetas pertenecientes al usuario autenticado (equivalente a la query en FirestoreFolderRepository)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Folder by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{idToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{FIRESTORE_BASE_URL}}/folders/{{folderId}}",
+              "host": ["{{FIRESTORE_BASE_URL}}"],
+              "path": ["folders", "{{folderId}}"]
+            },
+            "description": "Obtiene los detalles de un documento de carpeta específico por su ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Folder",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var json = pm.response.json();",
+                  "    if (json.name) {",
+                  "        var parts = json.name.split('/');",
+                  "        var newFolderId = parts[parts.length - 1];",
+                  "        pm.environment.set('folderId', newFolderId);",
+                  "        pm.collectionVariables.set('folderId', newFolderId);",
+                  "        pm.test('Folder created and ID saved: ' + newFolderId, function () {",
+                  "            pm.expect(newFolderId).to.not.be.empty;",
+                  "        });",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{idToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fields\": {\n    \"userId\": {\n      \"stringValue\": \"{{userId}}\"\n    },\n    \"name\": {\n      \"stringValue\": \"Repertorio Acústico\"\n    },\n    \"color\": {\n      \"stringValue\": \"#3880ff\"\n    },\n    \"description\": {\n      \"stringValue\": \"Canciones acústicas para ensayos y directos\"\n    },\n    \"createdAt\": {\n      \"timestampValue\": \"2026-10-23T12:00:00Z\"\n    },\n    \"updatedAt\": {\n      \"timestampValue\": \"2026-10-23T12:00:00Z\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{FIRESTORE_BASE_URL}}/folders",
+              "host": ["{{FIRESTORE_BASE_URL}}"],
+              "path": ["folders"]
+            },
+            "description": "Crea una nueva carpeta en Firestore. Guarda automáticamente el ID generado en la variable de entorno folderId."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Folder",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{idToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fields\": {\n    \"userId\": {\n      \"stringValue\": \"{{userId}}\"\n    },\n    \"name\": {\n      \"stringValue\": \"Repertorio Acústico - Actualizado\"\n    },\n    \"color\": {\n      \"stringValue\": \"#2dd36f\"\n    },\n    \"description\": {\n      \"stringValue\": \"Descripción modificada\"\n    },\n    \"updatedAt\": {\n      \"timestampValue\": \"2026-10-23T12:30:00Z\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{FIRESTORE_BASE_URL}}/folders/{{folderId}}?updateMask.fieldPaths=name&updateMask.fieldPaths=color&updateMask.fieldPaths=description&updateMask.fieldPaths=updatedAt",
+              "host": ["{{FIRESTORE_BASE_URL}}"],
+              "path": ["folders", "{{folderId}}"],
+              "query": [
+                {
+                  "key": "updateMask.fieldPaths",
+                  "value": "name"
+                },
+                {
+                  "key": "updateMask.fieldPaths",
+                  "value": "color"
+                },
+                {
+                  "key": "updateMask.fieldPaths",
+                  "value": "description"
+                },
+                {
+                  "key": "updateMask.fieldPaths",
+                  "value": "updatedAt"
+                }
+              ]
+            },
+            "description": "Actualiza parcialmente los campos de una carpeta utilizando updateMask en Firestore REST API."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Folder",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{idToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{FIRESTORE_BASE_URL}}/folders/{{folderId}}",
+              "host": ["{{FIRESTORE_BASE_URL}}"],
+              "path": ["folders", "{{folderId}}"]
+            },
+            "description": "Elimina la carpeta correspondiente a folderId en Firestore."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Notes (Notas y Cifrados)",
+      "item": [
+        {
+          "name": "Get All Notes by User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{idToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"structuredQuery\": {\n    \"from\": [\n      {\n        \"collectionId\": \"notes\"\n      }\n    ],\n    \"where\": {\n      \"fieldFilter\": {\n        \"field\": {\n          \"fieldPath\": \"userId\"\n        },\n        \"op\": \"EQUAL\",\n        \"value\": {\n          \"stringValue\": \"{{userId}}\"\n        }\n      }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{FIRESTORE_BASE_URL}}:runQuery",
+              "host": ["{{FIRESTORE_BASE_URL}}"],
+              "path": [":runQuery"]
+            },
+            "description": "Consulta todas las notas del usuario autenticado."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notes by Folder",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{idToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"structuredQuery\": {\n    \"from\": [\n      {\n        \"collectionId\": \"notes\"\n      }\n    ],\n    \"where\": {\n      \"compositeFilter\": {\n        \"op\": \"AND\",\n        \"filters\": [\n          {\n            \"fieldFilter\": {\n              \"field\": {\n                \"fieldPath\": \"userId\"\n              },\n              \"op\": \"EQUAL\",\n              \"value\": {\n                \"stringValue\": \"{{userId}}\"\n              }\n            }\n          },\n          {\n            \"fieldFilter\": {\n              \"field\": {\n                \"fieldPath\": \"folderId\"\n              },\n              \"op\": \"EQUAL\",\n              \"value\": {\n                \"stringValue\": \"{{folderId}}\"\n              }\n            }\n          }\n        ]\n      }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{FIRESTORE_BASE_URL}}:runQuery",
+              "host": ["{{FIRESTORE_BASE_URL}}"],
+              "path": [":runQuery"]
+            },
+            "description": "Consulta todas las notas del usuario que pertenezcan a la carpeta folderId."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Note by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{idToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{FIRESTORE_BASE_URL}}/notes/{{noteId}}",
+              "host": ["{{FIRESTORE_BASE_URL}}"],
+              "path": ["notes", "{{noteId}}"]
+            },
+            "description": "Obtiene el detalle completo de una nota por su ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Note",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var json = pm.response.json();",
+                  "    if (json.name) {",
+                  "        var parts = json.name.split('/');",
+                  "        var newNoteId = parts[parts.length - 1];",
+                  "        pm.environment.set('noteId', newNoteId);",
+                  "        pm.collectionVariables.set('noteId', newNoteId);",
+                  "        pm.test('Note created and ID saved: ' + newNoteId, function () {",
+                  "            pm.expect(newNoteId).to.not.be.empty;",
+                  "        });",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{idToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fields\": {\n    \"userId\": {\n      \"stringValue\": \"{{userId}}\"\n    },\n    \"folderId\": {\n      \"stringValue\": \"{{folderId}}\"\n    },\n    \"title\": {\n      \"stringValue\": \"Hotel California - The Eagles\"\n    },\n    \"content\": {\n      \"stringValue\": \"[Intro]\\nBm  F#7  A  E  G  D  Em  F#7\\n\\n[Verse 1]\\nBm                         F#7\\nOn a dark desert highway, cool wind in my hair\\nA                      E\\nWarm smell of colitas, rising up through the air\\nG                         D\\nUp ahead in the distance, I saw a shimmering light\\nEm\\nMy head grew heavy and my sight grew dim\\nF#7\\nI had to stop for the night\"\n    },\n    \"createdAt\": {\n      \"timestampValue\": \"2026-10-23T12:00:00Z\"\n    },\n    \"updatedAt\": {\n      \"timestampValue\": \"2026-10-23T12:00:00Z\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{FIRESTORE_BASE_URL}}/notes",
+              "host": ["{{FIRESTORE_BASE_URL}}"],
+              "path": ["notes"]
+            },
+            "description": "Crea una nueva nota musical/cifrado asociada al usuario y a la carpeta especificada en folderId. Guarda automáticamente el ID en la variable noteId."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Note",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{idToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fields\": {\n    \"title\": {\n      \"stringValue\": \"Hotel California (Capo 2) - The Eagles\"\n    },\n    \"content\": {\n      \"stringValue\": \"[Capo 2]\\n\\n[Intro]\\nAm  E7  G  D  F  C  Dm  E7\\n\\n[Verse 1]\\nAm                         E7\\nOn a dark desert highway, cool wind in my hair...\"\n    },\n    \"updatedAt\": {\n      \"timestampValue\": \"2026-10-23T12:35:00Z\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{FIRESTORE_BASE_URL}}/notes/{{noteId}}?updateMask.fieldPaths=title&updateMask.fieldPaths=content&updateMask.fieldPaths=updatedAt",
+              "host": ["{{FIRESTORE_BASE_URL}}"],
+              "path": ["notes", "{{noteId}}"],
+              "query": [
+                {
+                  "key": "updateMask.fieldPaths",
+                  "value": "title"
+                },
+                {
+                  "key": "updateMask.fieldPaths",
+                  "value": "content"
+                },
+                {
+                  "key": "updateMask.fieldPaths",
+                  "value": "updatedAt"
+                }
+              ]
+            },
+            "description": "Actualiza el título, contenido y fecha de modificación de una nota musical existente."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Note",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{idToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{FIRESTORE_BASE_URL}}/notes/{{noteId}}",
+              "host": ["{{FIRESTORE_BASE_URL}}"],
+              "path": ["notes", "{{noteId}}"]
+            },
+            "description": "Elimina una nota por su ID de Firestore."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

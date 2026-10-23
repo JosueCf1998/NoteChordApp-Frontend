@@ -24,6 +24,24 @@ if (!window.matchMedia) {
     }) as MediaQueryList;
 }
 
+if (typeof window !== 'undefined') {
+  try {
+    delete (window as any).location;
+    window.location = {
+      replace: () => undefined,
+      assign: () => undefined,
+      reload: () => undefined,
+      href: 'http://localhost/',
+      origin: 'http://localhost',
+      pathname: '/',
+      search: '',
+      hash: ''
+    } as any;
+  } catch {
+    // Ignore in non-jsdom environments
+  }
+}
+
 getTestBed().initTestEnvironment(
   BrowserDynamicTestingModule,
   platformBrowserDynamicTesting()

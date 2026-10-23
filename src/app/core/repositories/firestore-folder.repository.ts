@@ -36,7 +36,8 @@ export class FirestoreFolderRepository extends FolderRepository {
   getFolders(): Observable<Result<Folder[]>> {
     return this.authService.user$.pipe(
       switchMap((user) => {
-        if (!user) {
+        const currentUser = user || this.authService.currentUser;
+        if (!currentUser) {
           return of(createSuccessResult<Folder[]>([], 'Usuario no autenticado'));
         }
 
@@ -46,7 +47,7 @@ export class FirestoreFolderRepository extends FolderRepository {
 
         const foldersQuery = query(
           collection(this.firestore, ENDPOINTS.FOLDERS.COLLECTION),
-          where('userId', '==', user.uid)
+          where('userId', '==', currentUser.uid)
         );
 
         return new Observable<Result<Folder[]>>((subscriber) => {
@@ -156,8 +157,9 @@ export class FirestoreFolderRepository extends FolderRepository {
 
       return createSuccessResult(createdFolder, 'Carpeta creada correctamente');
     } catch (error: any) {
-      return createFailureResult<Folder>('Error al crear la carpeta', {
-        code: 'FIRESTORE_CREATE_ERROR',
+      console.error('[FirestoreFolderRepository.create] Error en addDoc:', error);
+      return createFailureResult<Folder>(`Error al crear la carpeta: ${error?.code || error?.message || 'Error desconocido'}`, {
+        code: error?.code || 'FIRESTORE_CREATE_ERROR',
         message: error?.message || 'Error desconocido'
       });
     }
@@ -203,10 +205,16 @@ export class FirestoreFolderRepository extends FolderRepository {
       return createFailureResult<void>('Firestore no está disponible');
     }
 
+    const currentUserId = this.authService.currentUserId;
+    if (!currentUserId) {
+      return createFailureResult<void>('Usuario no autenticado');
+    }
+
     try {
       // Eliminar notas contenidas en la carpeta en lote
       const notesQuery = query(
         collection(this.firestore, ENDPOINTS.NOTES.COLLECTION),
+        where('userId', '==', currentUserId),
         where('folderId', '==', id)
       );
 

@@ -67,6 +67,7 @@ describe('SearchPage', () => {
   };
 
   const navServiceMock = {
+    push: vi.fn().mockResolvedValue(undefined),
     goToNoteEditor: vi.fn().mockResolvedValue(true),
     goToFolderNotes: vi.fn().mockResolvedValue(true),
     back: vi.fn().mockResolvedValue(true)
@@ -135,12 +136,12 @@ describe('SearchPage', () => {
 
   it('should navigate to note editor when note is selected', () => {
     component.selectNote(mockNotes[0]);
-    expect(navServiceMock.goToNoteEditor).toHaveBeenCalledWith('folder-1', 'note-1');
+    expect(navServiceMock.push).toHaveBeenCalledWith(['/notes', 'folder-1', 'note-1']);
   });
 
   it('should navigate to folder notes when folder is selected', () => {
     component.selectFolder(mockFolders[0]);
-    expect(navServiceMock.goToFolderNotes).toHaveBeenCalledWith('folder-1');
+    expect(navServiceMock.push).toHaveBeenCalledWith(['/notes-list', 'folder-1']);
   });
 
   it('should navigate back when cancel is clicked', () => {

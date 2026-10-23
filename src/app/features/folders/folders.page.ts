@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActionSheetController, IonicModule } from '@ionic/angular';
-import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, tap } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { Folder } from '../../core/models/folder/folder.model';
@@ -35,7 +35,17 @@ export class FoldersPage {
 
   private readonly defaultFolderColor = '#3164F4';
 
+  isLoading = true;
+
   readonly folders$: Observable<Folder[]> = this.getFoldersUseCase.execute().pipe(
+    tap({
+      next: () => {
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      }
+    }),
     map((res) => res.data || [])
   );
   readonly noteCounts$ = this.getNotesCountByFolderUseCase.execute().pipe(

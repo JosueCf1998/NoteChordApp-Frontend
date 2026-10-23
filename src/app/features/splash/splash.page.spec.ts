@@ -15,6 +15,7 @@ describe('SplashPage', () => {
     validateSession: ReturnType<typeof vi.fn>;
   };
   let navServiceMock: {
+    replace: ReturnType<typeof vi.fn>;
     goToHome: ReturnType<typeof vi.fn>;
     goToLogin: ReturnType<typeof vi.fn>;
   };
@@ -26,6 +27,7 @@ describe('SplashPage', () => {
     };
 
     navServiceMock = {
+      replace: vi.fn().mockResolvedValue(true),
       goToHome: vi.fn().mockResolvedValue(true),
       goToLogin: vi.fn().mockResolvedValue(true)
     };
@@ -55,8 +57,7 @@ describe('SplashPage', () => {
     await component.ngOnInit();
     expect(component.isCheckingAuth).toBe(false);
     expect(component.progress).toBe(100);
-    expect(navServiceMock.goToHome).not.toHaveBeenCalled();
-    expect(navServiceMock.goToLogin).toHaveBeenCalledWith('forward');
+    expect(navServiceMock.replace).toHaveBeenCalledWith('/login');
   });
 
   it('should navigate to home (folders) when user session is valid', async () => {
@@ -65,8 +66,7 @@ describe('SplashPage', () => {
     await component.ngOnInit();
     expect(component.isCheckingAuth).toBe(false);
     expect(component.progress).toBe(100);
-    expect(navServiceMock.goToHome).toHaveBeenCalledWith(true);
-    expect(navServiceMock.goToLogin).not.toHaveBeenCalled();
+    expect(navServiceMock.replace).toHaveBeenCalledWith('/home');
   });
 
   it('should fallback to user$ when validateSession is not available', async () => {
@@ -74,11 +74,11 @@ describe('SplashPage', () => {
     delete (authServiceMock as any).validateSession;
     authServiceMock.user$ = of({ uid: 'u123' } as any);
     await component.ngOnInit();
-    expect(navServiceMock.goToHome).toHaveBeenCalledWith(true);
+    expect(navServiceMock.replace).toHaveBeenCalledWith('/home');
   });
 
   it('should navigate to login when goToLogin is called', async () => {
     await component.goToLogin();
-    expect(navServiceMock.goToLogin).toHaveBeenCalledWith('forward');
+    expect(navServiceMock.replace).toHaveBeenCalledWith('/login');
   });
 });

@@ -48,6 +48,9 @@ describe('FoldersPage', () => {
   };
 
   const navServiceMock = {
+    push: () => Promise.resolve(),
+    back: () => Promise.resolve(),
+    replace: () => Promise.resolve(),
     goToFolderNotes: () => Promise.resolve(true),
     goToSettings: () => Promise.resolve(true),
     goToLogin: () => Promise.resolve(true),

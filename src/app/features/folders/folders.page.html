@@ -10,6 +10,7 @@
 </app-top-navbar>
 
 <ion-content
+  [fullscreen]="true"
   [scrollEvents]="true"
   (ionScroll)="pageTitle.handleScroll($event)"
   (touchstart)="pageTitle.handleGestureStart($event)"
@@ -57,17 +58,17 @@
           ></app-swipe-actions>
         </ion-item-sliding>
       </app-grouped-list>
-    </ng-container>
 
-    <ng-template #emptyState>
-      <section class="empty-state">
-        <div class="empty-icon"><ion-icon name="folder-outline"></ion-icon></div>
-        <h2>{{ searchTerm ? 'Sin resultados' : 'Sin carpetas' }}</h2>
-        <p class="empty-description">
-          {{ searchTerm ? 'Prueba con otra palabra clave o limpia la búsqueda.' : 'Crea tu primera carpeta para empezar a organizar tus notas.' }}
-        </p>
-      </section>
-    </ng-template>
+      <ng-template #emptyState>
+        <section class="empty-state">
+          <div class="empty-icon"><ion-icon name="folder-outline"></ion-icon></div>
+          <h2>{{ searchTerm ? 'Sin resultados' : 'Sin carpetas' }}</h2>
+          <p class="empty-description">
+            {{ searchTerm ? 'Prueba con otra palabra clave o limpia la búsqueda.' : 'Crea tu primera carpeta para empezar a organizar tus notas.' }}
+          </p>
+        </section>
+      </ng-template>
+    </ng-container>
 
   </main>
 
@@ -119,7 +120,7 @@
   </form>
 </app-base-modal>
 
-<app-full-screen-loader [visible]="isSaving" message="Guardando…"></app-full-screen-loader>
+<app-full-screen-loader [visible]="isLoading || isSaving" [message]="isLoading ? 'Cargando carpetas…' : 'Guardando…'"></app-full-screen-loader>
 
 <app-base-modal
   size="sm"
