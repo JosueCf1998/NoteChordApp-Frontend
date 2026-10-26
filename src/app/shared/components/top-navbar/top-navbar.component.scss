@@ -189,26 +189,26 @@ ion-header.overlay {
   right: 0;
   top: 0;
   z-index: 20;
+  transition: background 220ms cubic-bezier(0.2, 0, 0, 1),
+              backdrop-filter 220ms cubic-bezier(0.2, 0, 0, 1),
+              -webkit-backdrop-filter 220ms cubic-bezier(0.2, 0, 0, 1);
 
   &::before {
     content: '';
     position: absolute;
-    inset: 0;
-    bottom: -16px;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 36px;
     background: linear-gradient(
       to bottom,
-      color-mix(in srgb, var(--nc-background-secondary) 90%, transparent) 0%,
-      color-mix(in srgb, var(--nc-background-secondary) 55%, transparent) 55%,
+      color-mix(in srgb, var(--nc-background-secondary) 88%, transparent) 0%,
+      color-mix(in srgb, var(--nc-background-secondary) 40%, transparent) 55%,
       transparent 100%
     );
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    mask-image: linear-gradient(to bottom, black 0%, black 45%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to bottom, black 0%, black 45%, transparent 100%);
     pointer-events: none;
-    z-index: -1;
     opacity: 0;
-    transition: opacity 280ms cubic-bezier(0.2, 0, 0, 1);
+    transition: opacity 220ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   ion-toolbar {
@@ -217,6 +217,9 @@ ion-header.overlay {
 
   &.scrolled {
     pointer-events: auto;
+    background: color-mix(in srgb, var(--nc-background-secondary) 88%, transparent) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
 
     &::before {
       opacity: 1;

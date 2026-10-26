@@ -1,4 +1,4 @@
-<app-top-navbar title="Carpetas" [showTitle]="isHeaderCollapsed" [floatingControls]="true" [overlay]="true">
+<app-top-navbar title="Carpetas" [showTitle]="isHeaderCollapsed" [isScrolled]="isHeaderScrolled" [floatingControls]="true" [overlay]="true">
     <ion-buttons nav-end slot="end">
       <ion-button (click)="openSearch()" aria-label="Buscar">
         <ion-icon slot="icon-only" name="search-outline"></ion-icon>
@@ -12,17 +12,18 @@
 <ion-content
   [fullscreen]="true"
   [scrollEvents]="true"
-  (ionScroll)="pageTitle.handleScroll($event)"
-  (touchstart)="pageTitle.handleGestureStart($event)"
-  (touchmove)="pageTitle.handleGestureMove($event)"
-  (touchend)="pageTitle.handleGestureEnd($event)"
-  (touchcancel)="pageTitle.handleGestureCancel()"
+  (ionScroll)="handleScroll($event)"
+  (touchstart)="handleGestureStart($event)"
+  (touchmove)="handleGestureMove($event)"
+  (touchend)="handleGestureEnd($event)"
+  (touchcancel)="handleGestureCancel()"
 >
   <main class="folders-container">
     <app-animated-page-title
       #pageTitle
       title="Carpetas"
       (collapsedChange)="isHeaderCollapsed = $event"
+      (scrolledChange)="isHeaderScrolled = $event"
     ></app-animated-page-title>
 
     <ion-text color="danger" role="alert" *ngIf="errorMessage">

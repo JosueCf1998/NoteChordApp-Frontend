@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActionSheetController, IonicModule } from '@ionic/angular';
@@ -8,6 +8,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { Folder } from '../../core/models/folder/folder.model';
 import { NavigationService } from '../../core/navigation/navigation.service';
 import { SharedModule } from '../../shared/shared.module';
+import { AnimatedPageTitleComponent } from '../../shared/components/animated-page-title/animated-page-title.component';
 import {
   GetFoldersUseCase,
   CreateFolderUseCase,
@@ -69,11 +70,14 @@ export class FoldersPage {
     return folder.id;
   }
 
+  @ViewChild(AnimatedPageTitleComponent) pageTitle?: AnimatedPageTitleComponent;
+
   folderName = '';
   folderColor = this.defaultFolderColor;
   folderDescription = '';
   searchTerm = '';
   isHeaderCollapsed = false;
+  isHeaderScrolled = false;
   isFolderFormOpen = false;
   isSaving = false;
   isDeleting = false;
@@ -83,6 +87,26 @@ export class FoldersPage {
   private longPressTimer?: ReturnType<typeof setTimeout>;
   private longPressTriggered = false;
   private longPressOrigin?: { x: number; y: number };
+
+  handleScroll(event: Event) {
+    this.pageTitle?.handleScroll(event);
+  }
+
+  handleGestureStart(event: TouchEvent) {
+    this.pageTitle?.handleGestureStart(event);
+  }
+
+  handleGestureMove(event: TouchEvent) {
+    this.pageTitle?.handleGestureMove(event);
+  }
+
+  handleGestureEnd(event: TouchEvent) {
+    void this.pageTitle?.handleGestureEnd(event);
+  }
+
+  handleGestureCancel() {
+    this.pageTitle?.handleGestureCancel();
+  }
 
   openFolder(folderId: string) {
     return this.navService.push(['/notes-list', folderId]);

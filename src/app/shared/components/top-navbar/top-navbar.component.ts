@@ -13,6 +13,7 @@ export class TopNavbarComponent {
   @Input() title = '';
   @Input() subtitle = '';
   @Input() showTitle = false;
+  @Input() isScrolled = false;
   @Input() floatingControls = false;
   @Input() overlay = false;
 }

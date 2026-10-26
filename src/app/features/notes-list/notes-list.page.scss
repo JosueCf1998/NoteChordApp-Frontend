@@ -13,7 +13,7 @@ ion-content {
   margin: 0 auto;
   max-width: var(--nc-content-reading);
   min-width: 0;
-  padding: calc(var(--nc-btn-size) + max(env(safe-area-inset-top, 0px), 8px) + 8px) var(--nc-page-gutter) calc(var(--nc-fab-size) + max(env(safe-area-inset-bottom, 0px), 16px) + 36px);
+  padding: calc(var(--nc-btn-size) + max(env(safe-area-inset-top, 0px), 8px) + 16px) var(--nc-page-gutter) calc(var(--nc-fab-size) + max(env(safe-area-inset-bottom, 0px), 16px) + 36px);
   width: 100%;
 }
 
@@ -95,27 +95,6 @@ ion-label,
   width: 0 !important;
 }
 
-.note-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  width: 100%;
-  min-width: 0;
-
-  .note-item-title {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  .music-indicator-icon {
-    font-size: 13px;
-    color: var(--nc-primary);
-    flex-shrink: 0;
-    opacity: 0.85;
-  }
-}
-
 ion-label h2,
 .note-item-title {
   color: var(--nc-text);
@@ -149,32 +128,13 @@ ion-label p,
   white-space: nowrap !important;
   width: 100% !important;
 
-  .note-date,
-  span:first-child {
+  .note-date {
     display: inline-block !important;
     flex-shrink: 0 !important;
     white-space: nowrap !important;
   }
 
-  .note-author {
-    display: inline-block !important;
-    flex-shrink: 0 !important;
-    font-weight: 500;
-    color: var(--nc-primary);
-    white-space: nowrap !important;
-    max-width: 120px;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-
-    &::after {
-      content: ' •';
-      color: var(--nc-text-secondary);
-      font-weight: 400;
-    }
-  }
-
-  .note-preview,
-  span:last-child {
+  .note-preview {
     display: block !important;
     flex: 1 1 0% !important;
     max-width: 100% !important;
@@ -183,6 +143,73 @@ ion-label p,
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
     width: 0 !important;
+  }
+}
+
+/* ─── Filas de Notas Unificadas (Diseño Apple Minimalista) ───────────────── */
+
+.note-list-item {
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  --min-height: 56px;
+
+  .note-item-title {
+    color: var(--nc-text);
+    font-size: var(--nc-font-size-small, 0.9375rem);
+    font-weight: 600;
+    line-height: 1.25;
+
+    .song-title-author {
+      font-weight: 450;
+      color: var(--nc-text-secondary, #64748b);
+    }
+  }
+
+  .item-end-slot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-inline-start: 8px;
+  }
+
+  .song-key-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2.5px 7px;
+    border-radius: 6px;
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--nc-primary, #2563eb);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+
+    &.is-transposed {
+      background: rgba(37, 99, 235, 0.12);
+
+      .key-base {
+        font-weight: 500;
+        opacity: 0.7;
+      }
+
+      .key-arrow {
+        font-size: 0.68rem;
+        opacity: 0.6;
+      }
+
+      .key-transposed {
+        font-weight: 800;
+        color: var(--nc-primary, #2563eb);
+      }
+    }
+  }
+
+  .row-chevron {
+    color: #cbd5e1;
+    font-size: 14px;
+    flex-shrink: 0;
   }
 }
 

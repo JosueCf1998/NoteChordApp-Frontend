@@ -12,12 +12,20 @@ import {
 } from '../../core/use-cases/notes';
 import { GetFolderByIdUseCase } from '../../core/use-cases/folders';
 import { NavigationService } from '../../core/navigation/navigation.service';
+import { ChordTransposerService } from '../../core/services/chord-transposer.service';
 import { AnimatedPageTitleComponent } from '../../shared/components/animated-page-title/animated-page-title.component';
 import { CreateNotePayload, SharedModule } from '../../shared/shared.module';
 
 export interface NoteGroup {
   label: string;
   notes: Note[];
+}
+
+export interface SongKeyInfo {
+  baseKey: string;
+  transposedKey?: string;
+  isTransposed: boolean;
+  offset: number;
 }
 
 @Component({
@@ -34,6 +42,7 @@ export class NotesListPage {
   private readonly getFolderByIdUseCase = inject(GetFolderByIdUseCase);
   private readonly deleteNoteUseCase = inject(DeleteNoteUseCase);
   private readonly actionSheetController = inject(ActionSheetController);
+  private readonly chordTransposer = inject(ChordTransposerService);
 
   @ViewChild(AnimatedPageTitleComponent) pageTitle?: AnimatedPageTitleComponent;
 
@@ -65,6 +74,7 @@ export class NotesListPage {
 
   searchTerm = '';
   isHeaderCollapsed = false;
+  isHeaderScrolled = false;
   isDeleting = false;
   isCreateModalOpen = false;
   pendingDelete: { id: string; title: string } | null = null;
@@ -118,6 +128,51 @@ export class NotesListPage {
 
   openNote(note: Note) {
     return this.navService.push(['/notes', this.folderId, note.id]);
+  }
+
+  isSong(note: Note): boolean {
+    return note.type === 'music' || (!note.type && !!(note.author || (note.content && this.chordTransposer.detectOriginalKey(note.content))));
+  }
+
+  hasPreview(note: Note): boolean {
+    return !!(note.content && note.content.trim().length > 0);
+  }
+
+  getSongKeyInfo(note: Note): SongKeyInfo | null {
+    if (!this.isSong(note) || !note.content) return null;
+    const baseKey = this.chordTransposer.detectOriginalKey(note.content);
+    if (!baseKey) return null;
+
+    const offset = this.getSavedTranspositionOffset(note.id);
+    if (offset !== 0) {
+      const transposedKey = this.chordTransposer.transposeNote(baseKey, offset, false);
+      return {
+        baseKey,
+        transposedKey,
+        isTransposed: true,
+        offset
+      };
+    }
+
+    return {
+      baseKey,
+      isTransposed: false,
+      offset: 0
+    };
+  }
+
+  private getSavedTranspositionOffset(noteId: string): number {
+    if (!noteId) return 0;
+    try {
+      const val = localStorage.getItem(`notechord_transpose_${noteId}`);
+      if (val !== null) {
+        const parsed = parseInt(val, 10);
+        return isNaN(parsed) ? 0 : parsed;
+      }
+    } catch {
+      // Ignore storage errors
+    }
+    return 0;
   }
 
   openSearch() {

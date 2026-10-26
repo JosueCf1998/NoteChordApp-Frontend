@@ -4,6 +4,7 @@
       [title]="folder?.name || 'Notas'"
       [subtitle]="notes.length | appNoteCount"
       [showTitle]="isHeaderCollapsed"
+      [isScrolled]="isHeaderScrolled"
       [floatingControls]="true"
       [overlay]="true"
     >
@@ -35,6 +36,7 @@
         <app-animated-page-title
           [title]="folder?.name || 'Notas'"
           (collapsedChange)="isHeaderCollapsed = $event"
+          (scrolledChange)="isHeaderScrolled = $event"
         >
           <p class="note-count">{{ notes.length | appNoteCount }}</p>
         </app-animated-page-title>
@@ -51,19 +53,48 @@
               [heading]="group.label"
             >
               <ion-item-sliding *ngFor="let note of group.notes">
-                <ion-item button detail="false" (click)="openNote(note)">
+                <!-- NOTA NORMAL (Alineación uniforme estilo Apple) -->
+                <ion-item button detail="false" (click)="openNote(note)" *ngIf="!isSong(note)" class="note-list-item standard-note-item">
                   <ion-label class="note-item-label">
-                    <div class="note-title-row">
-                      <h2 class="note-item-title">{{ note.title }}</h2>
-                      <ion-icon *ngIf="note.type === 'music'" name="musical-notes" class="music-indicator-icon" aria-label="Canción"></ion-icon>
-                    </div>
+                    <h2 class="note-item-title">{{ note.title }}</h2>
                     <p class="note-subtitle">
                       <span class="note-date">{{ note.updatedAt | appNoteDate }}</span>
-                      <span class="note-author" *ngIf="note.type === 'music' && note.author">{{ note.author }}</span>
-                      <span class="note-preview">{{ note.content | appNotePreview }}</span>
+                      <span class="note-preview" *ngIf="hasPreview(note)">{{ note.content | appNotePreview }}</span>
                     </p>
                   </ion-label>
+
+                  <ion-icon slot="end" name="chevron-forward-outline" class="row-chevron" aria-hidden="true"></ion-icon>
                 </ion-item>
+
+                <!-- NOTA MUSICAL / CANCIÓN (Alineación uniforme con tonalidad y chevron a la derecha) -->
+                <ion-item button detail="false" (click)="openNote(note)" *ngIf="isSong(note)" class="note-list-item song-item">
+                  <ion-label class="note-item-label">
+                    <h2 class="note-item-title">
+                      {{ note.title }}<span class="song-title-author" *ngIf="note.author"> - {{ note.author }}</span>
+                    </h2>
+                    <p class="note-subtitle">
+                      <span class="note-date">{{ note.updatedAt | appNoteDate }}</span>
+                      <span class="note-preview" *ngIf="hasPreview(note)">{{ note.content | appNotePreview }}</span>
+                    </p>
+                  </ion-label>
+
+                  <!-- Tonalidad y Chevron alineados a la derecha -->
+                  <div slot="end" class="item-end-slot">
+                    <div
+                      class="song-key-pill"
+                      *ngIf="getSongKeyInfo(note) as keyInfo"
+                      [class.is-transposed]="keyInfo.isTransposed"
+                      [attr.aria-label]="keyInfo.isTransposed ? 'Tono ' + keyInfo.baseKey + ' cambiado a ' + keyInfo.transposedKey : 'Tono ' + keyInfo.baseKey"
+                    >
+                      <span class="key-base">{{ keyInfo.baseKey }}</span>
+                      <span class="key-arrow" *ngIf="keyInfo.isTransposed">→</span>
+                      <span class="key-transposed" *ngIf="keyInfo.isTransposed">{{ keyInfo.transposedKey }}</span>
+                    </div>
+
+                    <ion-icon name="chevron-forward-outline" class="row-chevron" aria-hidden="true"></ion-icon>
+                  </div>
+                </ion-item>
+
                 <app-swipe-actions
                   (edit)="openNote(note)"
                   (remove)="deleteNote(note.id, note.title)"
