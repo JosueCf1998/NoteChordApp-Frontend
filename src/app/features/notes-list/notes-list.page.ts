@@ -13,7 +13,7 @@ import {
 import { GetFolderByIdUseCase } from '../../core/use-cases/folders';
 import { NavigationService } from '../../core/navigation/navigation.service';
 import { AnimatedPageTitleComponent } from '../../shared/components/animated-page-title/animated-page-title.component';
-import { SharedModule } from '../../shared/shared.module';
+import { CreateNotePayload, SharedModule } from '../../shared/shared.module';
 
 export interface NoteGroup {
   label: string;
@@ -66,6 +66,7 @@ export class NotesListPage {
   searchTerm = '';
   isHeaderCollapsed = false;
   isDeleting = false;
+  isCreateModalOpen = false;
   pendingDelete: { id: string; title: string } | null = null;
   errorMessage = '';
 
@@ -95,7 +96,24 @@ export class NotesListPage {
   }
 
   createNote() {
-    return this.navService.push(['/notes', this.folderId, 'new']);
+    this.isCreateModalOpen = true;
+  }
+
+  handleCreateModalClosed() {
+    this.isCreateModalOpen = false;
+  }
+
+  handleNoteCreated(payload: CreateNotePayload) {
+    this.isCreateModalOpen = false;
+    return this.navService.push(
+      ['/notes', this.folderId, 'new'],
+      undefined,
+      {
+        type: payload.type,
+        title: payload.title,
+        author: payload.author || ''
+      }
+    );
   }
 
   openNote(note: Note) {

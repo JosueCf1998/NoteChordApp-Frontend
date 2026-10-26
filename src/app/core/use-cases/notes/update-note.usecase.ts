@@ -6,6 +6,8 @@ export interface UpdateNoteParams {
   id: string;
   title: string;
   content: string;
+  author?: string;
+  type?: 'music' | 'standard';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -13,7 +15,13 @@ export class UpdateNoteUseCase {
   private readonly noteRepository = inject(NoteRepository);
 
   execute(params: UpdateNoteParams): Promise<Result<void>> {
-    return this.noteRepository.update(params.id, params.title, params.content);
+    return this.noteRepository.update(
+      params.id,
+      params.title,
+      params.content,
+      params.author,
+      params.type
+    );
   }
 }
 

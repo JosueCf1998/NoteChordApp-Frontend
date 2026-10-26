@@ -172,7 +172,13 @@ export class FirestoreNoteRepository extends NoteRepository {
     );
   }
 
-  async create(folderId: string, title: string, content = ''): Promise<Result<Note>> {
+  async create(
+    folderId: string,
+    title: string,
+    content = '',
+    author?: string,
+    type: 'music' | 'standard' = 'music'
+  ): Promise<Result<Note>> {
     const user = this.authService.currentUser;
     const normalizedTitle = title.trim();
 
@@ -195,14 +201,19 @@ export class FirestoreNoteRepository extends NoteRepository {
     }
 
     try {
-      const docData = {
+      const docData: any = {
         userId: user.uid,
         folderId,
         title: normalizedTitle,
         content,
+        type: type || 'music',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
+
+      if (author && author.trim()) {
+        docData.author = author.trim();
+      }
 
       const docRef = await addDoc(
         collection(this.firestore, ENDPOINTS.NOTES.COLLECTION),
@@ -224,7 +235,13 @@ export class FirestoreNoteRepository extends NoteRepository {
     }
   }
 
-  async update(id: string, title: string, content: string): Promise<Result<void>> {
+  async update(
+    id: string,
+    title: string,
+    content: string,
+    author?: string,
+    type?: 'music' | 'standard'
+  ): Promise<Result<void>> {
     const normalizedTitle = title.trim();
 
     if (!id || !normalizedTitle) {
@@ -239,11 +256,20 @@ export class FirestoreNoteRepository extends NoteRepository {
     }
 
     try {
-      await updateDoc(doc(this.firestore, ENDPOINTS.NOTES.COLLECTION, id), {
+      const updateData: any = {
         title: normalizedTitle,
         content,
         updatedAt: serverTimestamp()
-      });
+      };
+
+      if (author !== undefined) {
+        updateData.author = author ? author.trim() : '';
+      }
+      if (type) {
+        updateData.type = type;
+      }
+
+      await updateDoc(doc(this.firestore, ENDPOINTS.NOTES.COLLECTION, id), updateData);
 
       return createSuccessResult(undefined, 'Nota actualizada correctamente');
     } catch (error: any) {

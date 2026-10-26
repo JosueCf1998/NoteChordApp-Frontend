@@ -19,20 +19,27 @@
           class="simple-reset-btn"
           (click)="reset()"
         >
-          Restablecer
+          <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+          <span>Restablecer</span>
         </button>
       </div>
 
       <!-- Tono: solo las notas, sin repetir el desplazamiento del stepper -->
       <div class="simple-key-box" *ngIf="originalKey">
         <div class="key-flow" *ngIf="semitones !== 0">
-          <span class="key-from">{{ originalKey }}</span>
+          <div class="key-col">
+            <span class="key-sub-lbl">Base</span>
+            <span class="key-from">{{ originalKey }}</span>
+          </div>
           <ion-icon name="arrow-forward-outline" class="key-arrow" aria-hidden="true"></ion-icon>
-          <span class="key-to">{{ currentKey }}</span>
+          <div class="key-col">
+            <span class="key-sub-lbl">Actual</span>
+            <span class="key-to">{{ currentKey }}</span>
+          </div>
         </div>
-        <div class="key-flow" *ngIf="semitones === 0">
-          <span class="key-single-prefix">Tono:</span>
-          <span class="key-to">{{ originalKey }}</span>
+        <div class="key-flow single" *ngIf="semitones === 0">
+          <span class="key-sub-lbl">Tono base</span>
+          <span class="key-to base-only">{{ originalKey }}</span>
         </div>
       </div>
 
@@ -47,9 +54,14 @@
           <ion-icon name="remove-outline"></ion-icon>
         </button>
 
-        <span class="stepper-val" [class.is-zero]="semitones === 0">
-          {{ toneOffsetDisplay }}
-        </span>
+        <div class="stepper-center">
+          <span class="stepper-val" [class.is-zero]="semitones === 0">
+            {{ toneOffsetDisplay }}
+          </span>
+          <span class="stepper-sub" *ngIf="semitones !== 0">
+            {{ semitoneHintDisplay }}
+          </span>
+        </div>
 
         <button
           type="button"

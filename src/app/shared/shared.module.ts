@@ -7,6 +7,7 @@ import { AnimatedPageTitleComponent } from './components/animated-page-title/ani
 import { GroupedListComponent } from './components/grouped-list/grouped-list.component';
 import { TopNavbarComponent } from './components/top-navbar/top-navbar.component';
 import { BaseModalComponent } from './components/base-modal/base-modal.component';
+import { CreateNoteModalComponent } from './components/create-note-modal/create-note-modal.component';
 import { ActionMenuComponent, ActionMenuItem, ActionMenuRole } from './components/action-menu/action-menu.component';
 import { TransposeModalComponent } from './components/transpose-modal/transpose-modal.component';
 import { NoteCountPipe, NoteDatePipe, NotePreviewPipe } from './pipes/note-format.pipe';
@@ -15,6 +16,7 @@ const SHARED_DIRECTIVES = [
   ActionMenuComponent,
   AnimatedPageTitleComponent,
   BaseModalComponent,
+  CreateNoteModalComponent,
   FloatingSearchActionComponent,
   FullScreenLoaderComponent,
   GroupedListComponent,
@@ -34,3 +36,4 @@ export class SharedModule {}
 
 export { ActionMenuComponent, ActionMenuItem, ActionMenuRole } from './components/action-menu/action-menu.component';
 export { TransposeModalComponent } from './components/transpose-modal/transpose-modal.component';
+export { CreateNoteModalComponent, CreateNotePayload, NoteCreationType } from './components/create-note-modal/create-note-modal.component';

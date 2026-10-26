@@ -95,6 +95,27 @@ ion-label,
   width: 0 !important;
 }
 
+.note-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+
+  .note-item-title {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .music-indicator-icon {
+    font-size: 13px;
+    color: var(--nc-primary);
+    flex-shrink: 0;
+    opacity: 0.85;
+  }
+}
+
 ion-label h2,
 .note-item-title {
   color: var(--nc-text);
@@ -133,6 +154,23 @@ ion-label p,
     display: inline-block !important;
     flex-shrink: 0 !important;
     white-space: nowrap !important;
+  }
+
+  .note-author {
+    display: inline-block !important;
+    flex-shrink: 0 !important;
+    font-weight: 500;
+    color: var(--nc-primary);
+    white-space: nowrap !important;
+    max-width: 120px;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+
+    &::after {
+      content: ' •';
+      color: var(--nc-text-secondary);
+      font-weight: 400;
+    }
   }
 
   .note-preview,

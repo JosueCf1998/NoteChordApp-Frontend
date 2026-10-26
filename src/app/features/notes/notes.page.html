@@ -1,4 +1,4 @@
-<app-top-navbar [title]="title || 'Nota'" [showTitle]="false" [floatingControls]="true">
+<app-top-navbar [title]="title || (noteType === 'music' ? 'Canción' : 'Nota')" [showTitle]="false" [floatingControls]="true">
   <ion-buttons nav-start slot="start">
     <ion-button [disabled]="isLocked" (click)="backToNotes()" aria-label="Volver a notas">
       <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
@@ -6,6 +6,7 @@
   </ion-buttons>
   <ion-buttons nav-end slot="end">
     <ion-button
+      *ngIf="noteType === 'music'"
       id="note-format-trigger"
       class="header-icon-button format-btn"
       [class.is-shifted]="semitoneOffset !== 0"
@@ -45,6 +46,12 @@
       aria-hidden="true"
     >
       <p class="note-date">{{ formattedFullDate }}</p>
+    </div>
+
+    <!-- Indicador de Autor para canciones -->
+    <div class="song-meta-badge" *ngIf="noteType === 'music' && author">
+      <ion-icon name="musical-notes-outline" aria-hidden="true"></ion-icon>
+      <span class="author-name">{{ author }}</span>
     </div>
 
     <!-- Único campo de editor: primera línea en tamaño título, salto de línea en texto normal -->
@@ -107,6 +114,7 @@
 
 <!-- Alertita de Tonalidad (Transposición de acordes en 1/2 tono) -->
 <app-transpose-modal
+  *ngIf="noteType === 'music'"
   [isOpen]="isTransposeModalOpen"
   trigger="note-format-trigger"
   [semitones]="semitoneOffset"

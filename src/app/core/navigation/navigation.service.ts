@@ -67,7 +67,7 @@ export class NavigationService {
   /**
    * Navegación hacia adelante protegida con bloqueo anti-rebote (debounce lock).
    */
-  async push(path: string | any[], state?: any): Promise<void> {
+  async push(path: string | any[], state?: any, queryParams?: any): Promise<void> {
     if (this.isNavigating) return;
     this.isNavigating = true;
     this.blurActiveElement();
@@ -75,7 +75,8 @@ export class NavigationService {
       await this.navCtrl.navigateForward(path as any, {
         animated: true,
         animationDirection: 'forward',
-        state
+        state,
+        queryParams
       });
     } finally {
       setTimeout(() => (this.isNavigating = false), this.navigationLockMs);

@@ -295,4 +295,34 @@ export class ChordTransposerService {
 
     return `${isPositive ? '+' : '-'}${text}`;
   }
+
+  /**
+   * Determina si una línea contiene notas musicales o progresión de acordes
+   * (ej. "C / A / C / B /", "G Em C D", "A/C# F#m").
+   */
+  isChordLine(line: string): boolean {
+    if (!line) return false;
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) return false;
+
+    // Si tiene separadores '/' típicos de compases y notas
+    if (trimmed.includes('/')) {
+      CHORD_REGEX.lastIndex = 0;
+      return CHORD_REGEX.test(trimmed);
+    }
+
+    // Descartar si son palabras normales en minúsculas (letra de la canción)
+    const words = trimmed.split(/\s+/);
+    if (words.length === 0) return false;
+
+    const normalWords = words.filter(
+      w => /^[a-záéíóúñ]{3,}/i.test(w) && !/^(intro|coro|verso|estrofa|puente|precoro|outro|tonalidad|solo)/i.test(w)
+    );
+    if (normalWords.length >= 2) {
+      return false;
+    }
+
+    CHORD_REGEX.lastIndex = 0;
+    return CHORD_REGEX.test(trimmed);
+  }
 }

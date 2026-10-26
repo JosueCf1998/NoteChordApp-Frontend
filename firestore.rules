@@ -25,6 +25,8 @@ service cloud.firestore {
     //   - folderId: string (required, 1-100 chars) - ID of the folder containing the note
     //   - title: string (required, 1-100 chars) - Title of the note
     //   - content: string (required, 0-50000 chars) - Lyrics and chord notation content
+    //   - author: string (optional, 0-100 chars) - Song artist or author
+    //   - type: string (optional, 'music' | 'standard') - Note type
     //   - createdAt: timestamp (required, immutable) - Creation timestamp
     //   - updatedAt: timestamp (required) - Last modification timestamp
     //
@@ -82,12 +84,14 @@ service cloud.firestore {
 
     // Validate note schema and field constraints
     function isValidNote(data) {
-      return hasOnlyAllowedFields(['userId', 'folderId', 'title', 'content', 'createdAt', 'updatedAt']) &&
+      return hasOnlyAllowedFields(['userId', 'folderId', 'title', 'content', 'author', 'type', 'createdAt', 'updatedAt']) &&
              hasRequiredFields(['userId', 'folderId', 'title', 'content', 'createdAt', 'updatedAt']) &&
              data.userId is string && data.userId == request.auth.uid &&
              data.folderId is string && data.folderId.size() >= 1 && data.folderId.size() <= 100 &&
              data.title is string && data.title.size() >= 1 && data.title.size() <= 100 &&
              data.content is string && data.content.size() <= 50000 &&
+             (!('author' in data) || (data.author is string && data.author.size() <= 100)) &&
+             (!('type' in data) || (data.type is string && data.type in ['music', 'standard'])) &&
              data.createdAt is timestamp &&
              data.updatedAt is timestamp;
     }

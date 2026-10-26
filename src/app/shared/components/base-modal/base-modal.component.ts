@@ -8,6 +8,7 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
+  ViewChild,
   ViewEncapsulation
 } from '@angular/core';
 import { IonIcon, IonModal } from '@ionic/angular/standalone';
@@ -42,8 +43,11 @@ export class BaseModalComponent implements OnChanges {
   @Input() primaryRole: 'primary' | 'danger' = 'primary';
 
   @Output() readonly closed = new EventEmitter<void>();
+  @Output() readonly didDismiss = new EventEmitter<void>();
   @Output() readonly primary = new EventEmitter<void>();
   @Output() readonly secondary = new EventEmitter<void>();
+
+  @ViewChild(IonModal) ionModal?: IonModal;
 
   private closeEmitted = false;
   private triggerElement: HTMLElement | null = null;
@@ -61,6 +65,13 @@ export class BaseModalComponent implements OnChanges {
     return `base-modal base-modal--${this.size}`;
   }
 
+  async dismiss(): Promise<boolean> {
+    if (this.ionModal) {
+      return await this.ionModal.dismiss();
+    }
+    return true;
+  }
+
   requestClose(): void {
     if (this.closeEmitted) return;
     this.closeEmitted = true;
@@ -69,6 +80,7 @@ export class BaseModalComponent implements OnChanges {
 
   handleDidDismiss(): void {
     this.requestClose();
+    this.didDismiss.emit();
 
     const trigger = this.triggerElement;
     this.triggerElement = null;
