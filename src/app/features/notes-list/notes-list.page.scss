@@ -113,15 +113,15 @@ ion-label h2,
 
 ion-label p,
 .note-subtitle {
-  align-items: baseline;
+  align-items: center;
   color: var(--nc-text-secondary);
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
   font-size: var(--nc-font-size-caption);
   line-height: 1.25;
-  gap: var(--nc-space-3);
-  margin: 2px 0 0;
+  gap: 6px;
+  margin: 3px 0 0;
   max-width: 100% !important;
   min-width: 0 !important;
   overflow: hidden !important;
@@ -132,6 +132,24 @@ ion-label p,
     display: inline-block !important;
     flex-shrink: 0 !important;
     white-space: nowrap !important;
+  }
+
+  .meta-dot {
+    color: #cbd5e1;
+    flex-shrink: 0;
+    font-size: 11px;
+    margin: 0;
+    user-select: none;
+  }
+
+  .song-author-text {
+    color: var(--nc-text-secondary, #64748b);
+    display: inline-block;
+    flex-shrink: 1;
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .note-preview {

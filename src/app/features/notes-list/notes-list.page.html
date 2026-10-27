@@ -69,12 +69,13 @@
                 <!-- NOTA MUSICAL / CANCIÓN (Alineación uniforme con tonalidad y chevron a la derecha) -->
                 <ion-item button detail="false" (click)="openNote(note)" *ngIf="isSong(note)" class="note-list-item song-item">
                   <ion-label class="note-item-label">
-                    <h2 class="note-item-title">
-                      {{ note.title }}<span class="song-title-author" *ngIf="note.author"> - {{ note.author }}</span>
-                    </h2>
+                    <h2 class="note-item-title">{{ note.title }}</h2>
                     <p class="note-subtitle">
                       <span class="note-date">{{ note.updatedAt | appNoteDate }}</span>
-                      <span class="note-preview" *ngIf="hasPreview(note)">{{ note.content | appNotePreview }}</span>
+                      <ng-container *ngIf="note.author">
+                        <span class="meta-dot">·</span>
+                        <span class="song-author-text">Autor: {{ note.author }}</span>
+                      </ng-container>
                     </p>
                   </ion-label>
 

@@ -374,7 +374,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
       let html = `<h1 class="block-title" data-block="title">${trimmedTitle ? this.escapeHtml(trimmedTitle) : '<br>'}</h1>`;
 
       // Secciones y Tarjetas de Notas Musicales:
-      // Las notas musicales / acordes debajo de cada sección se agrupan en una Card (.chord-card)
+      // Las notas musicales (con '/') se agrupan en una Card completa (.chord-card)
       if (trimmedContent) {
         const lines = trimmedContent.split('\n');
         let inChordCard = false;
@@ -382,10 +382,10 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
         for (const line of lines) {
           const colonIdx = line.indexOf(':');
           const isList = /^(•|\d+\.|[a-zA-Z]\.)\s*/.test(line);
-          const isChord = this.noteType === 'music' && this.chordTransposer.isChordLine(line);
+          const hasColon = colonIdx !== -1 && this.noteType === 'music';
+          const isChord = this.noteType === 'music' && !hasColon && this.chordTransposer.isChordLine(line);
 
-          if (colonIdx !== -1 && this.noteType === 'music') {
-            // Sección (ej. "Intro:", "Estrofa:", "Coro:")
+          if (hasColon) {
             if (inChordCard) {
               html += `</div>`;
               inChordCard = false;
@@ -394,14 +394,14 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
             const suffix = line.substring(colonIdx + 1);
             html += `<p class="block-section-line" data-block="section"><span class="section-prefix">${this.escapeHtml(prefix)}</span><span class="section-suffix">${suffix ? this.escapeHtml(suffix) : ''}</span></p>`;
           } else if (isChord) {
-            // Nota musical / acorde debajo de la sección -> Envolver en Card
+            // Nota musical con '/' -> agrupar en Card completa
             if (!inChordCard) {
               html += `<div class="chord-card" data-block="chord-card">`;
               inChordCard = true;
             }
             html += `<p class="block-chord-line" data-block="chord">${this.escapeHtml(line)}</p>`;
           } else {
-            // Línea normal de texto o espacio
+            // Texto normal o viñeta -> SIEMPRE fuera de la card
             if (inChordCard) {
               html += `</div>`;
               inChordCard = false;
@@ -435,53 +435,103 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
     const editor = this.editorRef?.nativeElement;
     if (!editor) return;
 
-    const children = Array.from(editor.children) as HTMLElement[];
-    if (children.length === 0) {
+    // 1. El primer bloque es SIEMPRE H1 (Título)
+    const firstChild = editor.firstElementChild as HTMLElement | null;
+    if (!firstChild) {
       editor.innerHTML = '<h1 class="block-title" data-block="title"><br></h1>';
       return;
     }
 
-    // El primer bloque es SIEMPRE H1 (Título)
-    if (children[0].tagName !== 'H1') {
+    if (firstChild.tagName !== 'H1') {
       const h1 = document.createElement('h1');
       h1.className = 'block-title';
       h1.setAttribute('data-block', 'title');
-      h1.innerHTML = children[0].innerHTML || '<br>';
-      children[0].replaceWith(h1);
+      h1.innerHTML = firstChild.innerHTML || '<br>';
+      firstChild.replaceWith(h1);
     } else {
-      if (!children[0].classList.contains('block-title')) {
-        children[0].className = 'block-title';
+      if (!firstChild.classList.contains('block-title')) {
+        firstChild.className = 'block-title';
       }
-      children[0].setAttribute('data-block', 'title');
+      firstChild.setAttribute('data-block', 'title');
     }
 
-    // A partir del segundo bloque:
-    for (let i = 1; i < children.length; i++) {
-      let child = children[i];
-      let text = child.textContent || '';
+    // 2. Extraer de cualquier .chord-card líneas que NO contengan acordes y '/' o que sean secciones
+    const chordCards = Array.from(editor.querySelectorAll('.chord-card')) as HTMLElement[];
+    for (const card of chordCards) {
+      const paras = Array.from(card.querySelectorAll('p')) as HTMLElement[];
+      if (paras.length === 0) {
+        const text = (card.textContent || '').trim();
+        if (!text || !this.chordTransposer.isChordLine(text)) {
+          const p = document.createElement('p');
+          p.className = 'block-text';
+          p.setAttribute('data-block', 'text');
+          p.innerHTML = text ? this.escapeHtml(text) : '<br>';
+          card.replaceWith(p);
+        }
+        continue;
+      }
 
-      // Si por error el navegador creó un H1 abajo, lo convertimos a párrafo
+      for (const p of paras) {
+        const text = (p.textContent || '').trim();
+        const colonIdx = text.indexOf(':');
+        const hasColon = colonIdx !== -1 && this.noteType === 'music';
+        const isChord = this.noteType === 'music' && !hasColon && this.chordTransposer.isChordLine(text);
+
+        if (!isChord) {
+          // NO es acorde con '/' (ej. 'hola', 'C' sin '/', o sección 'Estrofa:') -> extraer fuera de la card
+          card.after(p);
+        }
+      }
+
+      if (card.children.length === 0 && !(card.textContent || '').trim()) {
+        card.remove();
+      }
+    }
+
+    // 3. Normalizar bloques superiores
+    const topChildren = Array.from(editor.children) as HTMLElement[];
+    for (let i = 1; i < topChildren.length; i++) {
+      let child = topChildren[i];
+
+      // Convertir H1 erróneo abajo
       if (child.tagName === 'H1') {
         const p = document.createElement('p');
         p.innerHTML = child.innerHTML || '<br>';
         child.replaceWith(p);
-        children[i] = p;
+        topChildren[i] = p;
         child = p;
       }
 
-      // Convertir automáticamente '- ' o '. ' a '•\u00A0 ' si viene de teclado virtual o pegado
+      // Si es una card completa de acordes, normalizar sus párrafos internos y fusionar con card anterior si procede
+      if (child.classList.contains('chord-card')) {
+        const innerParas = Array.from(child.querySelectorAll('p')) as HTMLElement[];
+        for (const p of innerParas) {
+          p.className = 'block-chord-line';
+          p.setAttribute('data-block', 'chord');
+        }
+        const prev = child.previousElementSibling as HTMLElement | null;
+        if (prev && prev.classList.contains('chord-card')) {
+          while (child.firstChild) {
+            prev.appendChild(child.firstChild);
+          }
+          child.remove();
+        }
+        continue;
+      }
+
+      // Procesar párrafo suelto
+      let text = child.textContent || '';
+
+      // Viñetas automáticas (- , . , 1.a)
       if (/^[-.]\s+/.test(text)) {
         this.replacePrefixInBlock(child, '•\u00A0 ');
         text = child.textContent || '';
       }
-
-      // Separar números o letras pegados al punto (ej. "1.a" o "a.algo")
       const stuckNumMatch = text.match(/^(\d+)\.([^\s].*)$/);
       if (stuckNumMatch) {
         this.replacePrefixInBlock(child, `${stuckNumMatch[1]}.\u00A0 `);
         text = child.textContent || '';
       }
-
       const stuckLetterMatch = text.match(/^([a-zA-Z])\.([^\s].*)$/);
       if (stuckLetterMatch) {
         this.replacePrefixInBlock(child, `${stuckLetterMatch[1]}.\u00A0 `);
@@ -489,23 +539,14 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
       }
 
       const isList = /^(•|\d+\.|[a-zA-Z]\.)\s*/.test(text);
-      if (isList) {
-        child.classList.add('block-list-item');
-        child.setAttribute('data-block', 'list');
-      } else {
-        child.classList.remove('block-list-item');
-        if (child.getAttribute('data-block') === 'list') {
-          child.setAttribute('data-block', 'text');
-        }
-      }
-
       const colonIdx = text.indexOf(':');
-      const hasColon = colonIdx !== -1;
+      const hasColon = colonIdx !== -1 && this.noteType === 'music';
+      const isChord = this.noteType === 'music' && !hasColon && this.chordTransposer.isChordLine(text);
 
       if (hasColon) {
+        child.classList.remove('chord-card', 'block-chord-line', 'block-text', 'block-list-item');
         const prefixText = text.substring(0, colonIdx + 1);
         const suffixText = text.substring(colonIdx + 1);
-
         const prefixEl = child.querySelector('.section-prefix');
         const isAlreadyStructured = prefixEl?.textContent === prefixText;
 
@@ -525,8 +566,37 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
             this.setCursorAtTextOffsetInBlock(child, cursorOffset, prefixText.length);
           }
         }
+      } else if (isChord) {
+        // REGLA: Detectó nota y '/' -> Agrupar dentro de Card completa
+        const selection = window.getSelection();
+        let cursorOffset: number | null = null;
+        const isFocused = selection && selection.rangeCount && child.contains(selection.anchorNode);
+        if (isFocused) {
+          const range = selection.getRangeAt(0);
+          cursorOffset = this.getTextOffsetInBlock(child, range.startContainer, range.startOffset);
+        }
+
+        child.className = 'block-chord-line';
+        child.setAttribute('data-block', 'chord');
+
+        const prev = child.previousElementSibling as HTMLElement | null;
+        if (prev && prev.classList.contains('chord-card')) {
+          prev.appendChild(child);
+        } else {
+          const card = document.createElement('div');
+          card.className = 'chord-card';
+          card.setAttribute('data-block', 'chord-card');
+          child.replaceWith(card);
+          card.appendChild(child);
+        }
+
+        if (isFocused && cursorOffset !== null) {
+          this.restoreCursorInSimpleBlock(child, cursorOffset);
+        }
       } else {
-        // No tiene dos puntos: asegurar que sea formato texto normal (17px regular)
+        // Texto normal o viñeta -> Fuera de card
+        child.classList.remove('chord-card', 'block-chord-line');
+
         if (child.classList.contains('block-section-line') || child.querySelector('.section-prefix')) {
           const selection = window.getSelection();
           let cursorOffset: number | null = null;
@@ -535,16 +605,21 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
             cursorOffset = this.getTextOffsetInBlock(child, range.startContainer, range.startOffset);
           }
 
-          child.className = 'block-text';
-          child.setAttribute('data-block', 'text');
+          child.className = isList ? 'block-list-item block-text' : 'block-text';
+          child.setAttribute('data-block', isList ? 'list' : 'text');
           child.innerHTML = text ? this.escapeHtml(text) : '<br>';
 
           if (cursorOffset !== null) {
             this.restoreCursorInSimpleBlock(child, cursorOffset);
           }
-        } else if (!child.classList.contains('block-text')) {
-          child.classList.add('block-text');
-          child.setAttribute('data-block', 'text');
+        } else {
+          if (isList) {
+            child.className = 'block-list-item block-text';
+            child.setAttribute('data-block', 'list');
+          } else {
+            child.className = 'block-text';
+            child.setAttribute('data-block', 'text');
+          }
         }
       }
     }
@@ -628,9 +703,14 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
     const bodyLines: string[] = [];
     for (const child of Array.from(editor.children) as HTMLElement[]) {
       if (child.tagName === 'H1') continue;
-      if (child.classList.contains('section-card')) {
-        for (const cardChild of Array.from(child.children) as HTMLElement[]) {
-          bodyLines.push(cardChild.textContent || '');
+      if (child.tagName === 'DIV' && (child.classList.contains('section-card') || child.classList.contains('chord-card'))) {
+        const subParas = child.querySelectorAll('p');
+        if (subParas.length > 0) {
+          for (const cardChild of Array.from(subParas)) {
+            bodyLines.push(cardChild.textContent || '');
+          }
+        } else {
+          bodyLines.push(child.textContent || '');
         }
       } else {
         bodyLines.push(child.textContent || '');
@@ -902,38 +982,58 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
             insertAnchor = currentBlock;
           }
 
-          // Debajo de la sección, se crea la Card para las notas musicales
-          const chordCard = document.createElement('div');
-          chordCard.className = 'chord-card';
-          chordCard.setAttribute('data-block', 'chord-card');
-
+          // Debajo de la sección, se crea el siguiente bloque para notas/acordes o texto
           const p = document.createElement('p');
-          p.className = 'block-chord-line';
-          p.setAttribute('data-block', 'chord');
+          p.className = 'block-text';
+          p.setAttribute('data-block', 'text');
           p.innerHTML = extractedText.trim() ? this.escapeHtml(extractedText) : '<br>';
-          chordCard.appendChild(p);
 
-          insertAnchor.after(chordCard);
+          insertAnchor.after(p);
 
           this.setCursorAtStartOfBlock(p);
           this.onEditorInput();
           return;
         }
 
-        // Si se presiona Enter en una línea vacía dentro de una chord-card -> salir de la Card
+        // Si se presiona Enter dentro de una chord-card
         const parentChordCard = currentBlock.closest('.chord-card') as HTMLElement | null;
-        if (parentChordCard && (currentBlock.textContent || '').trim() === '') {
-          const p = document.createElement('p');
-          p.className = 'block-text';
-          p.setAttribute('data-block', 'text');
-          p.innerHTML = '<br>';
-          parentChordCard.after(p);
-          if (currentBlock !== parentChordCard.firstElementChild) {
-            currentBlock.remove();
+        if (parentChordCard) {
+          // Si el cursor está al final de los acordes o en línea vacía -> SALIR DEL CUADRO
+          if (!extractedText.trim()) {
+            const p = document.createElement('p');
+            p.className = 'block-text';
+            p.setAttribute('data-block', 'text');
+            p.innerHTML = '<br>';
+
+            if (!currentBlock.childNodes.length || currentBlock.innerHTML === '') {
+              currentBlock.innerHTML = '<br>';
+            }
+
+            if ((currentBlock.textContent || '').trim() === '' && parentChordCard.children.length > 1) {
+              currentBlock.remove();
+            }
+
+            // Insertar fuera de la tarjeta, justo debajo
+            parentChordCard.after(p);
+            this.setCursorAtStartOfBlock(p);
+            this.onEditorInput();
+            return;
+          } else {
+            // Enter en medio de los acordes -> nueva línea dentro de la misma tarjeta
+            const p = document.createElement('p');
+            p.className = 'block-chord-line';
+            p.setAttribute('data-block', 'chord');
+            p.innerHTML = this.escapeHtml(extractedText);
+
+            if (!currentBlock.childNodes.length || currentBlock.innerHTML === '') {
+              currentBlock.innerHTML = '<br>';
+            }
+
+            currentBlock.after(p);
+            this.setCursorAtStartOfBlock(p);
+            this.onEditorInput();
+            return;
           }
-          this.setCursorAtStartOfBlock(p);
-          this.onEditorInput();
-          return;
         }
 
         // Enter normal (sin ':')
@@ -993,27 +1093,31 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
       const prevBlock = currentBlock?.previousElementSibling as HTMLElement | null;
       if (prevBlock && range.startOffset === 0) {
         event.preventDefault();
-        const textToMerge = currentBlock.textContent || '';
-        const prevLen = prevBlock.textContent?.length || 0;
+        const textToMerge = (currentBlock.textContent || '').trim();
+        const targetBlock = prevBlock.classList.contains('chord-card')
+          ? (prevBlock.lastElementChild as HTMLElement || prevBlock)
+          : prevBlock;
 
-        if (prevBlock.innerHTML === '<br>') {
-          prevBlock.innerHTML = '';
+        const prevLen = targetBlock.textContent?.length || 0;
+
+        if (targetBlock.innerHTML === '<br>') {
+          targetBlock.innerHTML = '';
         }
 
         if (textToMerge) {
-          prevBlock.appendChild(document.createTextNode(textToMerge));
-        } else if (!prevBlock.childNodes.length) {
-          prevBlock.innerHTML = '<br>';
+          targetBlock.appendChild(document.createTextNode(textToMerge));
+        } else if (!targetBlock.childNodes.length) {
+          targetBlock.innerHTML = '<br>';
         }
 
         currentBlock.remove();
 
         const newRange = document.createRange();
-        const targetNode = prevBlock.lastChild || prevBlock;
+        const targetNode = targetBlock.lastChild || targetBlock;
         if (targetNode.nodeType === Node.TEXT_NODE) {
           newRange.setStart(targetNode, Math.min(prevLen, targetNode.textContent?.length || 0));
         } else {
-          newRange.setStart(prevBlock, prevBlock.childNodes.length);
+          newRange.setStart(targetBlock, targetBlock.childNodes.length);
         }
         newRange.collapse(true);
         selection.removeAllRanges();

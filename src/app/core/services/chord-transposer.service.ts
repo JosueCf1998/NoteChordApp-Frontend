@@ -297,21 +297,22 @@ export class ChordTransposerService {
   }
 
   /**
-   * Determina si una línea contiene notas musicales o progresión de acordes
-   * (ej. "C / A / C / B /", "G Em C D", "A/C# F#m").
+   * Determina si una línea contiene notas musicales o progresión de acordes.
+   * REGLA ESTRICTA: Solo es tarjeta de notas musicales si contiene obligatoriamente
+   * al menos una nota musical válida (A-G) Y al menos una barra '/'.
+   * (ej. "A / B / A / B /", "G# / A# /", "C / G / Am / F /").
    */
   isChordLine(line: string): boolean {
     if (!line) return false;
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('#')) return false;
 
-    // Si tiene separadores '/' típicos de compases y notas
-    if (trimmed.includes('/')) {
-      CHORD_REGEX.lastIndex = 0;
-      return CHORD_REGEX.test(trimmed);
+    // 1. Debe contener obligatoriamente el separador '/'
+    if (!trimmed.includes('/')) {
+      return false;
     }
 
-    // Descartar si son palabras normales en minúsculas (letra de la canción)
+    // 2. Descartar si son palabras normales en minúsculas (texto o letra)
     const words = trimmed.split(/\s+/);
     if (words.length === 0) return false;
 
@@ -322,6 +323,7 @@ export class ChordTransposerService {
       return false;
     }
 
+    // 3. Debe contener notas musicales reales válidas
     CHORD_REGEX.lastIndex = 0;
     return CHORD_REGEX.test(trimmed);
   }

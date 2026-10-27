@@ -91,7 +91,7 @@
 <app-base-modal
   [isOpen]="isFolderFormOpen"
   [title]="editingFolder ? 'Editar carpeta' : 'Nueva carpeta'"
-  [description]="editingFolder ? 'Modifica los datos de tu carpeta' : 'Organiza tus acordes, letras y canciones'"
+  [description]="editingFolder ? 'Modifica los datos de tu carpeta' : 'Organiza tus partituras, notas y acordes'"
   [primaryText]="isSaving ? 'Guardando…' : (editingFolder ? 'Guardar cambios' : 'Crear carpeta')"
   secondaryText="Cancelar"
   [primaryDisabled]="isSaving || !folderName.trim()"

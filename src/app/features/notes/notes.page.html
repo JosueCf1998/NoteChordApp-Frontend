@@ -1,4 +1,4 @@
-<app-top-navbar [title]="title || (noteType === 'music' ? 'Canción' : 'Nota')" [showTitle]="false" [floatingControls]="true">
+<app-top-navbar [title]="title || (noteType === 'music' ? 'Partitura' : 'Nota')" [showTitle]="false" [floatingControls]="true">
   <ion-buttons nav-start slot="start">
     <ion-button [disabled]="isLocked" (click)="backToNotes()" aria-label="Volver a notas">
       <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>

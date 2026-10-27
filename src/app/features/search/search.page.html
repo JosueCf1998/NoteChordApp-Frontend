@@ -8,7 +8,7 @@
           [value]="searchTerm"
           (input)="onSearchInput($event)"
           type="text"
-          placeholder="Buscar notas y carpetas…"
+          placeholder="Buscar notas, partituras o carpetas…"
           autocomplete="off"
           autocorrect="off"
           spellcheck="false"
@@ -26,6 +26,44 @@
       <button type="button" class="cancel-btn" (click)="cancel()">
         Cancelar
       </button>
+    </div>
+
+    <!-- Filtro de tipo iOS: Todo | Partitura | Notas -->
+    <div class="search-filter-row">
+      <div class="ios-segmented-control" role="tablist" aria-label="Filtrar por tipo">
+        <button
+          type="button"
+          class="segment-btn"
+          [class.active]="activeFilter === 'all'"
+          (click)="setFilter('all')"
+          role="tab"
+          [attr.aria-selected]="activeFilter === 'all'"
+        >
+          Todo
+        </button>
+        <div class="segment-separator" [class.hidden]="activeFilter === 'all' || activeFilter === 'music'"></div>
+        <button
+          type="button"
+          class="segment-btn"
+          [class.active]="activeFilter === 'music'"
+          (click)="setFilter('music')"
+          role="tab"
+          [attr.aria-selected]="activeFilter === 'music'"
+        >
+          Partitura
+        </button>
+        <div class="segment-separator" [class.hidden]="activeFilter === 'music' || activeFilter === 'standard'"></div>
+        <button
+          type="button"
+          class="segment-btn"
+          [class.active]="activeFilter === 'standard'"
+          (click)="setFilter('standard')"
+          role="tab"
+          [attr.aria-selected]="activeFilter === 'standard'"
+        >
+          Notas
+        </button>
+      </div>
     </div>
   </ion-toolbar>
 </ion-header>
@@ -45,12 +83,21 @@
             <ion-icon name="search-outline"></ion-icon>
           </div>
           <h3>Sin resultados</h3>
-          <p>No encontramos notas ni carpetas para “{{ searchTerm }}”.</p>
+          <p *ngIf="activeFilter === 'music'">No encontramos partituras para “{{ searchTerm }}”.</p>
+          <p *ngIf="activeFilter === 'standard'">No encontramos notas para “{{ searchTerm }}”.</p>
+          <p *ngIf="activeFilter === 'all'">No encontramos notas ni carpetas para “{{ searchTerm }}”.</p>
         </div>
 
-        <!-- SECCIÓN 1: NOTAS -->
+        <!-- SECCIÓN 1: NOTAS / PARTITURAS -->
         <section class="search-section" *ngIf="data.notes && data.notes.length > 0">
-          <h2 class="search-section-title">Notas ({{ data.notes.length }})</h2>
+          <h2 class="search-section-title">
+            <ng-container [ngSwitch]="activeFilter">
+              <span *ngSwitchCase="'music'">Partituras ({{ data.notes.length }})</span>
+              <span *ngSwitchCase="'standard'">Notas ({{ data.notes.length }})</span>
+              <span *ngSwitchDefault>Notas y partituras ({{ data.notes.length }})</span>
+            </ng-container>
+          </h2>
+
           <div class="search-results-card">
             <ion-item
               *ngFor="let note of data.notes"
@@ -58,30 +105,62 @@
               detail="false"
               lines="none"
               class="search-result-row search-note-row"
+              [class.song-row]="isSong(note)"
               (click)="selectNote(note)"
             >
               <ion-label class="note-result-label">
-                <h3 class="result-title">{{ note.title }}</h3>
+                <!-- Línea 1: Título -->
+                <h3 class="result-title">
+                  <span class="note-title-text">{{ note.title }}</span>
+                </h3>
+
+                <!-- Línea 2: Fecha · Autor (si es partitura) · Carpeta · Vista previa (si es nota) -->
                 <p class="result-subtitle">
                   <span class="note-date">{{ note.updatedAt | appNoteDate }}</span>
-                  <span class="note-preview" *ngIf="note.content">{{ note.content | appNotePreview }}</span>
-                </p>
-                <p class="result-folder" *ngIf="note.folderName">
-                  <ion-icon name="folder-outline" aria-hidden="true"></ion-icon>
-                  <span>{{ note.folderName }}</span>
+                  <ng-container *ngIf="isSong(note) && note.author">
+                    <span class="meta-dot">·</span>
+                    <span class="song-author-text">Autor: {{ note.author }}</span>
+                  </ng-container>
+                  <ng-container *ngIf="note.folderName">
+                    <span class="meta-dot">·</span>
+                    <span class="note-folder-meta">
+                      <svg class="folder-mini-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+                      </svg>
+                      <span class="folder-name">{{ note.folderName }}</span>
+                    </span>
+                  </ng-container>
+                  <!-- Vista previa solo para notas estándar de texto (en canciones/partituras se omite para evitar "Intro:...") -->
+                  <ng-container *ngIf="!isSong(note) && hasPreview(note)">
+                    <span class="meta-dot">·</span>
+                    <span class="note-preview">{{ note.content | appNotePreview }}</span>
+                  </ng-container>
                 </p>
               </ion-label>
-              <ion-icon
-                slot="end"
-                name="chevron-forward-outline"
-                class="row-chevron"
-                aria-hidden="true"
-              ></ion-icon>
+
+              <!-- Slot derecho: Tono si es nota musical + Chevron -->
+              <div slot="end" class="item-end-slot">
+                <div
+                  class="song-key-pill"
+                  *ngIf="getSongKeyInfo(note) as keyInfo"
+                  [class.is-transposed]="keyInfo.isTransposed"
+                  [attr.aria-label]="keyInfo.isTransposed ? 'Tono ' + keyInfo.baseKey + ' cambiado a ' + keyInfo.transposedKey : 'Tono ' + keyInfo.baseKey"
+                >
+                  <span class="key-base">{{ keyInfo.baseKey }}</span>
+                  <span class="key-arrow" *ngIf="keyInfo.isTransposed">→</span>
+                  <span class="key-transposed" *ngIf="keyInfo.isTransposed">{{ keyInfo.transposedKey }}</span>
+                </div>
+                <ion-icon
+                  name="chevron-forward-outline"
+                  class="row-chevron"
+                  aria-hidden="true"
+                ></ion-icon>
+              </div>
             </ion-item>
           </div>
         </section>
 
-        <!-- SECCIÓN 2: CARPETAS -->
+        <!-- SECCIÓN 2: CARPETAS (solo en filtro "Todo") -->
         <section class="search-section" *ngIf="data.folders && data.folders.length > 0">
           <h2 class="search-section-title">Carpetas ({{ data.folders.length }})</h2>
           <div class="search-results-card">
@@ -90,11 +169,13 @@
               button
               detail="false"
               lines="none"
-              class="search-result-row"
+              class="search-result-row search-folder-row"
               (click)="selectFolder(folder)"
             >
-              <div class="item-icon-wrapper folder-icon" slot="start" aria-hidden="true">
-                <ion-icon name="folder-outline"></ion-icon>
+              <div class="folder-icon-wrapper" slot="start" aria-hidden="true">
+                <svg class="folder-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+                </svg>
               </div>
               <ion-label>
                 <h3 class="result-title">{{ folder.name }}</h3>
@@ -119,9 +200,10 @@
           <ion-icon name="search-outline"></ion-icon>
         </div>
         <h3>Buscar en NoteChord</h3>
-        <p>Escribe el nombre de una nota o carpeta para encontrarla rápidamente.</p>
+        <p *ngIf="activeFilter === 'music'">Escribe el título, autor o acordes para encontrar partituras.</p>
+        <p *ngIf="activeFilter === 'standard'">Escribe el título o texto para encontrar notas.</p>
+        <p *ngIf="activeFilter === 'all'">Escribe el título de una nota, partitura, artista o carpeta.</p>
       </div>
     </ng-template>
   </main>
 </ion-content>
-

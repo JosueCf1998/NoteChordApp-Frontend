@@ -1,7 +1,7 @@
 <app-base-modal
   [isOpen]="isOpen"
-  [title]="selectedType === 'music' ? 'Nueva Canción' : 'Nueva Nota'"
-  [description]="selectedType === 'music' ? 'Canción con acordes y transporte' : 'Nota estándar para textos y apuntes'"
+  [title]="selectedType === 'music' ? 'Nueva Partitura' : 'Nueva Nota'"
+  [description]="selectedType === 'music' ? 'Partitura con acordes y transporte' : 'Nota estándar para textos y apuntes'"
   primaryText="Crear"
   secondaryText="Cancelar"
   [primaryDisabled]="!isFormValid"
@@ -11,7 +11,7 @@
   (didDismiss)="handleDidDismiss()"
 >
   <div class="create-note-body">
-    <!-- Selector de Tipo: Canción vs Nota normal -->
+    <!-- Selector de Tipo: Partitura vs Nota -->
     <div class="type-selector" role="radiogroup" aria-label="Tipo de nota">
       <button
         type="button"
@@ -25,7 +25,7 @@
           <ion-icon name="musical-notes"></ion-icon>
         </div>
         <div class="type-info">
-          <span class="type-title">Canción</span>
+          <span class="type-title">Partitura</span>
           <span class="type-subtitle">Con acordes</span>
         </div>
       </button>
@@ -42,16 +42,16 @@
           <ion-icon name="document-text-outline"></ion-icon>
         </div>
         <div class="type-info">
-          <span class="type-title">Nota normal</span>
+          <span class="type-title">Nota</span>
           <span class="type-subtitle">Solo texto</span>
         </div>
       </button>
     </div>
 
-    <!-- Campos del Formulario -->
+    <!-- Campos del Formulario (Heredados del sistema de modales) -->
     <form (ngSubmit)="handleSubmit()" class="form-container">
       <label class="modal-field">
-        <span>{{ selectedType === 'music' ? 'Título de la canción' : 'Título de la nota' }}</span>
+        <span>{{ selectedType === 'music' ? 'Título de la partitura' : 'Título de la nota' }}</span>
         <input
           #titleInput
           [(ngModel)]="title"
@@ -80,4 +80,3 @@
     </form>
   </div>
 </app-base-modal>
-

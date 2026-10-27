@@ -1,7 +1,7 @@
 .base-modal {
   --backdrop-opacity: 1;
-  --width: calc(100% - 36px);
-  --max-width: 420px;
+  --width: calc(100% - 32px);
+  --max-width: 400px;
   --height: auto;
   --max-height: min(720px, calc(100dvh - 48px));
   --background: transparent;
@@ -9,40 +9,42 @@
   --box-shadow: none;
 
   &::part(backdrop) {
-    background: rgba(15, 23, 42, 0.18);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
+    background: rgba(15, 23, 42, 0.32);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    backdrop-filter: blur(14px) saturate(160%);
   }
 
   &::part(content) {
     position: relative;
     contain: content;
+    border-radius: 22px;
+    overflow: hidden;
   }
 }
 
 .base-modal--sm {
-  --max-width: 360px;
+  --max-width: 350px;
   --max-height: min(560px, calc(100dvh - 48px));
 }
 
 .base-modal--lg {
-  --max-width: 480px;
+  --max-width: 460px;
   --max-height: min(700px, 82dvh);
 }
 
 .base-modal__panel {
   display: flex;
+  flex-direction: column;
   width: 100%;
   max-height: var(--max-height, min(720px, calc(100dvh - 48px)));
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--nc-border, #e2e8f0) 60%, transparent);
-  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--nc-border, #e2e8f0) 80%, transparent);
+  border-radius: 22px;
   background: var(--nc-surface-raised, #ffffff);
   box-shadow:
-    0 24px 48px -12px rgba(16, 24, 40, 0.22),
-    0 4px 16px -2px rgba(16, 24, 40, 0.08);
-  flex-direction: column;
-  animation: base-modal-enter 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    0 24px 48px -12px rgba(15, 23, 42, 0.22),
+    0 4px 16px -2px rgba(15, 23, 42, 0.08);
+  animation: base-modal-enter 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .base-modal__header {
@@ -51,16 +53,17 @@
   justify-content: space-between;
   gap: 14px;
   flex: 0 0 auto;
-  padding: 18px 22px 14px;
-  border-bottom: 1px solid color-mix(in srgb, var(--nc-border, #e2e8f0) 40%, transparent);
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--nc-border, #e2e8f0) 50%, transparent);
 }
 
 .base-modal__heading {
   min-width: 0;
+  flex: 1;
 
   h2 {
     margin: 0;
-    color: var(--nc-text, #101828);
+    color: var(--nc-text, #0f172a);
     font-size: 1.1875rem;
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -68,30 +71,30 @@
   }
 
   p {
-    margin: 4px 0 0;
-    color: var(--nc-text-secondary, #667085);
+    margin: 3px 0 0;
+    color: var(--nc-text-secondary, #64748b);
     font-size: 0.8125rem;
-    line-height: 1.4;
+    line-height: 1.35;
   }
 }
 
 .base-modal__close {
   display: grid;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--nc-text, #101828) 6%, transparent);
-  color: var(--nc-text-secondary, #667085);
+  background: color-mix(in srgb, var(--nc-text, #0f172a) 6%, transparent);
+  color: var(--nc-text-secondary, #64748b);
   place-items: center;
   cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
 
   &:hover {
-    background: color-mix(in srgb, var(--nc-text, #101828) 10%, transparent);
-    color: var(--nc-text, #101828);
+    background: color-mix(in srgb, var(--nc-text, #0f172a) 10%, transparent);
+    color: var(--nc-text, #0f172a);
   }
 
   &:active {
@@ -99,15 +102,15 @@
   }
 
   ion-icon {
-    width: 15px;
-    height: 15px;
-    font-size: 15px;
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
   }
 }
 
 .base-modal__body {
   min-height: 0;
-  padding: 16px 22px 18px;
+  padding: 18px 20px;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
@@ -126,8 +129,8 @@
   grid-auto-columns: minmax(0, 1fr);
   gap: 10px;
   flex: 0 0 auto;
-  padding: 12px 20px 18px;
-  border-top: 1px solid color-mix(in srgb, var(--nc-border, #e2e8f0) 40%, transparent);
+  padding: 14px 20px 18px;
+  border-top: 1px solid color-mix(in srgb, var(--nc-border, #e2e8f0) 45%, transparent);
   background: var(--nc-surface-raised, #ffffff);
 }
 
@@ -142,8 +145,8 @@
 .base-modal__button {
   box-sizing: border-box;
   min-height: 44px;
-  padding: 10px 20px;
-  border-radius: 14px;
+  padding: 10px 18px;
+  border-radius: 12px;
   font-family: inherit;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -165,7 +168,7 @@
   }
 
   &:disabled {
-    opacity: 0.4;
+    opacity: 0.45;
     cursor: not-allowed;
   }
 }
@@ -173,42 +176,43 @@
 .base-modal__button--primary {
   border: 1px solid var(--nc-primary, #3164f4);
   background: var(--nc-primary, #3164f4);
-  box-shadow: 0 4px 12px rgba(49, 100, 244, 0.28);
+  box-shadow: 0 4px 14px rgba(49, 100, 244, 0.28);
   color: #ffffff;
 
   &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--nc-primary, #3164f4) 88%, #000);
-    border-color: color-mix(in srgb, var(--nc-primary, #3164f4) 88%, #000);
-    box-shadow: 0 6px 16px rgba(49, 100, 244, 0.38);
+    background: color-mix(in srgb, var(--nc-primary, #3164f4) 90%, #000);
+    border-color: color-mix(in srgb, var(--nc-primary, #3164f4) 90%, #000);
+    box-shadow: 0 6px 18px rgba(49, 100, 244, 0.35);
+  }
+
+  &:disabled {
+    box-shadow: none;
   }
 
   &.base-modal__button--danger {
     background: var(--nc-danger, #ef4444);
     border-color: var(--nc-danger, #ef4444);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.28);
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.28);
 
     &:hover:not(:disabled) {
-      background: color-mix(in srgb, var(--nc-danger, #ef4444) 88%, #000);
-      border-color: color-mix(in srgb, var(--nc-danger, #ef4444) 88%, #000);
+      background: color-mix(in srgb, var(--nc-danger, #ef4444) 90%, #000);
+      border-color: color-mix(in srgb, var(--nc-danger, #ef4444) 90%, #000);
     }
   }
 }
 
 .base-modal__button--secondary {
-  border: 1px solid var(--nc-border, #e2e8f0);
-  background: transparent;
-  color: var(--nc-text, #344054);
-  font-weight: 600;
-  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--nc-border, #e2e8f0) 80%, transparent);
+  background: color-mix(in srgb, var(--nc-text, #0f172a) 4%, transparent);
+  color: var(--nc-text, #0f172a);
 
   &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--nc-text, #101828) 5%, transparent);
-    border-color: color-mix(in srgb, var(--nc-text, #101828) 25%, var(--nc-border, #e2e8f0));
-    color: var(--nc-text, #101828);
+    background: color-mix(in srgb, var(--nc-text, #0f172a) 8%, transparent);
+    border-color: color-mix(in srgb, var(--nc-border, #e2e8f0) 100%, transparent);
   }
 
   &:active:not(:disabled) {
-    background: color-mix(in srgb, var(--nc-text, #101828) 9%, transparent);
+    background: color-mix(in srgb, var(--nc-text, #0f172a) 12%, transparent);
   }
 }
 
@@ -217,23 +221,23 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 8px 6px 4px;
+  padding: 10px 8px 6px;
 }
 
 .base-modal__alert-icon {
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   border-radius: var(--nc-radius-round, 50%);
-  background: var(--nc-primary-soft);
-  color: var(--nc-primary);
+  background: color-mix(in srgb, var(--nc-primary, #3164f4) 12%, transparent);
+  color: var(--nc-primary, #3164f4);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 
   ion-icon {
-    font-size: 26px;
-    color: var(--nc-primary);
+    font-size: 28px;
+    color: var(--nc-primary, #3164f4);
   }
 
   &.base-modal__alert-icon--danger {
@@ -248,8 +252,8 @@
 
 .base-modal__alert-title {
   margin: 0 0 8px;
-  color: var(--nc-text, #101828);
-  font-size: 1.1875rem;
+  color: var(--nc-text, #0f172a);
+  font-size: 1.2rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.25;
@@ -257,7 +261,7 @@
 
 .base-modal__alert-message {
   margin: 0;
-  color: var(--nc-text-secondary, #667085);
+  color: var(--nc-text-secondary, #64748b);
   font-size: 0.875rem;
   line-height: 1.5;
   max-width: 290px;
@@ -280,7 +284,7 @@
   }
 
   .base-modal__header {
-    padding: 14px 16px;
+    padding: 14px 16px 12px;
   }
 
   .base-modal__body {
@@ -288,13 +292,13 @@
   }
 
   .base-modal__footer {
-    padding: 10px 14px 16px;
+    padding: 12px 16px 16px;
     gap: 8px;
   }
 
   .base-modal__button {
-    min-height: 38px;
-    font-size: 0.8125rem;
-    padding: 6px 14px;
+    min-height: 40px;
+    font-size: 0.875rem;
+    padding: 8px 14px;
   }
 }

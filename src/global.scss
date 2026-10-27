@@ -104,6 +104,71 @@ ion-modal {
   --background: var(--nc-surface);
 }
 
+/* ==========================================================================
+   2.1. SHARED MODAL FIELDS & CROSS-COMPONENT FORM ELEMENTS
+   ========================================================================== */
+
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  background: color-mix(in srgb, var(--nc-text, #0f172a) 3%, var(--nc-surface, #ffffff));
+  border: 1px solid color-mix(in srgb, var(--nc-border, #e2e8f0) 85%, transparent);
+  border-radius: 14px;
+  box-sizing: border-box;
+  padding: 10px 14px 8px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--nc-text, #0f172a) 20%, var(--nc-border, #e2e8f0));
+  }
+
+  &:focus-within {
+    background: var(--nc-surface-raised, #ffffff);
+    border-color: var(--nc-primary, #3164f4);
+    box-shadow: 0 0 0 3px rgba(49, 100, 244, 0.15);
+  }
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--nc-text-secondary, #64748b);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    line-height: 1.2;
+    margin-bottom: 3px;
+
+    .optional-tag {
+      font-size: 0.68rem;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: normal;
+      color: var(--nc-text-tertiary, #94a3b8);
+    }
+  }
+
+  input {
+    width: 100%;
+    background: transparent;
+    border: 0;
+    box-sizing: border-box;
+    color: var(--nc-text, #0f172a);
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.4;
+    outline: none;
+    padding: 0;
+
+    &::placeholder {
+      color: var(--nc-text-tertiary, #94a3b8);
+      font-weight: 400;
+    }
+  }
+}
+
 ion-searchbar {
   --background: var(--nc-surface);
   --border-radius: var(--nc-radius-md);

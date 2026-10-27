@@ -1,5 +1,5 @@
 ion-content {
-  --background: var(--nc-background);
+  --background: var(--nc-surface, #ffffff);
 }
 
 app-top-navbar ::ng-deep {
@@ -46,7 +46,7 @@ app-top-navbar ::ng-deep {
 /* ─── Editor container ─────────────────────────────────────────────────────── */
 
 .editor-container {
-  background: var(--nc-background);
+  background: var(--nc-surface, #ffffff);
   box-sizing: border-box;
   margin: 0 auto;
   max-width: var(--nc-content-reading);
@@ -94,18 +94,19 @@ app-top-navbar ::ng-deep {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--nc-surface, #f8fafc);
-  padding: 4px 10px;
-  border-radius: 12px;
-  margin: 0 0 10px 4px;
-  color: var(--nc-primary, #2563eb);
+  background: var(--nc-background-secondary, #eaedf3);
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin: 0 0 12px 2px;
+  color: var(--nc-text, #0f172a);
   font-size: 0.8125rem;
   font-weight: 600;
-  border: 1px solid color-mix(in srgb, var(--nc-primary, #2563eb) 18%, transparent);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  border: 1px solid color-mix(in srgb, var(--nc-border, #d1d5db) 60%, transparent);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 
   ion-icon {
     font-size: 13px;
+    color: var(--nc-primary, #3164f4);
     opacity: 0.9;
   }
 
@@ -197,12 +198,12 @@ app-top-navbar ::ng-deep {
       -webkit-user-select: text !important;
     }
 
-    *,
-    *:focus,
-    *:focus-visible {
-      border: none !important;
-      box-shadow: none !important;
-      outline: none !important;
+    *:not(.chord-card):not(.section-prefix):not([data-block="chord"]),
+    *:not(.chord-card):not(.section-prefix):not([data-block="chord"]):focus,
+    *:not(.chord-card):not(.section-prefix):not([data-block="chord"]):focus-visible {
+      border: none;
+      box-shadow: none;
+      outline: none;
     }
 
     /* 1. TÍTULO: Primera línea */
@@ -210,12 +211,12 @@ app-top-navbar ::ng-deep {
     .block-title,
     .note-title-line,
     > :first-child {
-      color: var(--nc-text);
+      color: var(--nc-text, #0f172a);
       font-size: var(--nc-editor-title-size) !important;
       font-weight: 700 !important;
       letter-spacing: -0.035em !important;
       line-height: 1.25 !important;
-      margin: 0 0 10px 0 !important;
+      margin: 2px 0 12px 0 !important;
       min-height: 1.25em;
       outline: none !important;
       border: none !important;
@@ -226,7 +227,7 @@ app-top-navbar ::ng-deep {
     .block-section,
     p.block-section,
     [data-block="section"] {
-      color: var(--nc-text);
+      color: var(--nc-text, #0f172a);
       line-height: 1.3 !important;
       margin: 18px 0 6px 0 !important;
       min-height: 1.3em;
@@ -235,13 +236,15 @@ app-top-navbar ::ng-deep {
 
       .section-prefix {
         color: var(--nc-primary, #3164F4) !important;
-        font-size: 15px !important;
+        font-size: 13.5px !important;
         font-weight: 700 !important;
         letter-spacing: -0.01em !important;
-        background: color-mix(in srgb, var(--nc-primary) 10%, transparent);
-        padding: 3px 10px;
-        border-radius: 8px;
-        display: inline-block;
+        background: color-mix(in srgb, var(--nc-primary, #3164F4) 10%, var(--nc-surface, #ffffff)) !important;
+        border: 1px solid color-mix(in srgb, var(--nc-primary, #3164F4) 18%, transparent) !important;
+        padding: 3px 11px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
         text-transform: capitalize;
       }
 
@@ -253,58 +256,67 @@ app-top-navbar ::ng-deep {
       }
     }
 
-    /* 3. TARJETA DE NOTAS MUSICALES (Card debajo de cada sección) */
+    /* 3. TARJETA COMPLETA DE NOTAS MUSICALES (Estilo inverso: gris de la app #eaedf3) */
     .chord-card,
-    .section-card {
+    .section-card,
+    [data-block="chord-card"] {
       box-sizing: border-box !important;
-      background: var(--nc-surface-raised, #f6f8fb);
-      border: 1px solid color-mix(in srgb, var(--nc-border, #e5e7eb) 85%, transparent);
-      border-left: 3.5px solid var(--nc-primary, #3164F4) !important;
-      border-radius: 12px;
-      box-shadow:
-        0 1px 3px rgba(0, 0, 0, 0.03),
-        0 2px 6px rgba(0, 0, 0, 0.02);
-      margin: 6px 0 16px 0 !important;
-      padding: 10px 14px !important;
-      position: relative;
+      background: var(--nc-background-secondary, #eaedf3) !important;
+      border: 1px solid color-mix(in srgb, var(--nc-border, #d1d5db) 65%, transparent) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+      margin: 10px 0 16px 0 !important;
+      padding: 12px 18px !important;
+      display: block !important;
+      position: relative !important;
+      width: 100% !important;
       transition:
         border-color var(--nc-transition-fast),
-        box-shadow var(--nc-transition-fast);
+        box-shadow var(--nc-transition-fast),
+        background-color var(--nc-transition-fast);
 
+      &:focus,
       &:focus-within {
-        border-color: color-mix(in srgb, var(--nc-primary) 50%, transparent);
-        box-shadow: 0 2px 8px color-mix(in srgb, var(--nc-primary) 12%, transparent);
+        border-color: color-mix(in srgb, var(--nc-primary, #3164F4) 45%, transparent) !important;
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--nc-primary, #3164F4) 12%, transparent) !important;
       }
 
+      /* Líneas de notas dentro de la card completa: limpias, sin tarjetas individuales */
       .block-chord-line,
-      .block-text,
-      [data-block="chord"],
-      [data-block="text"] {
-        color: var(--nc-text) !important;
+      p {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        color: var(--nc-text, #0f172a) !important;
         font-size: 17px !important;
         font-weight: 600 !important;
-        letter-spacing: 0.035em !important;
-        line-height: 1.6 !important;
+        letter-spacing: 0.06em !important;
+        line-height: 1.65 !important;
         margin: 2px 0 !important;
-        min-height: 1.6em;
+        padding: 0 !important;
+        outline: none !important;
+        min-height: 1.65em;
       }
     }
 
-    /* 3. TEXTO: Cuerpo normal tras el salto de línea */
-    p:not(.block-section):not(.block-title):not(.block-list-item):not(:first-child),
-    .block-text:not(.block-list-item),
+    /* 4. TEXTO: Cuerpo normal tras el salto de línea */
+    p:not(.block-section):not(.block-title):not(.block-list-item):not(.block-chord-line):not(:first-child),
+    .block-text:not(.block-list-item):not(.block-chord-line),
     .note-body-line,
-    div:not(.block-section):not(.block-title):not(.block-list-item):not(:first-child),
+    div:not(.block-section):not(.block-title):not(.block-list-item):not(.chord-card):not([data-block="chord-card"]):not(:first-child),
     [data-block="text"] {
       color: var(--nc-text);
       font-size: var(--nc-editor-body-size) !important;
       font-weight: 400 !important;
       letter-spacing: -0.015em !important;
       line-height: var(--nc-editor-line-height) !important;
-      margin: 0 0 2px 0 !important;
+      margin: 4px 0 !important;
       min-height: var(--nc-editor-line-height);
       outline: none !important;
       border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
     }
 
     /* 4. VIÑETAS Y LISTAS */

@@ -12,6 +12,8 @@ import { Note } from '../../core/models/note/note.model';
 import { Folder } from '../../core/models/folder/folder.model';
 import { createSuccessResult } from '../../core/models/result.model';
 
+import { ChordTransposerService } from '../../core/services/chord-transposer.service';
+
 describe('SearchPage', () => {
   let component: SearchPage;
   let fixture: ComponentFixture<SearchPage>;
@@ -22,6 +24,7 @@ describe('SearchPage', () => {
       folderId: 'folder-1',
       title: 'Nota de bienvenida',
       content: 'Contenido sobre música',
+      type: 'standard',
       userId: 'user-1',
       createdAt: { toDate: () => new Date() } as any,
       updatedAt: { toDate: () => new Date() } as any
@@ -29,8 +32,10 @@ describe('SearchPage', () => {
     {
       id: 'note-2',
       folderId: 'folder-2',
-      title: 'Lista de compras',
-      content: 'Comprar cuerdas de guitarra',
+      title: 'Canción de prueba',
+      content: 'Comprar cuerdas de guitarra y acordes',
+      type: 'music',
+      author: 'Thalles Roberto',
       userId: 'user-1',
       createdAt: { toDate: () => new Date() } as any,
       updatedAt: { toDate: () => new Date() } as any
@@ -66,6 +71,11 @@ describe('SearchPage', () => {
     execute: () => of(createSuccessResult(mockFolders))
   };
 
+  const chordTransposerMock = {
+    detectOriginalKey: (content: string) => (content.includes('acordes') ? 'G' : null),
+    transposeNote: (key: string) => key
+  };
+
   const navServiceMock = {
     push: vi.fn().mockResolvedValue(undefined),
     goToNoteEditor: vi.fn().mockResolvedValue(true),
@@ -80,6 +90,7 @@ describe('SearchPage', () => {
       providers: [
         { provide: GetAllNotesUseCase, useValue: getAllNotesUseCaseMock },
         { provide: GetFoldersUseCase, useValue: getFoldersUseCaseMock },
+        { provide: ChordTransposerService, useValue: chordTransposerMock },
         { provide: NavigationService, useValue: navServiceMock }
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
@@ -154,6 +165,48 @@ describe('SearchPage', () => {
     component.clearSearch();
     expect(component.searchTerm).toBe('');
     expect(component.searchTerm$.value).toBe('');
+  });
+
+  it('should filter only standard notes when filter is set to standard', () => {
+    let notes: Note[] = [];
+    let folders: Folder[] = [];
+
+    component.matchingNotes$.subscribe((n) => (notes = n));
+    component.matchingFolders$.subscribe((f) => (folders = f));
+
+    component.onSearchInput({ target: { value: 'de' } } as unknown as Event);
+    component.setFilter('standard');
+
+    expect(component.activeFilter).toBe('standard');
+    expect(notes.length).toBe(1);
+    expect(notes[0].id).toBe('note-1');
+    // Folders should be excluded when not in "all"
+    expect(folders.length).toBe(0);
+  });
+
+  it('should filter only musical notes when filter is set to music', () => {
+    let notes: Note[] = [];
+    let folders: Folder[] = [];
+
+    component.matchingNotes$.subscribe((n) => (notes = n));
+    component.matchingFolders$.subscribe((f) => (folders = f));
+
+    component.onSearchInput({ target: { value: 'de' } } as unknown as Event);
+    component.setFilter('music');
+
+    expect(component.activeFilter).toBe('music');
+    expect(notes.length).toBe(1);
+    expect(notes[0].id).toBe('note-2');
+    expect(folders.length).toBe(0);
+  });
+
+  it('should find musical note by author match', () => {
+    let notes: Note[] = [];
+    component.matchingNotes$.subscribe((n) => (notes = n));
+
+    component.onSearchInput({ target: { value: 'Thalles' } } as unknown as Event);
+    expect(notes.length).toBe(1);
+    expect(notes[0].id).toBe('note-2');
   });
 });
 
