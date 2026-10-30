@@ -21,6 +21,7 @@ import { ChordTransposerService } from '../../../core/services/chord-transposer.
 })
 export class TransposeModalComponent {
   @Input() isOpen = false;
+  @Input() event?: Event | CustomEvent | MouseEvent | null = null;
   @Input() trigger = 'note-format-trigger';
   @Input() semitones = 0;
   @Input() originalKey: string | null = null;

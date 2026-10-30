@@ -44,11 +44,34 @@ describe('Note Format Pipes', () => {
       expect(pipe.transform(undefined)).toBe('Guardando…');
     });
 
-    it('should format a recent Timestamp correctly', () => {
+    it('should format a recent Timestamp correctly (today returns time)', () => {
       const nowTimestamp = Timestamp.fromDate(new Date());
       const result = pipe.transform(nowTimestamp);
       expect(result).toBeTruthy();
       expect(typeof result).toBe('string');
+      expect(result.includes('a.m') || result.includes('p.m')).toBe(true);
+    });
+
+    it('should return "Ayer" for yesterday', () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      expect(pipe.transform(yesterday)).toBe('Ayer');
+    });
+
+    it('should return capitalized weekday for notes within last 7 days', () => {
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+      const result = pipe.transform(threeDaysAgo);
+      expect(result).toBeTruthy();
+      // Should start with uppercase letter
+      expect(result[0]).toBe(result[0].toUpperCase());
+    });
+
+    it('should return date format for notes older than 7 days', () => {
+      const tenDaysAgo = new Date();
+      tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+      const result = pipe.transform(tenDaysAgo);
+      expect(result).toMatch(/\d{2}\/\d{2}\/\d{2}/);
     });
   });
 });

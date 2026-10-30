@@ -34,6 +34,7 @@ export interface ActionMenuItem {
 })
 export class ActionMenuComponent implements OnChanges {
   @Input() isOpen = false;
+  @Input() event?: Event | CustomEvent | MouseEvent | null = null;
   @Input() trigger?: string;
   @Input() triggerAction: 'click' | 'hover' | 'context-menu' = 'click';
   @Input() side: 'top' | 'bottom' | 'start' | 'end' = 'bottom';
@@ -66,15 +67,15 @@ export class ActionMenuComponent implements OnChanges {
   onItemClick(item: ActionMenuItem): void {
     if (item.disabled) return;
 
+    if (this.dismissOnSelect) {
+      this.requestClose();
+    }
+
     if (item.handler) {
       item.handler();
     }
 
     this.itemSelect.emit(item);
-
-    if (this.dismissOnSelect) {
-      this.requestClose();
-    }
   }
 
   onDidDismiss(): void {

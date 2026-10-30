@@ -140,5 +140,38 @@ describe('NotesListPage - Song and Note Display', () => {
     expect(keyInfo?.isTransposed).toBe(true);
     expect(keyInfo?.offset).toBe(2);
   });
+
+  it('should parse Title and Author when title has " - "', () => {
+    const noteWithHyphen: Note = {
+      id: 'n5',
+      userId: 'u1',
+      folderId: 'f1',
+      title: 'Rey de Reyes - Hillsong',
+      content: 'C / G / Am / F /',
+      type: 'music',
+      createdAt: dummyTimestamp,
+      updatedAt: dummyTimestamp
+    };
+
+    expect(component.getNoteTitle(noteWithHyphen)).toBe('Rey de Reyes');
+    expect(component.getNoteAuthor(noteWithHyphen)).toBe('Hillsong');
+  });
+
+  it('should return regular title when note title does not have " - "', () => {
+    const simpleNote: Note = {
+      id: 'n6',
+      userId: 'u1',
+      folderId: 'f1',
+      title: 'Way Maker',
+      content: '',
+      type: 'music',
+      author: 'Sinach',
+      createdAt: dummyTimestamp,
+      updatedAt: dummyTimestamp
+    };
+
+    expect(component.getNoteTitle(simpleNote)).toBe('Way Maker');
+    expect(component.getNoteAuthor(simpleNote)).toBe('Sinach');
+  });
 });
 

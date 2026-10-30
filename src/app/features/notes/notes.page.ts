@@ -1,7 +1,7 @@
 import { Component, OnDestroy, inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ViewWillLeave, ViewDidEnter, Platform } from '@ionic/angular';
+import { IonicModule, ViewWillLeave, ViewDidEnter, Platform, ActionSheetController } from '@ionic/angular';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, Subscription, debounceTime } from 'rxjs';
 import {
@@ -11,7 +11,7 @@ import {
   DeleteNoteUseCase
 } from '../../core/use-cases/notes';
 import { NavigationService } from '../../core/navigation/navigation.service';
-import { SharedModule, ActionMenuItem } from '../../shared/shared.module';
+import { SharedModule } from '../../shared/shared.module';
 import { ChordTransposerService } from '../../core/services/chord-transposer.service';
 
 /** Umbral de scroll (px) al que se considera "arriba" y se muestra la fecha. */
@@ -46,6 +46,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   private readonly updateNoteUseCase = inject(UpdateNoteUseCase);
   private readonly deleteNoteUseCase = inject(DeleteNoteUseCase);
   private readonly chordTransposer = inject(ChordTransposerService);
+  private readonly actionSheetController = inject(ActionSheetController);
 
   isLocked = false;
   isTransposeModalOpen = false;
@@ -115,7 +116,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   private savePromise: Promise<void> | null = null;
   private pendingSaveAgain = false;
 
-  isOptionsOpen = false;
+  transposeEvent: MouseEvent | CustomEvent | null = null;
   isDeleteConfirmOpen = false;
   isDeleting = false;
   formattedFullDate = '';
@@ -129,7 +130,6 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   private readonly autoSaveSubscription: Subscription;
   private noteSubscription?: Subscription;
   private readonly routeSubscription: Subscription;
-  private readonly queryParamSubscription: Subscription;
 
   constructor() {
     this.autoSaveSubscription = this.saveSubject.pipe(
@@ -137,27 +137,6 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
     ).subscribe(() => {
       if (this.isDirty) {
         void this.save();
-      }
-    });
-
-    this.queryParamSubscription = this.route.queryParamMap.subscribe((qp) => {
-      if (this.noteId === 'new') {
-        const typeParam = qp.get('type');
-        const titleParam = qp.get('title');
-        const authorParam = qp.get('author');
-
-        if (typeParam === 'standard' || typeParam === 'music') {
-          this.noteType = typeParam;
-        }
-        if (authorParam !== null && authorParam !== undefined) {
-          this.author = authorParam;
-        }
-        if (titleParam !== null && titleParam !== undefined && titleParam !== '') {
-          this.title = titleParam;
-          this.hasContent = true;
-          this.isDirty = true;
-          this.setEditorContent(this.title, this.content);
-        }
       }
     });
 
@@ -175,23 +154,18 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
         if (this.noteId === 'new') {
           this.noteSubscription?.unsubscribe();
           this.noteSubscription = undefined;
-          const qp = this.route.snapshot.queryParamMap;
-          const typeParam = qp.get('type');
-          const titleParam = qp.get('title');
-          const authorParam = qp.get('author');
-
-          this.noteType = typeParam === 'standard' ? 'standard' : 'music';
-          this.author = authorParam || '';
-          this.title = titleParam || '';
+          this.noteType = 'music';
+          this.author = '';
+          this.title = '';
           this.content = '';
           this.baseContentForTranspose = '';
           this.semitoneOffset = 0;
           this.isTransposeModalOpen = false;
-          this.hasContent = !!(this.title.trim());
-          this.setEditorContent(this.title, '');
+          this.hasContent = false;
+          this.setEditorContent('', '');
           this.formattedFullDate = this.formatFullDate(new Date());
           this.isLoading = false;
-          this.isDirty = !!(this.title.trim());
+          this.isDirty = false;
         } else {
           this.isLoading = true;
           this.subscribeToNote(this.noteId);
@@ -365,13 +339,18 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
       if (!this.editorRef?.nativeElement) return;
       const el = this.editorRef.nativeElement;
 
-      const trimmedTitle = title && title !== 'Sin título' ? title : '';
-      const trimmedContent = content || '';
+      let displayTitle = title && title !== 'Sin título' ? title : '';
+      if (this.author && !displayTitle.includes(' - ')) {
+        displayTitle = `${displayTitle} - ${this.author}`;
+      }
 
-      this.hasContent = !!(trimmedTitle || trimmedContent.trim());
+      const trimmedContent = content || '';
+      this.title = title && title !== 'Sin título' ? title : '';
+      this.content = trimmedContent;
+      this.hasContent = !!(displayTitle || trimmedContent.trim());
 
       // Línea 1: Siempre <h1> para Título (28px, negrita)
-      let html = `<h1 class="block-title" data-block="title">${trimmedTitle ? this.escapeHtml(trimmedTitle) : '<br>'}</h1>`;
+      let html = `<h1 class="block-title" data-block="title">${displayTitle ? this.escapeHtml(displayTitle) : '<br>'}</h1>`;
 
       // Secciones y Tarjetas de Notas Musicales:
       // Las notas musicales (con '/') se agrupan en una Card completa (.chord-card)
@@ -488,14 +467,16 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
       }
     }
 
-    // 3. Normalizar bloques superiores
+    // 3. Normalizar bloques dentro del editor
     const topChildren = Array.from(editor.children) as HTMLElement[];
     for (let i = 1; i < topChildren.length; i++) {
       let child = topChildren[i];
 
-      // Convertir H1 erróneo abajo
+      // Convertir cualquier H1 en bloque de texto normal si no es el primero
       if (child.tagName === 'H1') {
         const p = document.createElement('p');
+        p.className = 'block-text';
+        p.setAttribute('data-block', 'text');
         p.innerHTML = child.innerHTML || '<br>';
         child.replaceWith(p);
         topChildren[i] = p;
@@ -698,7 +679,17 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
     if (!this.editorRef?.nativeElement) return;
     const editor = this.editorRef.nativeElement;
     const h1 = editor.querySelector('h1');
-    const titleText = h1?.textContent?.trim() || '';
+    const fullTitle = h1?.textContent?.trim() || '';
+
+    // Detección de " - ": si el usuario escribe "Titulo - Autor"
+    const sepIdx = fullTitle.indexOf(' - ');
+    if (sepIdx !== -1) {
+      this.title = fullTitle.substring(0, sepIdx).trim();
+      this.author = fullTitle.substring(sepIdx + 3).trim();
+    } else {
+      this.title = fullTitle;
+      this.author = '';
+    }
 
     const bodyLines: string[] = [];
     for (const child of Array.from(editor.children) as HTMLElement[]) {
@@ -717,9 +708,8 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
       }
     }
 
-    this.title = titleText;
     this.content = bodyLines.join('\n');
-    this.hasContent = !!(this.title || this.content.trim());
+    this.hasContent = !!(fullTitle || this.content.trim());
   }
 
   private getClosestBlock(node: Node | null, root: HTMLElement): HTMLElement | null {
@@ -1314,7 +1304,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
     this.isLocked = !this.isLocked;
     if (this.isLocked) {
       this.editorRef?.nativeElement?.blur();
-      this.closeOptions();
+      void this.actionSheetController.dismiss().catch(() => {});
       this.backButtonSub?.unsubscribe();
       this.backButtonSub = this.platform.backButton.subscribeWithPriority(9999, () => {
         // Bloquear retroceso de hardware mientras esté en modo bloqueo
@@ -1325,37 +1315,53 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
     }
   }
 
-  // ─── Options popover ──────────────────────────────────────────────────────
+  // ─── Options Action Sheet ──────────────────────────────────────────────────
 
-  readonly noteMenuItems: ActionMenuItem[] = [
-    {
-      id: 'share',
-      label: 'Compartir nota',
-      icon: 'share-outline',
-      handler: () => this.shareNote()
-    },
-    {
-      id: 'delete',
-      label: 'Eliminar nota',
-      icon: 'trash-outline',
-      role: 'danger',
-      handler: () => this.openDeleteConfirm()
-    }
-  ];
-
-  openOptions() {
+  async openOptions() {
     if (!this.hasContent || this.isLocked) return;
-    this.isOptionsOpen = true;
-  }
 
-  closeOptions() {
-    this.isOptionsOpen = false;
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    const isMusic = this.noteType === 'music';
+    const sheetHeader = this.title ? this.title : (isMusic ? 'Partitura' : 'Nota');
+
+    const sheet = await this.actionSheetController.create({
+      header: sheetHeader,
+      cssClass: 'note-options-action-sheet',
+      buttons: [
+        {
+          text: isMusic ? 'Compartir partitura' : 'Compartir nota',
+          icon: 'share-outline',
+          handler: () => {
+            void this.shareNote();
+          }
+        },
+        {
+          text: isMusic ? 'Eliminar partitura' : 'Eliminar nota',
+          icon: 'trash-outline',
+          role: 'destructive',
+          handler: () => {
+            this.openDeleteConfirm();
+          }
+        },
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          icon: 'close-outline'
+        }
+      ]
+    });
+
+    await sheet.present();
   }
 
   // ─── Actions ─────────────────────────────────────────────────────────────
 
-  onFormatClick() {
+  onFormatClick(event?: Event) {
     if (!this.hasContent || this.isLocked) return;
+    this.transposeEvent = (event as MouseEvent) ?? null;
     this.openTransposeModal();
   }
 
@@ -1372,16 +1378,17 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
 
   closeTransposeModal() {
     this.isTransposeModalOpen = false;
+    this.transposeEvent = null;
   }
 
   onTransposeApplied(finalSemitones: number) {
     this.semitoneOffset = finalSemitones;
     this.saveTranspositionOffset(this.noteId, this.semitoneOffset);
-    this.isTransposeModalOpen = false;
+    this.closeTransposeModal();
   }
 
   onTransposeCancelled() {
-    this.isTransposeModalOpen = false;
+    this.closeTransposeModal();
   }
 
   onSemitonesChange(newSemitones: number) {
@@ -1406,13 +1413,28 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
     this.setEditorContent(this.title, this.content);
   }
 
-  shareNote() {
+  async shareNote() {
     if (this.isLocked) return;
-    if (navigator.share) {
-      void navigator.share({
-        title: this.title || 'Nota',
-        text: `${this.title ? this.title + '\n\n' : ''}${this.content}`
-      });
+    const shareTitle = this.title || (this.noteType === 'music' ? 'Partitura' : 'Nota');
+    const shareText = `${this.title ? this.title + '\n\n' : ''}${this.content}`;
+
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText
+        });
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name !== 'AbortError') {
+          console.warn('Error al compartir:', err);
+        }
+      }
+    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(shareText);
+      } catch (clipErr) {
+        console.warn('No se pudo copiar al portapapeles:', clipErr);
+      }
     }
   }
 
@@ -1436,7 +1458,6 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
 
   openDeleteConfirm() {
     if (this.isLocked) return;
-    this.closeOptions();
     this.isDeleteConfirmOpen = true;
   }
 
@@ -1511,7 +1532,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
             folderId: this.folderId,
             title: titleToSave,
             content: contentToSave,
-            author: this.noteType === 'music' && this.author ? this.author : undefined,
+            author: this.author ? this.author : undefined,
             type: this.noteType
           });
           if (!res.success || !res.data) {
@@ -1531,7 +1552,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
             id: this.noteId,
             title: titleToSave,
             content: contentToSave,
-            author: this.noteType === 'music' && this.author ? this.author : undefined,
+            author: this.author ? this.author : undefined,
             type: this.noteType
           });
           if (!res.success) {
@@ -1635,6 +1656,5 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
     this.autoSaveSubscription.unsubscribe();
     this.noteSubscription?.unsubscribe();
     this.routeSubscription.unsubscribe();
-    this.queryParamSubscription.unsubscribe();
   }
 }

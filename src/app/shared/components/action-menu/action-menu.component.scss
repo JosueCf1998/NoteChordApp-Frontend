@@ -2,11 +2,13 @@
   --background: transparent;
   --box-shadow: none;
   --backdrop-opacity: 1;
-  --width: auto;
+  --width: 220px;
   --max-width: 90vw;
 
   &::part(backdrop) {
-    background: rgba(15, 23, 42, 0.08);
+    background: rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(1.5px);
+    -webkit-backdrop-filter: blur(1.5px);
   }
 
   &::part(content) {

@@ -1,6 +1,7 @@
 <ion-popover
   [isOpen]="isOpen"
-  [trigger]="trigger"
+  [event]="event"
+  [trigger]="isOpen ? undefined : trigger"
   side="bottom"
   alignment="end"
   [arrow]="false"

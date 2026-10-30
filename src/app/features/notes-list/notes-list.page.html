@@ -144,9 +144,3 @@
   (secondary)="cancelNoteDelete()"
   (primary)="confirmNoteDelete()"
 ></app-base-modal>
-
-<app-create-note-modal
-  [isOpen]="isCreateModalOpen"
-  (closed)="handleCreateModalClosed()"
-  (created)="handleNoteCreated($event)"
-></app-create-note-modal>

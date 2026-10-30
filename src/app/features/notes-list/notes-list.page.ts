@@ -14,7 +14,7 @@ import { GetFolderByIdUseCase } from '../../core/use-cases/folders';
 import { NavigationService } from '../../core/navigation/navigation.service';
 import { ChordTransposerService } from '../../core/services/chord-transposer.service';
 import { AnimatedPageTitleComponent } from '../../shared/components/animated-page-title/animated-page-title.component';
-import { CreateNotePayload, SharedModule } from '../../shared/shared.module';
+import { SharedModule } from '../../shared/shared.module';
 
 export interface NoteGroup {
   label: string;
@@ -76,7 +76,6 @@ export class NotesListPage {
   isHeaderCollapsed = false;
   isHeaderScrolled = false;
   isDeleting = false;
-  isCreateModalOpen = false;
   pendingDelete: { id: string; title: string } | null = null;
   errorMessage = '';
 
@@ -106,32 +105,34 @@ export class NotesListPage {
   }
 
   createNote() {
-    this.isCreateModalOpen = true;
-  }
-
-  handleCreateModalClosed() {
-    this.isCreateModalOpen = false;
-  }
-
-  handleNoteCreated(payload: CreateNotePayload) {
-    this.isCreateModalOpen = false;
-    return this.navService.push(
-      ['/notes', this.folderId, 'new'],
-      undefined,
-      {
-        type: payload.type,
-        title: payload.title,
-        author: payload.author || ''
-      }
-    );
+    return this.navService.push(['/notes', this.folderId, 'new']);
   }
 
   openNote(note: Note) {
     return this.navService.push(['/notes', this.folderId, note.id]);
   }
 
+  getNoteTitle(note: Note): string {
+    const title = note.title || '';
+    const sepIdx = title.indexOf(' - ');
+    if (sepIdx !== -1) {
+      return title.substring(0, sepIdx).trim() || title;
+    }
+    return title || 'Sin título';
+  }
+
+  getNoteAuthor(note: Note): string {
+    if (note.author) return note.author;
+    const title = note.title || '';
+    const sepIdx = title.indexOf(' - ');
+    if (sepIdx !== -1) {
+      return title.substring(sepIdx + 3).trim();
+    }
+    return '';
+  }
+
   isSong(note: Note): boolean {
-    return note.type === 'music' || (!note.type && !!(note.author || (note.content && this.chordTransposer.detectOriginalKey(note.content))));
+    return note.type === 'music' || (!note.type && !!(this.getNoteAuthor(note) || (note.content && this.chordTransposer.detectOriginalKey(note.content))));
   }
 
   hasPreview(note: Note): boolean {
@@ -228,7 +229,12 @@ export class NotesListPage {
       return 'Hoy';
     }
 
-    // Últimos 7 días (de 1 a 7 días atrás)
+    // Ayer
+    if (daysAgo === 1) {
+      return 'Ayer';
+    }
+
+    // Últimos 7 días (de 2 a 7 días atrás)
     if (daysAgo <= 7) {
       return 'Últimos 7 días';
     }

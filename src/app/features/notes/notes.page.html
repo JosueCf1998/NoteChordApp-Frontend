@@ -11,13 +11,13 @@
       class="header-icon-button format-btn"
       [class.is-shifted]="semitoneOffset !== 0"
       [disabled]="!hasContent || isLocked"
-      (click)="onFormatClick()"
+      (click)="onFormatClick($event)"
       aria-label="Ajustar tonalidad"
     >
       <span slot="icon-only" class="format-t-icon" [class.is-shifted]="semitoneOffset !== 0" aria-hidden="true">{{ formatButtonLabel }}</span>
     </ion-button>
     <ion-button
-      id="note-options-trigger"
+      class="header-icon-button"
       [disabled]="!hasContent || isLocked"
       (click)="openOptions()"
       aria-label="Más opciones"
@@ -46,12 +46,6 @@
       aria-hidden="true"
     >
       <p class="note-date">{{ formattedFullDate }}</p>
-    </div>
-
-    <!-- Indicador de Autor para canciones -->
-    <div class="song-meta-badge" *ngIf="noteType === 'music' && author">
-      <ion-icon name="musical-notes-outline" aria-hidden="true"></ion-icon>
-      <span class="author-name">{{ author }}</span>
     </div>
 
     <!-- Único campo de editor: primera línea en tamaño título, salto de línea en texto normal -->
@@ -104,19 +98,11 @@
   </ion-fab>
 </ion-content>
 
-<!-- Menú de opciones de la nota -->
-<app-action-menu
-  [isOpen]="isOptionsOpen"
-  trigger="note-options-trigger"
-  [items]="noteMenuItems"
-  (closed)="closeOptions()"
-></app-action-menu>
-
 <!-- Alertita de Tonalidad (Transposición de acordes en 1/2 tono) -->
 <app-transpose-modal
   *ngIf="noteType === 'music'"
   [isOpen]="isTransposeModalOpen"
-  trigger="note-format-trigger"
+  [event]="transposeEvent"
   [semitones]="semitoneOffset"
   [originalKey]="detectedOriginalKey"
   [preferFlats]="preferFlatsForTranspose"
@@ -126,12 +112,12 @@
   (closed)="closeTransposeModal()"
 ></app-transpose-modal>
 
-<!-- Modal base de confirmación para eliminar nota -->
+<!-- Modal base de confirmación para eliminar nota / partitura -->
 <app-base-modal
   size="sm"
   [isOpen]="isDeleteConfirmOpen"
-  title="Eliminar nota"
-  [description]="'¿Estás seguro de que deseas eliminar ' + (title ? '“' + title + '”' : 'esta nota') + '? Esta acción no se puede deshacer.'"
+  [title]="noteType === 'music' ? 'Eliminar partitura' : 'Eliminar nota'"
+  [description]="'¿Estás seguro de que deseas eliminar ' + (title ? '“' + title + '”' : (noteType === 'music' ? 'esta partitura' : 'esta nota')) + '? Esta acción no se puede deshacer.'"
   [primaryText]="isDeleting ? 'Eliminando…' : 'Eliminar'"
   secondaryText="Cancelar"
   primaryRole="danger"

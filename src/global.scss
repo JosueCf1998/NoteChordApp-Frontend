@@ -252,3 +252,35 @@ ion-fab[slot="fixed"] {
   margin: 0 !important;
 }
 
+/* ==========================================================================
+   6. ACTION SHEET (Estilo Apple iOS)
+   ========================================================================== */
+
+ion-action-sheet.note-options-action-sheet {
+  --background: var(--nc-surface, #ffffff);
+  --button-background: var(--nc-surface, #ffffff);
+  --button-background-selected: var(--nc-primary-soft, #edf2ff);
+  --color: var(--nc-text, #101828);
+
+  .action-sheet-group {
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .action-sheet-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--nc-text-secondary, #667085);
+    text-align: center;
+  }
+
+  .action-sheet-button {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .action-sheet-button.action-sheet-destructive {
+    color: var(--nc-danger, #ef4444);
+  }
+}
+

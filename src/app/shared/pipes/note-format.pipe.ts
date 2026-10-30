@@ -36,6 +36,7 @@ export class NoteDatePipe implements PipeTransform {
     const noteDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const dayDifference = Math.round((today.getTime() - noteDay.getTime()) / 86400000);
 
+    // Mismo día (hoy): Formato hora '3:56 p.m.'
     if (dayDifference === 0) {
       const formatted = new Intl.DateTimeFormat('en-US', {
         hour: 'numeric',
@@ -46,19 +47,18 @@ export class NoteDatePipe implements PipeTransform {
       return formatted.replace('AM', 'a.m').replace('PM', 'p.m');
     }
 
-    const startOfWeek = new Date(today);
-    const dayOfWeek = (today.getDay() + 6) % 7;
-    startOfWeek.setDate(today.getDate() - dayOfWeek);
-    startOfWeek.setHours(0, 0, 0, 0);
-
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999);
-
-    if (date >= startOfWeek && date <= endOfWeek) {
-      return String(date.getDate());
+    // Día anterior (ayer)
+    if (dayDifference === 1) {
+      return 'Ayer';
     }
 
+    // Últimos 7 días: Nombre del día de la semana (ej. 'Lunes', 'Domingo')
+    if (dayDifference > 1 && dayDifference < 7) {
+      const weekday = new Intl.DateTimeFormat('es-PE', { weekday: 'long' }).format(date);
+      return weekday.charAt(0).toUpperCase() + weekday.slice(1);
+    }
+
+    // Fechas más antiguas: Formato corto 'dd/MM/yy' (ej. '26/10/26')
     return new Intl.DateTimeFormat('es-PE', {
       day: '2-digit',
       month: '2-digit',
