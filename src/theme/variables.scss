@@ -35,17 +35,18 @@
   --nc-font-weight-semibold: 600;
   --nc-font-weight-bold: 700;
 
-  /* Escala de Tamaños */
-  --nc-font-size-title: clamp(1.75rem, 1.55rem + 0.6vw, 2.15rem); /* Título grande de notas y carpetas */
-  --nc-font-size-section: 1.125rem;                                /* Encabezados de grupo "Últimos 7 días" */
-  --nc-font-size-body: 1rem;                                       /* Lectura de notas y acordes */
-  --nc-font-size-small: 0.875rem;                                  /* Celdas de listas y opciones */
-  --nc-font-size-caption: 0.75rem;                                 /* Fechas arriba de nota y conteos */
+  /* Escala de Tamaños Estilo iOS Nativo */
+  --nc-font-size-title: 34px;                                      /* Título grande de notas y carpetas (iOS Large Title) */
+  --nc-font-size-section: 1.25rem;                                 /* Encabezados de grupo "Ayer", "Últimos 7 días" (20px) */
+  --nc-font-size-body: 1.0625rem;                                  /* Lectura de notas y acordes (17px) */
+  --nc-font-size-small: 1.0625rem;                                 /* Celdas de listas y opciones de carpetas/notas (17px) */
+  --nc-font-size-subheadline: 0.9375rem;                           /* Subtítulos y metadatos (15px) */
+  --nc-font-size-caption: 0.875rem;                                /* Fechas y conteos secundarios (14px) */
 
   /* Interlineado */
-  --nc-line-height-tight: 1.25;
-  --nc-line-height-body: 1.5;
-  --nc-line-height-chords: 1.65;
+  --nc-line-height-tight: 1.2;
+  --nc-line-height-body: 1.45;
+  --nc-line-height-chords: 1.5;
 
   /* ==========================================================================
      3. ESPACIADOS (Base 4px / 8px)
@@ -59,7 +60,7 @@
   --nc-space-8: 32px;
 
   /* Layout */
-  --nc-page-gutter: 20px;
+  --nc-page-gutter: 16px;                                          /* Inset Grouped estándar iOS (16px) */
   --nc-content-narrow: 440px;
   --nc-content-reading: 100%;
   --nc-content-wide: 100%;
@@ -67,11 +68,11 @@
   /* ==========================================================================
      3.1 TOKENS RESPONSIVOS DEL EDITOR Y CONTROLES (Móvil por defecto)
      ========================================================================== */
-  --nc-editor-title-size: 28px;
-  --nc-editor-section-size: 18px;
+  --nc-editor-title-size: 34px;                                    /* Título idéntico a Apple Notes */
+  --nc-editor-section-size: 16px;
   --nc-editor-body-size: 17px;
   --nc-editor-line-height: 1.45;
-  --nc-editor-spacing-section: 14px;
+  --nc-editor-spacing-section: 12px;
 
   --nc-btn-size: 44px;
   --nc-btn-pill-radius: 22px;

@@ -5,8 +5,18 @@
     </ion-button>
   </ion-buttons>
   <ion-buttons nav-end slot="end">
+    <!-- Botón LISTO estilo iOS cuando el teclado está abierto -->
     <ion-button
-      *ngIf="noteType === 'music'"
+      *ngIf="isKeyboardOpen"
+      class="done-keyboard-btn"
+      (click)="dismissKeyboard()"
+      aria-label="Cerrar teclado"
+    >
+      <span class="done-btn-text">Listo</span>
+    </ion-button>
+
+    <ion-button
+      *ngIf="noteType === 'music' && !isKeyboardOpen"
       id="note-format-trigger"
       class="header-icon-button format-btn"
       [class.is-shifted]="semitoneOffset !== 0"
@@ -17,6 +27,7 @@
       <span slot="icon-only" class="format-t-icon" [class.is-shifted]="semitoneOffset !== 0" aria-hidden="true">{{ formatButtonLabel }}</span>
     </ion-button>
     <ion-button
+      *ngIf="!isKeyboardOpen"
       class="header-icon-button"
       [disabled]="!hasContent || isLocked"
       (click)="openOptions()"
@@ -30,13 +41,14 @@
 <ion-content
   [fullscreen]="true"
   [scrollEvents]="true"
+  (click)="onScreenClick($event)"
   (ionScroll)="handleScroll($event)"
   (touchstart)="handleGestureStart($event)"
   (touchmove)="handleGestureMove($event)"
   (touchend)="handleGestureEnd()"
   (touchcancel)="handleGestureCancel()"
 >
-  <main class="editor-container" (click)="onContainerClick($event)" *ngIf="!isLoading; else loadingState">
+  <main class="editor-container" (click)="onScreenClick($event)" *ngIf="!isLoading; else loadingState">
 
     <!-- Fecha animada: se revela al deslizar hacia arriba -->
     <div
@@ -63,6 +75,8 @@
         (keyup)="onEditorKeyup($event)"
         (input)="onEditorInput()"
         (paste)="onEditorPaste($event)"
+        (focus)="onEditorFocus()"
+        (blur)="onEditorBlur()"
         role="textbox"
         aria-multiline="true"
         aria-label="Contenido de la nota"
@@ -85,7 +99,7 @@
   </ng-template>
 
   <!-- FAB: modo bloqueo (candado, deshabilitado si no hay contenido y no está bloqueada) -->
-  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end" [class.is-hidden]="isKeyboardOpen">
     <ion-fab-button
       class="lock-fab"
       [class.is-locked]="isLocked"

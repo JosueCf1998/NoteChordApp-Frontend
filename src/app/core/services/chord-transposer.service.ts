@@ -216,7 +216,9 @@ export class ChordTransposerService {
    * Separa una línea entre la parte de acordes y la parte de comentario o texto adicional
    * para garantizar que notas en comentarios (ej. "... en el segundo G") o instrucciones nunca se alteren.
    */
-  private splitLineIntoChordsAndComment(line: string): { chordPart: string; commentPart: string } {
+  splitLineIntoChordsAndComment(line: string): { chordPart: string; commentPart: string } {
+    if (!line) return { chordPart: '', commentPart: '' };
+
     // Patrón 1: Delimitadores comunes de comentarios como '.....', '...', '…', '--' o '//' seguido de texto
     const commentMatch = line.match(/(\.{3,}|…|--|\/\/\s*(?=[a-zA-ZáéíóúñÁÉÍÓÚÑ]{2,}))\s*(.*)$/);
     if (commentMatch && commentMatch.index !== undefined) {
@@ -226,7 +228,48 @@ export class ChordTransposerService {
       };
     }
 
-    // Patrón 2: Palabras normales en español al final de la línea que no sean acordes ni calidades musicales
+    // Patrón 2: Paréntesis que no sean acordes o notas de bajo (ej. "(corte)", "(2 veces)", "(suave)")
+    const parenMatch = line.match(/\((?![A-G](?:#|b)?(?:\/|\))[a-zA-Z0-9#b\s]*\))([^)]+)\)\s*$/);
+    if (parenMatch && parenMatch.index !== undefined) {
+      return {
+        chordPart: line.substring(0, parenMatch.index),
+        commentPart: line.substring(parenMatch.index)
+      };
+    }
+
+    // Patrón 3: Contenido no musical tras el último '/'
+    const slashIdx = line.lastIndexOf('/');
+    if (slashIdx !== -1) {
+      const afterSlash = line.substring(slashIdx + 1);
+      // afterSlash puede tener un acorde opcional inicial (ej. " G solo guitarra" o " G (A) solo guitarra")
+      // o puede ser directamente el comentario (ej. " hola qué tal" o " ... hola" o " 2 veces")
+      const chordAfterSlashMatch = afterSlash.match(/^(\s*(?:[A-G](?:#|b)?(?:maj7|maj9|maj11|maj13|maj|min7|min9|min|m7b5|m7|m9|m11|m13|m6|m|sus2|sus4|sus|dim7|dim|aug|add9|add2|add4|add|7b5|7#5|7b9|7#9|7sus4|7|9|11|13|6|5|M7|M9|M)?(?:\([A-G](?:#|b)?\))?|\([A-G](?:#|b)?\))\s*)/);
+
+      let chordPrefixLen = 0;
+      if (chordAfterSlashMatch) {
+        const nextChar = afterSlash.charAt(chordAfterSlashMatch[0].length);
+        if (!/^[a-zA-ZáéíóúñÁÉÍÓÚÑ]/.test(nextChar)) {
+          chordPrefixLen = chordAfterSlashMatch[0].length;
+        }
+      }
+
+      const potentialComment = afterSlash.substring(chordPrefixLen);
+      if (potentialComment.trim()) {
+        const trimmedComment = potentialComment.trim();
+        // Descartar si el texto restante es en sí mismo un acorde o nota musical pura
+        CHORD_REGEX.lastIndex = 0;
+        const isPureChord = CHORD_REGEX.test(trimmedComment) && !/[a-záéíóúñ]{2,}/i.test(trimmedComment);
+        if (!isPureChord) {
+          const splitPoint = slashIdx + 1 + chordPrefixLen;
+          return {
+            chordPart: line.substring(0, splitPoint),
+            commentPart: line.substring(splitPoint)
+          };
+        }
+      }
+    }
+
+    // Patrón 4: Palabras normales en español al final de la línea que no sean acordes
     const chordKeywords = new Set(['maj', 'min', 'sus', 'dim', 'aug', 'add']);
     const wordsMatch = line.match(/(?<![a-zA-Z0-9])([a-záéíóúñ]{3,}|[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,})(?![0-9])(?:\s+.*)?$/);
     if (wordsMatch && wordsMatch.index !== undefined) {
@@ -240,6 +283,45 @@ export class ChordTransposerService {
     }
 
     return { chordPart: line, commentPart: '' };
+  }
+
+  /**
+   * Asegura que cualquier comentario o texto no musical en una línea de acordes
+   * comience con los tres puntos '... '.
+   * Ej: 'A / C / A / solo guitarra' -> 'A / C / A / ... solo guitarra'
+   */
+  formatLineWithEllipsisComment(line: string): string {
+    if (!line) return line;
+    const { chordPart, commentPart } = this.splitLineIntoChordsAndComment(line);
+    if (!commentPart || !commentPart.trim()) return line;
+
+    const trimmedComment = commentPart.trim();
+    if (trimmedComment.startsWith('...') || trimmedComment.startsWith('…')) {
+      const cleanComment = trimmedComment.replace(/^(\.{3,}|…)\s*/, '... ');
+      return `${chordPart.trimEnd()} ${cleanComment}`;
+    }
+    return `${chordPart.trimEnd()} ... ${trimmedComment}`;
+  }
+
+  /**
+   * Asegura que cualquier texto anotado al lado de una sección comience con '... '.
+   * Ej: 'Intro: guitarra' -> 'Intro: ... guitarra'
+   */
+  formatSectionLineWithEllipsis(line: string): string {
+    if (!line) return line;
+    const colonIdx = line.indexOf(':');
+    if (colonIdx === -1) return line;
+
+    const prefix = line.substring(0, colonIdx + 1);
+    const suffix = line.substring(colonIdx + 1);
+    const trimmedSuffix = suffix.trim();
+    if (!trimmedSuffix) return prefix;
+
+    if (trimmedSuffix.startsWith('...') || trimmedSuffix.startsWith('…')) {
+      const cleanSuffix = trimmedSuffix.replace(/^(\.{3,}|…)\s*/, '... ');
+      return `${prefix} ${cleanSuffix}`;
+    }
+    return `${prefix} ... ${trimmedSuffix}`;
   }
 
   /**
@@ -298,26 +380,34 @@ export class ChordTransposerService {
 
   /**
    * Determina si una línea contiene notas musicales o progresión de acordes.
-   * REGLA ESTRICTA: Solo es tarjeta de notas musicales si contiene obligatoriamente
-   * al menos una nota musical válida (A-G) Y al menos una barra '/'.
-   * (ej. "A / B / A / B /", "G# / A# /", "C / G / Am / F /").
+   * REGLA: Contiene notas musicales válidas (A-G) Y al menos una barra '/'.
+   * Si incluye comentarios u observaciones con '...' o texto (ej. "A / C / A / ... solo guitarra"),
+   * evalúa la parte de acordes para no descartar la línea.
    */
   isChordLine(line: string): boolean {
     if (!line) return false;
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('#')) return false;
 
+    // Si tiene comentarios/observaciones, evaluar la parte de acordes
+    const { chordPart } = this.splitLineIntoChordsAndComment(trimmed);
+    const target = (chordPart || trimmed).trim();
+    if (!target) return false;
+
     // 1. Debe contener obligatoriamente el separador '/'
-    if (!trimmed.includes('/')) {
+    if (!target.includes('/')) {
       return false;
     }
 
-    // 2. Descartar si son palabras normales en minúsculas (texto o letra)
-    const words = trimmed.split(/\s+/);
+    // 2. Descartar si la parte de acordes son palabras normales en minúsculas
+    const words = target.split(/\s+/);
     if (words.length === 0) return false;
 
+    const chordKeywords = new Set([
+      'maj', 'min', 'sus', 'dim', 'aug', 'add', 'intro', 'coro', 'verso', 'estrofa', 'puente', 'precoro', 'outro', 'tonalidad', 'solo'
+    ]);
     const normalWords = words.filter(
-      w => /^[a-záéíóúñ]{3,}/i.test(w) && !/^(intro|coro|verso|estrofa|puente|precoro|outro|tonalidad|solo)/i.test(w)
+      w => /^[a-záéíóúñ]{3,}/i.test(w) && !chordKeywords.has(w.toLowerCase())
     );
     if (normalWords.length >= 2) {
       return false;
@@ -325,6 +415,6 @@ export class ChordTransposerService {
 
     // 3. Debe contener notas musicales reales válidas
     CHORD_REGEX.lastIndex = 0;
-    return CHORD_REGEX.test(trimmed);
+    return CHORD_REGEX.test(target);
   }
 }

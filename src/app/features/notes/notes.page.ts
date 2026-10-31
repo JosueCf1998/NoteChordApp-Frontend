@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, ViewWillLeave, ViewDidEnter, Platform, ActionSheetController } from '@ionic/angular';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, Subscription, debounceTime } from 'rxjs';
+import { Capacitor } from '@capacitor/core';
+import { Share } from '@capacitor/share';
+import { Keyboard } from '@capacitor/keyboard';
 import {
   GetNoteByIdUseCase,
   CreateNoteUseCase,
@@ -51,6 +54,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   private readonly pdfExportService = inject(PdfExportService);
 
   isLocked = false;
+  isKeyboardOpen = false;
   isTransposeModalOpen = false;
   semitoneOffset = 0;
   baseContentForTranspose = '';
@@ -134,6 +138,21 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   private readonly routeSubscription: Subscription;
 
   constructor() {
+    if (Capacitor.isNativePlatform()) {
+      void Keyboard.addListener('keyboardWillShow', () => {
+        this.isKeyboardOpen = true;
+      });
+      void Keyboard.addListener('keyboardDidShow', () => {
+        this.isKeyboardOpen = true;
+      });
+      void Keyboard.addListener('keyboardWillHide', () => {
+        this.isKeyboardOpen = false;
+      });
+      void Keyboard.addListener('keyboardDidHide', () => {
+        this.isKeyboardOpen = false;
+      });
+    }
+
     this.autoSaveSubscription = this.saveSubject.pipe(
       debounceTime(800)
     ).subscribe(() => {
@@ -371,8 +390,10 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
               html += `</div>`;
               inChordCard = false;
             }
-            const prefix = line.substring(0, colonIdx + 1);
-            const suffix = line.substring(colonIdx + 1);
+            const formattedSection = this.chordTransposer.formatSectionLineWithEllipsis(line);
+            const sectionColon = formattedSection.indexOf(':');
+            const prefix = formattedSection.substring(0, sectionColon + 1);
+            const suffix = formattedSection.substring(sectionColon + 1);
             html += `<p class="block-section-line" data-block="section"><span class="section-prefix">${this.escapeHtml(prefix)}</span><span class="section-suffix">${suffix ? this.escapeHtml(suffix) : ''}</span></p>`;
           } else if (isChord) {
             // Nota musical con '/' -> agrupar en Card completa
@@ -380,7 +401,13 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
               html += `<div class="chord-card" data-block="chord-card">`;
               inChordCard = true;
             }
-            html += `<p class="block-chord-line" data-block="chord">${this.escapeHtml(line)}</p>`;
+            const formattedChord = this.chordTransposer.formatLineWithEllipsisComment(line);
+            const { chordPart, commentPart } = this.chordTransposer.splitLineIntoChordsAndComment(formattedChord);
+            if (commentPart) {
+              html += `<p class="block-chord-line" data-block="chord">${this.escapeHtml(chordPart)}<span class="chord-comment">${this.escapeHtml(commentPart)}</span></p>`;
+            } else {
+              html += `<p class="block-chord-line" data-block="chord">${this.escapeHtml(formattedChord)}</p>`;
+            }
           } else {
             // Texto normal o viñeta -> SIEMPRE fuera de la card
             if (inChordCard) {
@@ -436,7 +463,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
       firstChild.setAttribute('data-block', 'title');
     }
 
-    // 2. Extraer de cualquier .chord-card líneas que NO contengan acordes y '/' o que sean secciones
+    // 2. Extraer de cualquier .chord-card líneas que sean secciones o texto ajeno
     const chordCards = Array.from(editor.querySelectorAll('.chord-card')) as HTMLElement[];
     for (const card of chordCards) {
       const paras = Array.from(card.querySelectorAll('p')) as HTMLElement[];
@@ -456,12 +483,29 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
         const text = (p.textContent || '').trim();
         const colonIdx = text.indexOf(':');
         const hasColon = colonIdx !== -1 && this.noteType === 'music';
-        const isChord = this.noteType === 'music' && !hasColon && this.chordTransposer.isChordLine(text);
 
-        if (!isChord) {
-          // NO es acorde con '/' (ej. 'hola', 'C' sin '/', o sección 'Estrofa:') -> extraer fuera de la card
+        // Si la línea tiene ':' (ej. 'Estrofa:'), definitivamente es sección -> extraer fuera
+        if (hasColon) {
           card.after(p);
+          continue;
         }
+
+        // Si la línea está VACÍA (Enter reciente para escribir abajo en el card):
+        // MANTENER DENTRO DEL CARD! No expulsar para permitir escribir la siguiente línea.
+        if (!text) {
+          p.className = 'block-chord-line';
+          p.setAttribute('data-block', 'chord');
+          if (!p.childNodes.length || p.innerHTML === '') {
+            p.innerHTML = '<br>';
+          }
+          continue;
+        }
+
+        // Línea con contenido dentro del card:
+        // Mantener dentro del card y normalizar comentarios con '...' si contiene texto no musical
+        p.className = 'block-chord-line';
+        p.setAttribute('data-block', 'chord');
+        this.normalizeChordLineComment(p);
       }
 
       if (card.children.length === 0 && !(card.textContent || '').trim()) {
@@ -491,6 +535,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
         for (const p of innerParas) {
           p.className = 'block-chord-line';
           p.setAttribute('data-block', 'chord');
+          this.normalizeChordLineComment(p);
         }
         const prev = child.previousElementSibling as HTMLElement | null;
         if (prev && prev.classList.contains('chord-card')) {
@@ -528,27 +573,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
 
       if (hasColon) {
         child.classList.remove('chord-card', 'block-chord-line', 'block-text', 'block-list-item');
-        const prefixText = text.substring(0, colonIdx + 1);
-        const suffixText = text.substring(colonIdx + 1);
-        const prefixEl = child.querySelector('.section-prefix');
-        const isAlreadyStructured = prefixEl?.textContent === prefixText;
-
-        if (!isAlreadyStructured) {
-          const selection = window.getSelection();
-          let cursorOffset: number | null = null;
-          if (selection && selection.rangeCount && child.contains(selection.anchorNode)) {
-            const range = selection.getRangeAt(0);
-            cursorOffset = this.getTextOffsetInBlock(child, range.startContainer, range.startOffset);
-          }
-
-          child.className = 'block-section-line';
-          child.setAttribute('data-block', 'section');
-          child.innerHTML = `<span class="section-prefix">${this.escapeHtml(prefixText)}</span><span class="section-suffix">${suffixText ? this.escapeHtml(suffixText) : ''}</span>`;
-
-          if (cursorOffset !== null) {
-            this.setCursorAtTextOffsetInBlock(child, cursorOffset, prefixText.length);
-          }
-        }
+        this.normalizeSectionLine(child);
       } else if (isChord) {
         // REGLA: Detectó nota y '/' -> Agrupar dentro de Card completa
         const selection = window.getSelection();
@@ -576,6 +601,8 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
         if (isFocused && cursorOffset !== null) {
           this.restoreCursorInSimpleBlock(child, cursorOffset);
         }
+
+        this.normalizeChordLineComment(child);
       } else {
         // Texto normal o viñeta -> Fuera de card
         child.classList.remove('chord-card', 'block-chord-line');
@@ -606,6 +633,182 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
         }
       }
     }
+  }
+
+  /**
+   * Normaliza una línea de sección (ej. 'Intro:', 'Intro: ... guitarra').
+   * Garantiza que si el usuario escribe notas al lado, inicien con ' ... '
+   * pero sin sobreescribir el DOM mientras escribe para preservar espacios y borrado.
+   */
+  private normalizeSectionLine(block: HTMLElement) {
+    const text = block.textContent || '';
+    const colonIdx = text.indexOf(':');
+    if (colonIdx === -1) return;
+
+    const prefixText = text.substring(0, colonIdx + 1);
+    const rawSuffix = text.substring(colonIdx + 1);
+
+    const prefixEl = block.querySelector('.section-prefix') as HTMLElement | null;
+    const suffixEl = block.querySelector('.section-suffix') as HTMLElement | null;
+
+    if (prefixEl && suffixEl) {
+      if (prefixEl.textContent !== prefixText) {
+        prefixEl.textContent = prefixText;
+      }
+
+      const suffixText = suffixEl.textContent || '';
+      const trimmed = suffixText.trim();
+      const withoutDots = trimmed.replace(/^(\.{1,3}|…)\s*/, '');
+
+      // Si el sufijo está vacío o sólo contiene puntos/espacios (el usuario los borró):
+      // NO agregar puntos ni modificar el DOM
+      if (!withoutDots) {
+        if (!trimmed) {
+          suffixEl.textContent = '';
+        }
+        return;
+      }
+
+      // Si ya comienza con tres puntos ('...' o '…'), está perfectamente estructurado!
+      // NO MODIFICAR innerHTML para permitir que el usuario escriba espacios y borre libremente.
+      if (trimmed.startsWith('...') || trimmed.startsWith('…')) {
+        return;
+      }
+
+      // El usuario escribió texto que no empieza con '...': agregar ' ... '
+      const formattedSuffix = ' ... ' + suffixText.trimStart();
+      const selection = window.getSelection();
+      let cursorOffset: number | null = null;
+      if (selection && selection.rangeCount && block.contains(selection.anchorNode)) {
+        const range = selection.getRangeAt(0);
+        cursorOffset = this.getTextOffsetInBlock(block, range.startContainer, range.startOffset);
+      }
+
+      suffixEl.textContent = formattedSuffix;
+
+      if (cursorOffset !== null) {
+        const diff = formattedSuffix.length - suffixText.length;
+        this.setCursorAtTextOffsetInBlock(block, cursorOffset + diff, prefixText.length);
+      }
+      return;
+    }
+
+    // Inicializar estructura de la sección si no existía aún
+    const selection = window.getSelection();
+    let cursorOffset: number | null = null;
+    if (selection && selection.rangeCount && block.contains(selection.anchorNode)) {
+      const range = selection.getRangeAt(0);
+      cursorOffset = this.getTextOffsetInBlock(block, range.startContainer, range.startOffset);
+    }
+
+    let formattedSuffix = '';
+    const trimmedSuffix = rawSuffix.trim();
+    const withoutDots = trimmedSuffix.replace(/^(\.{1,3}|…)\s*/, '');
+    if (withoutDots) {
+      if (trimmedSuffix.startsWith('...') || trimmedSuffix.startsWith('…')) {
+        formattedSuffix = ' ' + rawSuffix.trimStart();
+      } else {
+        formattedSuffix = ' ... ' + rawSuffix.trimStart();
+      }
+    }
+
+    block.className = 'block-section-line';
+    block.setAttribute('data-block', 'section');
+    block.innerHTML = `<span class="section-prefix">${this.escapeHtml(prefixText)}</span><span class="section-suffix">${this.escapeHtml(formattedSuffix)}</span>`;
+
+    if (cursorOffset !== null) {
+      const diff = formattedSuffix.length - rawSuffix.length;
+      this.setCursorAtTextOffsetInBlock(block, cursorOffset + Math.max(0, diff), prefixText.length);
+    }
+  }
+
+  /**
+   * Normaliza los comentarios no musicales en una línea de acordes
+   * (ej. 'A / C / D / C / hola qué tal' -> 'A / C / D / C / <span class="chord-comment">... hola qué tal</span>').
+   */
+  private normalizeChordLineComment(p: HTMLElement) {
+    const rawText = p.textContent || '';
+    if (!rawText.trim()) return;
+
+    const commentEl = p.querySelector('.chord-comment') as HTMLElement | null;
+    if (commentEl) {
+      const commentText = commentEl.textContent || '';
+      const trimmed = commentText.trim();
+      const withoutDots = trimmed.replace(/^(\.{1,3}|…)\s*/, '');
+      if (!withoutDots) {
+        // No hay palabras reales en el comentario (usuario borró el texto o los puntos)
+        commentEl.remove();
+        return;
+      }
+      // Si ya comienza con '...' o '…', YA ESTÁ ESTRUCTURADO!
+      // NO TOCAR el DOM para permitir espacios y borrado natural con Backspace.
+      if (trimmed.startsWith('...') || trimmed.startsWith('…')) {
+        return;
+      }
+      const formatted = ' ... ' + commentText.trimStart();
+      const selection = window.getSelection();
+      let cursorOffset: number | null = null;
+      if (selection && selection.rangeCount && p.contains(selection.anchorNode)) {
+        const range = selection.getRangeAt(0);
+        cursorOffset = this.getTextOffsetInBlock(p, range.startContainer, range.startOffset);
+      }
+      commentEl.textContent = formatted;
+      if (cursorOffset !== null) {
+        const diff = formatted.length - commentText.length;
+        this.restoreCursorInSimpleBlock(commentEl, cursorOffset + diff);
+      }
+      return;
+    }
+
+    // Si aún no tiene el span .chord-comment
+    const { chordPart, commentPart } = this.chordTransposer.splitLineIntoChordsAndComment(rawText);
+    const trimmedComment = commentPart.trim();
+    const withoutDots = trimmedComment.replace(/^(\.{1,3}|…)\s*/, '');
+    if (!withoutDots) return; // Si no hay palabras reales de comentario, no crear el span!
+
+    let formattedComment = '';
+    if (trimmedComment.startsWith('...') || trimmedComment.startsWith('…')) {
+      formattedComment = ' ' + commentPart.trimStart();
+    } else {
+      formattedComment = ' ... ' + commentPart.trimStart();
+    }
+
+    const selection = window.getSelection();
+    let cursorOffset: number | null = null;
+    if (selection && selection.rangeCount && p.contains(selection.anchorNode)) {
+      const range = selection.getRangeAt(0);
+      cursorOffset = this.getTextOffsetInBlock(p, range.startContainer, range.startOffset);
+    }
+
+    p.innerHTML = `${this.escapeHtml(chordPart)}<span class="chord-comment">${this.escapeHtml(formattedComment)}</span>`;
+
+    if (cursorOffset !== null) {
+      const diff = formattedComment.length - commentPart.length;
+      const targetOffset = cursorOffset + Math.max(0, diff);
+      this.restoreCursorInChordLine(p, targetOffset, chordPart.length);
+    }
+  }
+
+  private restoreCursorInChordLine(p: HTMLElement, targetOffset: number, chordPartLength: number): void {
+    const selection = window.getSelection();
+    if (!selection) return;
+    const range = document.createRange();
+
+    const commentEl = p.querySelector('.chord-comment') as HTMLElement | null;
+    if (targetOffset >= chordPartLength && commentEl && commentEl.firstChild) {
+      const offsetInComment = targetOffset - chordPartLength;
+      const maxLen = commentEl.firstChild.textContent?.length || 0;
+      range.setStart(commentEl.firstChild, Math.min(offsetInComment, maxLen));
+    } else if (p.firstChild && p.firstChild.nodeType === Node.TEXT_NODE) {
+      const maxLen = p.firstChild.textContent?.length || 0;
+      range.setStart(p.firstChild, Math.min(targetOffset, maxLen));
+    } else {
+      range.selectNodeContents(p);
+      range.collapse(false);
+    }
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
   }
 
   private getTextOffsetInBlock(root: Node, targetContainer: Node, targetOffset: number): number {
@@ -700,13 +903,20 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
         const subParas = child.querySelectorAll('p');
         if (subParas.length > 0) {
           for (const cardChild of Array.from(subParas)) {
-            bodyLines.push(cardChild.textContent || '');
+            const raw = cardChild.textContent || '';
+            bodyLines.push(this.chordTransposer.formatLineWithEllipsisComment(raw));
           }
         } else {
-          bodyLines.push(child.textContent || '');
+          const raw = child.textContent || '';
+          bodyLines.push(this.chordTransposer.formatLineWithEllipsisComment(raw));
         }
       } else {
-        bodyLines.push(child.textContent || '');
+        const raw = child.textContent || '';
+        if (child.classList.contains('block-section-line') || raw.includes(':')) {
+          bodyLines.push(this.chordTransposer.formatSectionLineWithEllipsis(raw));
+        } else {
+          bodyLines.push(raw);
+        }
       }
     }
 
@@ -827,9 +1037,61 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
       }
     }
 
-    // ─── 2. Disparador de viñetas con ESPACIO ("- ", ". ", "1. ", "a. ") ───
+    // ─── 2. Disparador de viñetas con ESPACIO ("- ", ". ", "1. ", "a. ") y tres puntos tras ":" ───
     if (event.key === ' ' && currentBlock && currentBlock !== h1 && range.collapsed) {
       const textBefore = this.getTextBeforeCursorInBlock(currentBlock, range);
+
+      // Si se da espacio tras los dos puntos ':' en notas musicales (ej. 'Intro:' + ESPACIO -> 'Intro: ... ')
+      if (this.noteType === 'music') {
+        const prefixEl = currentBlock.querySelector('.section-prefix') as HTMLElement | null;
+        const suffixEl = currentBlock.querySelector('.section-suffix') as HTMLElement | null;
+
+        // Subcaso A: Bloque ya estructurado con .section-prefix
+        if (prefixEl) {
+          const suffixText = suffixEl?.textContent || '';
+          if (textBefore.trimEnd().endsWith(':') || !suffixText.trim()) {
+            event.preventDefault();
+            if (suffixEl) {
+              suffixEl.textContent = ' ... ';
+              this.setCursorAtEndOfBlock(suffixEl);
+            } else {
+              const newSuffix = document.createElement('span');
+              newSuffix.className = 'section-suffix';
+              newSuffix.textContent = ' ... ';
+              currentBlock.appendChild(newSuffix);
+              this.setCursorAtEndOfBlock(newSuffix);
+            }
+            this.onEditorInput();
+            return;
+          }
+        }
+
+        // Subcaso B: Párrafo de texto plano donde se escribió 'Intro:' y se da ESPACIO
+        if (textBefore.trimEnd().endsWith(':')) {
+          const fullText = currentBlock.textContent || '';
+          const colonIdx = fullText.indexOf(':');
+          if (colonIdx !== -1) {
+            event.preventDefault();
+            const prefixText = fullText.substring(0, colonIdx + 1);
+            const rawAfterColon = fullText.substring(colonIdx + 1).trim();
+
+            currentBlock.className = 'block-section-line';
+            currentBlock.setAttribute('data-block', 'section');
+
+            const suffixContent = rawAfterColon ? ` ... ${rawAfterColon}` : ' ... ';
+            currentBlock.innerHTML = `<span class="section-prefix">${this.escapeHtml(prefixText)}</span><span class="section-suffix">${this.escapeHtml(suffixContent)}</span>`;
+
+            const suffixSpan = currentBlock.querySelector('.section-suffix') as HTMLElement;
+            if (rawAfterColon) {
+              this.setCursorAtTextOffsetInBlock(currentBlock, prefixText.length + 5, prefixText.length);
+            } else {
+              this.setCursorAtEndOfBlock(suffixSpan);
+            }
+            this.onEditorInput();
+            return;
+          }
+        }
+      }
 
       // "- " o ". " -> Viñeta de punto negro "•\u00A0 "
       if (textBefore === '-' || textBefore === '.') {
@@ -962,8 +1224,10 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
           // El bloque actual es la Sección (ej. Intro:, Estrofa:, Coro:)
           currentBlock.className = 'block-section-line';
           currentBlock.setAttribute('data-block', 'section');
-          const prefix = currentText.substring(0, colonIdx + 1);
-          const suffix = currentText.substring(colonIdx + 1);
+          const formatted = this.chordTransposer.formatSectionLineWithEllipsis(currentText);
+          const fColonIdx = formatted.indexOf(':');
+          const prefix = formatted.substring(0, fColonIdx + 1);
+          const suffix = formatted.substring(fColonIdx + 1);
           currentBlock.innerHTML = `<span class="section-prefix">${this.escapeHtml(prefix)}</span><span class="section-suffix">${suffix ? this.escapeHtml(suffix) : ''}</span>`;
 
           // Si el bloque estaba dentro de una card de acordes existente, moverlo fuera de ella
@@ -990,32 +1254,42 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
         // Si se presiona Enter dentro de una chord-card
         const parentChordCard = currentBlock.closest('.chord-card') as HTMLElement | null;
         if (parentChordCard) {
-          // Si el cursor está al final de los acordes o en línea vacía -> SALIR DEL CUADRO
-          if (!extractedText.trim()) {
+          const currentText = (currentBlock.textContent || '').trim();
+          // SEGUNDO ENTER: Salir del cuadro si se presiona Enter en una línea que ya está vacía
+          if (!currentText) {
             const p = document.createElement('p');
             p.className = 'block-text';
             p.setAttribute('data-block', 'text');
             p.innerHTML = '<br>';
 
-            if (!currentBlock.childNodes.length || currentBlock.innerHTML === '') {
-              currentBlock.innerHTML = '<br>';
-            }
-
-            if ((currentBlock.textContent || '').trim() === '' && parentChordCard.children.length > 1) {
+            if (parentChordCard.children.length > 1) {
               currentBlock.remove();
+              parentChordCard.after(p);
+            } else {
+              parentChordCard.replaceWith(p);
             }
 
             // Insertar fuera de la tarjeta, justo debajo
-            parentChordCard.after(p);
             this.setCursorAtStartOfBlock(p);
             this.onEditorInput();
             return;
           } else {
-            // Enter en medio de los acordes -> nueva línea dentro de la misma tarjeta
+            // PRIMER ENTER: Crear nueva línea dentro de la misma tarjeta para escribir acordes abajo
+            if (this.noteType === 'music') {
+              const raw = currentBlock.textContent || '';
+              const formattedLine = this.chordTransposer.formatLineWithEllipsisComment(raw);
+              const { chordPart, commentPart } = this.chordTransposer.splitLineIntoChordsAndComment(formattedLine);
+              if (commentPart) {
+                currentBlock.innerHTML = `${this.escapeHtml(chordPart)}<span class="chord-comment">${this.escapeHtml(commentPart)}</span>`;
+              } else if (raw !== chordPart) {
+                currentBlock.innerHTML = this.escapeHtml(chordPart);
+              }
+            }
+
             const p = document.createElement('p');
             p.className = 'block-chord-line';
             p.setAttribute('data-block', 'chord');
-            p.innerHTML = this.escapeHtml(extractedText);
+            p.innerHTML = extractedText.trim() ? this.escapeHtml(extractedText) : '<br>';
 
             if (!currentBlock.childNodes.length || currentBlock.innerHTML === '') {
               currentBlock.innerHTML = '<br>';
@@ -1059,8 +1333,51 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
       }
     }
 
-    // ─── 3. Manejo de BACKSPACE en viñetas y combinación de bloques ───────
+    // ─── 3. Manejo de BACKSPACE en viñetas, comentarios y combinación de bloques ───────
     if (event.key === 'Backspace' && currentBlock && currentBlock !== h1 && range.collapsed) {
+      // Caso 3.1: Borrado de comentarios de notas (... comentario)
+      const chordComment = currentBlock.querySelector('.chord-comment') as HTMLElement | null;
+      if (chordComment && (chordComment === range.startContainer || chordComment.contains(range.startContainer))) {
+        const commentText = chordComment.textContent || '';
+        const trimmedComment = commentText.trim();
+        const withoutDots = trimmedComment.replace(/^(\.{1,3}|…)\s*/, '');
+        const offsetInComment = this.getTextOffsetInBlock(chordComment, range.startContainer, range.startOffset);
+        const dotsEnd = commentText.indexOf('...') !== -1 ? commentText.indexOf('...') + 3 : (commentText.indexOf('…') !== -1 ? commentText.indexOf('…') + 1 : 0);
+
+        // Si sólo quedan los tres puntos (o está vacío), o el cursor está sobre o justo tras los tres puntos:
+        if (!withoutDots || offsetInComment <= dotsEnd + 1) {
+          event.preventDefault();
+          chordComment.remove();
+          this.setCursorAtEndOfBlock(currentBlock);
+          this.onEditorInput();
+          return;
+        }
+      }
+
+      // Caso 3.2: Borrado de sufijo de sección (Intro: ... comentario)
+      const sectionSuffix = currentBlock.querySelector('.section-suffix') as HTMLElement | null;
+      if (sectionSuffix && (sectionSuffix === range.startContainer || sectionSuffix.contains(range.startContainer))) {
+        const suffixText = sectionSuffix.textContent || '';
+        const trimmedSuffix = suffixText.trim();
+        const withoutDots = trimmedSuffix.replace(/^(\.{1,3}|…)\s*/, '');
+        const offsetInSuffix = this.getTextOffsetInBlock(sectionSuffix, range.startContainer, range.startOffset);
+        const dotsEnd = suffixText.indexOf('...') !== -1 ? suffixText.indexOf('...') + 3 : (suffixText.indexOf('…') !== -1 ? suffixText.indexOf('…') + 1 : 0);
+
+        // Si sólo quedan los tres puntos (o está vacío), o el cursor está sobre o justo tras los tres puntos:
+        if (!withoutDots || offsetInSuffix <= dotsEnd + 1) {
+          event.preventDefault();
+          sectionSuffix.textContent = '';
+          const prefixEl = currentBlock.querySelector('.section-prefix') as HTMLElement | null;
+          if (prefixEl) {
+            this.setCursorAtEndOfBlock(prefixEl);
+          } else {
+            this.setCursorAtStartOfBlock(currentBlock);
+          }
+          this.onEditorInput();
+          return;
+        }
+      }
+
       const fullText = currentBlock.textContent || '';
       const listMatch = fullText.match(/^(•\s*|\d+\.\s*|[a-zA-Z]\.\s*)/);
 
@@ -1230,18 +1547,82 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
     this.onEditorInput();
   }
 
-  onContainerClick(event: MouseEvent) {
+  onEditorFocus() {
+    this.isKeyboardOpen = true;
+  }
+
+  onEditorBlur() {
+    setTimeout(() => {
+      if (!this.isEditorActive()) {
+        this.isKeyboardOpen = false;
+      }
+    }, 150);
+  }
+
+  dismissKeyboard() {
+    this.isKeyboardOpen = false;
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    this.editorRef?.nativeElement?.blur();
+    if (Capacitor.isNativePlatform()) {
+      void Keyboard.hide().catch(() => {});
+    }
+  }
+
+  openKeyboard() {
     if (this.isLocked) return;
-    if (event.target === event.currentTarget && this.editorRef?.nativeElement) {
-      const editor = this.editorRef.nativeElement;
-      const lastChild = editor.lastElementChild || editor;
-      const selection = window.getSelection();
-      const range = document.createRange();
-      range.selectNodeContents(lastChild);
-      range.collapse(false);
-      selection?.removeAllRanges();
-      selection?.addRange(range);
-      editor.focus();
+    this.isKeyboardOpen = true;
+    const editor = this.editorRef?.nativeElement;
+    if (!editor) return;
+    const lastChild = editor.lastElementChild || editor;
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(lastChild);
+    range.collapse(false);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    editor.focus();
+    if (Capacitor.isNativePlatform()) {
+      void Keyboard.show().catch(() => {});
+    }
+  }
+
+  onScreenClick(event: MouseEvent) {
+    if (this.isLocked) return;
+
+    // Si el clic es sobre controles interactivos (botones, fab, modal, etc.), no intervenir
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('ion-button, ion-fab, app-top-navbar, app-transpose-modal, app-base-modal')) {
+      return;
+    }
+
+    const isClickOnText = target && (
+      target.tagName === 'P' ||
+      target.tagName === 'H1' ||
+      target.tagName === 'SPAN' ||
+      target.classList.contains('block-chord-line') ||
+      target.classList.contains('block-text') ||
+      target.classList.contains('block-title') ||
+      target.classList.contains('block-section-line') ||
+      target.classList.contains('section-prefix') ||
+      target.classList.contains('section-suffix') ||
+      target.classList.contains('chord-comment')
+    );
+
+    // Si el teclado está abierto: un clic en el espacio libre/pantalla lo CIERRA
+    if (this.isKeyboardOpen || this.isEditorActive()) {
+      if (!isClickOnText || target === event.currentTarget || target?.classList.contains('editor-container') || target?.classList.contains('editor-wrapper')) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.dismissKeyboard();
+      }
+      return;
+    }
+
+    // Si el teclado está cerrado: un clic en el espacio libre/pantalla lo ABRE
+    if (!isClickOnText || target === event.currentTarget || target?.classList.contains('editor-container') || target?.classList.contains('editor-wrapper')) {
+      this.openKeyboard();
     }
   }
 
@@ -1440,8 +1821,24 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
 
   async shareText() {
     if (this.isLocked) return;
+    this.syncFromEditor();
     const shareTitle = this.title || (this.noteType === 'music' ? 'Partitura' : 'Nota');
     const shareText = `${this.title ? this.title + '\n\n' : ''}${this.content}`;
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await Share.share({
+          title: shareTitle,
+          text: shareText
+        });
+        return;
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name !== 'AbortError') {
+          console.warn('Error al compartir texto nativo:', err);
+        }
+        return;
+      }
+    }
 
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
@@ -1680,6 +2077,9 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   }
 
   ngOnDestroy() {
+    if (Capacitor.isNativePlatform()) {
+      void Keyboard.removeAllListeners();
+    }
     this.backButtonSub?.unsubscribe();
     clearTimeout(this.dateHideTimeout);
     void this.handleLeaveOrSave();

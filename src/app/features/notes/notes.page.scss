@@ -41,6 +41,22 @@ app-top-navbar ::ng-deep {
       font-variant-numeric: tabular-nums;
     }
   }
+
+  .done-keyboard-btn {
+    --color: var(--nc-primary, #3164F4);
+    font-family: var(--nc-font-family);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    text-transform: none;
+    margin: 0;
+
+    .done-btn-text {
+      color: var(--nc-primary, #3164F4);
+      font-weight: 600;
+      font-size: 17px;
+    }
+  }
 }
 
 /* ─── Editor container ─────────────────────────────────────────────────────── */
@@ -73,7 +89,8 @@ app-top-navbar ::ng-deep {
 }
 
 .note-date-wrapper.visible {
-  margin-bottom: 14px;
+  margin-top: 4px;
+  margin-bottom: 22px;
   max-height: 42px;
   opacity: 1;
   pointer-events: auto;
@@ -190,9 +207,9 @@ app-top-navbar ::ng-deep {
       font-size: var(--nc-editor-title-size) !important;
       font-weight: 700 !important;
       letter-spacing: -0.035em !important;
-      line-height: 1.25 !important;
-      margin: 2px 0 12px 0 !important;
-      min-height: 1.25em;
+      line-height: 1.2 !important;
+      margin: 4px 0 20px 0 !important;
+      min-height: 1.2em;
       outline: none !important;
       border: none !important;
     }
@@ -204,20 +221,20 @@ app-top-navbar ::ng-deep {
     [data-block="section"] {
       color: var(--nc-text, #0f172a);
       line-height: 1.3 !important;
-      margin: 18px 0 6px 0 !important;
+      margin: 18px 0 8px 0 !important;
       min-height: 1.3em;
       outline: none !important;
       border: none !important;
 
       .section-prefix {
         color: var(--nc-primary, #3164F4) !important;
-        font-size: 13.5px !important;
-        font-weight: 700 !important;
+        font-size: 15px !important;
+        font-weight: 600 !important;
         letter-spacing: -0.01em !important;
         background: color-mix(in srgb, var(--nc-primary, #3164F4) 10%, var(--nc-surface, #ffffff)) !important;
         border: 1px solid color-mix(in srgb, var(--nc-primary, #3164F4) 18%, transparent) !important;
-        padding: 3px 11px;
-        border-radius: 9px;
+        padding: 2.5px 8px;
+        border-radius: 7px;
         display: inline-flex;
         align-items: center;
         text-transform: capitalize;
@@ -228,20 +245,21 @@ app-top-navbar ::ng-deep {
         color: var(--nc-text-secondary);
         font-size: 15px !important;
         font-weight: 500 !important;
+        font-style: italic;
       }
     }
 
-    /* 3. TARJETA COMPLETA DE NOTAS MUSICALES (Estilo inverso: gris de la app #eaedf3) */
+    /* 3. TARJETA COMPLETA DE NOTAS MUSICALES (Diseño iOS compacto) */
     .chord-card,
     .section-card,
     [data-block="chord-card"] {
       box-sizing: border-box !important;
       background: var(--nc-background-secondary, #eaedf3) !important;
-      border: 1px solid color-mix(in srgb, var(--nc-border, #d1d5db) 65%, transparent) !important;
-      border-radius: 16px !important;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
-      margin: 10px 0 16px 0 !important;
-      padding: 12px 18px !important;
+      border: 1px solid color-mix(in srgb, var(--nc-border, #d1d5db) 60%, transparent) !important;
+      border-radius: 10px !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+      margin: 6px 0 10px 0 !important;
+      padding: 8px 12px !important;
       display: block !important;
       position: relative !important;
       width: 100% !important;
@@ -266,12 +284,19 @@ app-top-navbar ::ng-deep {
         color: var(--nc-text, #0f172a) !important;
         font-size: 17px !important;
         font-weight: 600 !important;
-        letter-spacing: 0.06em !important;
-        line-height: 1.65 !important;
-        margin: 2px 0 !important;
+        letter-spacing: 0.04em !important;
+        line-height: 1.45 !important;
+        margin: 1px 0 !important;
         padding: 0 !important;
         outline: none !important;
-        min-height: 1.65em;
+        min-height: 1.45em;
+
+        .chord-comment {
+          color: var(--nc-text-secondary, #667085) !important;
+          font-weight: 450 !important;
+          font-style: italic;
+          letter-spacing: normal !important;
+        }
       }
     }
 
@@ -312,6 +337,21 @@ app-top-navbar ::ng-deep {
       text-indent: -18px !important;
       white-space: pre-wrap !important;
     }
+  }
+}
+
+/* ─── Botón Flotante (FAB de bloqueo optimizado para iOS) ──────────────────── */
+
+ion-fab {
+  margin: 0 !important;
+  bottom: calc(max(env(safe-area-inset-bottom, 0px), 16px) + 6px) !important;
+  right: calc(max(env(safe-area-inset-right, 0px), 16px) + 2px) !important;
+  transition: opacity var(--nc-transition-normal), transform var(--nc-transition-normal);
+
+  &.is-hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0.75) translateY(10px) !important;
   }
 }
 

@@ -1,5 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { jsPDF } from 'jspdf';
+import { Capacitor } from '@capacitor/core';
+import { Share } from '@capacitor/share';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import { ChordTransposerService } from './chord-transposer.service';
 
 export interface PdfExportOptions {
@@ -29,6 +32,31 @@ export class PdfExportService {
       .replace(/[\\/:*?"<>|]+/g, '_');
     const filename = `${safeTitle || 'NoteChord'}.pdf`;
 
+    // 1. En iOS / Android nativo (Capacitor): Guardar en cache y abrir Share Sheet nativo
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const dataUri = doc.output('datauristring');
+        const base64Data = dataUri.split(',')[1];
+        const savedFile = await Filesystem.writeFile({
+          path: filename,
+          data: base64Data,
+          directory: Directory.Cache
+        });
+
+        await Share.share({
+          title: options.title || 'Partitura',
+          url: savedFile.uri
+        });
+        return { success: true, method: 'shared' };
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          return { success: false, method: 'shared' };
+        }
+        console.warn('Error al compartir PDF nativo con Capacitor:', err);
+      }
+    }
+
+    // 2. En Navegador Web: Web Share API si soporta archivos
     const blob = doc.output('blob');
     const file = new File([blob], filename, { type: 'application/pdf' });
 
@@ -51,7 +79,7 @@ export class PdfExportService {
       }
     }
 
-    // Fallback: descarga directa en navegadores web o entornos sin Web Share Files API
+    // 3. Fallback en Web: Descarga directa
     doc.save(filename);
     return { success: true, method: 'downloaded' };
   }

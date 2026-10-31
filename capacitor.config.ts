@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'NoteChord',
   webDir: 'www',
   server: {
-    // url: 'http://192.168.18.229:4200', // Descomentar para Live Reload en desarrollo
+    url: 'http://192.168.18.219:4200', // Descomentar para Live Reload en tu iPhone
     cleartext: true
   }
 };
