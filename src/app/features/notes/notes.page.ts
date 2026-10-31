@@ -13,6 +13,7 @@ import {
 import { NavigationService } from '../../core/navigation/navigation.service';
 import { SharedModule } from '../../shared/shared.module';
 import { ChordTransposerService } from '../../core/services/chord-transposer.service';
+import { PdfExportService } from '../../core/services/pdf-export.service';
 
 /** Umbral de scroll (px) al que se considera "arriba" y se muestra la fecha. */
 const SCROLL_TOP_THRESHOLD = 8;
@@ -47,6 +48,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
   private readonly deleteNoteUseCase = inject(DeleteNoteUseCase);
   private readonly chordTransposer = inject(ChordTransposerService);
   private readonly actionSheetController = inject(ActionSheetController);
+  private readonly pdfExportService = inject(PdfExportService);
 
   isLocked = false;
   isTransposeModalOpen = false;
@@ -1332,10 +1334,17 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
       cssClass: 'note-options-action-sheet',
       buttons: [
         {
-          text: isMusic ? 'Compartir partitura' : 'Compartir nota',
+          text: isMusic ? 'Compartir PDF de partitura' : 'Compartir como PDF',
+          icon: 'document-text-outline',
+          handler: () => {
+            void this.sharePdf();
+          }
+        },
+        {
+          text: 'Compartir texto',
           icon: 'share-outline',
           handler: () => {
-            void this.shareNote();
+            void this.shareText();
           }
         },
         {
@@ -1413,7 +1422,23 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
     this.setEditorContent(this.title, this.content);
   }
 
-  async shareNote() {
+  async sharePdf() {
+    if (this.isLocked) return;
+    this.syncFromEditor();
+
+    await this.pdfExportService.exportAndSharePdf({
+      title: this.title || (this.noteType === 'music' ? 'Partitura' : 'Nota'),
+      author: this.author,
+      content: this.content,
+      noteType: this.noteType,
+      originalKey: this.detectedOriginalKey,
+      currentKey: this.currentKeyDisplay,
+      semitoneOffset: this.semitoneOffset,
+      formattedDate: this.formattedFullDate
+    });
+  }
+
+  async shareText() {
     if (this.isLocked) return;
     const shareTitle = this.title || (this.noteType === 'music' ? 'Partitura' : 'Nota');
     const shareText = `${this.title ? this.title + '\n\n' : ''}${this.content}`;
@@ -1426,7 +1451,7 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
         });
       } catch (err: unknown) {
         if (err instanceof Error && err.name !== 'AbortError') {
-          console.warn('Error al compartir:', err);
+          console.warn('Error al compartir texto:', err);
         }
       }
     } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -1436,6 +1461,11 @@ export class NotesPage implements OnDestroy, ViewWillLeave, ViewDidEnter, AfterV
         console.warn('No se pudo copiar al portapapeles:', clipErr);
       }
     }
+  }
+
+  /** Alias para mantener compatibilidad con llamadas existentes */
+  shareNote() {
+    return this.sharePdf();
   }
 
   async createAnotherNote() {
