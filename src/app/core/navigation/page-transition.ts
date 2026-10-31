@@ -26,13 +26,12 @@ export const appPageTransition = (
 
   const isRTL = document.dir === 'rtl';
   const isBack = opts.direction === 'back';
-  const DURATION = 320;
+  const DURATION = 300;
   const EASING = 'cubic-bezier(0.32, 0.72, 0, 1)';
 
   rootAnimation
     .duration(opts.duration ?? DURATION)
-    .easing(opts.easing ?? EASING)
-    .fill('both');
+    .easing(opts.easing ?? EASING);
 
   const enteringPage = createAnimation()
     .addElement(opts.enteringEl)
@@ -42,21 +41,20 @@ export const appPageTransition = (
   if (isBack) {
     // Navigating back: entering page slides in subtly from the left
     enteringPage
-      .beforeStyles({ 'z-index': '10', display: 'flex' })
-      .fromTo('transform', `translateX(${isRTL ? '25%' : '-25%'})`, 'translateX(0%)')
+      .beforeStyles({ 'z-index': '9' })
+      .fromTo('transform', `translateX(${isRTL ? '20%' : '-20%'})`, 'translateX(0%)')
       .fromTo('opacity', 0.92, 1)
-      .afterClearStyles(['transform', 'opacity', 'z-index', 'display']);
+      .afterClearStyles(['transform', 'opacity', 'z-index']);
   } else {
     // Navigating forward: entering page slides in from the right edge with a soft drop shadow
     enteringPage
       .beforeStyles({
-        'z-index': '11',
-        display: 'flex',
-        'box-shadow': isRTL ? '4px 0 20px rgba(0, 0, 0, 0.12)' : '-4px 0 20px rgba(0, 0, 0, 0.12)'
+        'z-index': '10',
+        'box-shadow': isRTL ? '4px 0 16px rgba(0, 0, 0, 0.12)' : '-4px 0 16px rgba(0, 0, 0, 0.12)'
       })
       .fromTo('transform', `translateX(${isRTL ? '-100%' : '100%'})`, 'translateX(0%)')
       .fromTo('opacity', 1, 1)
-      .afterClearStyles(['transform', 'opacity', 'box-shadow', 'z-index', 'display']);
+      .afterClearStyles(['transform', 'opacity', 'box-shadow', 'z-index']);
   }
 
   rootAnimation.addAnimation(enteringPage);
@@ -65,34 +63,44 @@ export const appPageTransition = (
     const leavingPage = createAnimation().addElement(opts.leavingEl);
 
     if (isBack) {
-      // Navigating back: leaving page slides completely off to the right and is hidden immediately
-      // without clearing transform to prevent it from snapping back into view before destruction.
+      // Navigating back: leaving page slides off to the right
       leavingPage
         .beforeStyles({
-          'z-index': '11',
-          'box-shadow': isRTL ? '4px 0 20px rgba(0, 0, 0, 0.12)' : '-4px 0 20px rgba(0, 0, 0, 0.12)'
+          'z-index': '10',
+          'box-shadow': isRTL ? '4px 0 16px rgba(0, 0, 0, 0.12)' : '-4px 0 16px rgba(0, 0, 0, 0.12)'
         })
         .fromTo('transform', 'translateX(0%)', `translateX(${isRTL ? '-100%' : '100%'})`)
         .fromTo('opacity', 1, 1)
-        .afterStyles({ display: 'none' })
-        .afterClearStyles(['box-shadow', 'z-index']);
-
-      rootAnimation.afterAddWrite(() => {
-        if (opts.leavingEl) {
-          opts.leavingEl.style.setProperty('display', 'none');
-        }
-      });
+        .afterClearStyles(['transform', 'opacity', 'box-shadow', 'z-index']);
     } else {
       // Navigating forward: leaving page slides slightly to the left and dims
       leavingPage
-        .beforeStyles({ 'z-index': '10' })
-        .fromTo('transform', 'translateX(0%)', `translateX(${isRTL ? '25%' : '-25%'})`)
+        .beforeStyles({ 'z-index': '9' })
+        .fromTo('transform', 'translateX(0%)', `translateX(${isRTL ? '20%' : '-20%'})`)
         .fromTo('opacity', 1, 0.92)
         .afterClearStyles(['transform', 'opacity', 'z-index']);
     }
 
     rootAnimation.addAnimation(leavingPage);
   }
+
+  // Limpieza absoluta de estilos al finalizar la animación
+  rootAnimation.afterAddWrite(() => {
+    if (opts.enteringEl) {
+      opts.enteringEl.style.removeProperty('transform');
+      opts.enteringEl.style.removeProperty('opacity');
+      opts.enteringEl.style.removeProperty('box-shadow');
+      opts.enteringEl.style.removeProperty('z-index');
+      opts.enteringEl.style.removeProperty('display');
+    }
+    if (opts.leavingEl) {
+      opts.leavingEl.style.removeProperty('transform');
+      opts.leavingEl.style.removeProperty('opacity');
+      opts.leavingEl.style.removeProperty('box-shadow');
+      opts.leavingEl.style.removeProperty('z-index');
+      opts.leavingEl.style.removeProperty('display');
+    }
+  });
 
   return rootAnimation;
 };

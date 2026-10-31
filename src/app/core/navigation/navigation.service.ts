@@ -10,7 +10,7 @@ export class NavigationService {
   private readonly router = inject(Router);
 
   private isNavigating = false;
-  private readonly navigationLockMs = 150;
+  private readonly navigationLockMs = 320;
   private routerOutlet?: IonRouterOutlet;
 
   constructor() {

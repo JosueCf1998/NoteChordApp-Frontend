@@ -23,7 +23,7 @@ describe('appPageTransition', () => {
 
     expect(animation).toBeDefined();
     expect(animation.childAnimations).toHaveLength(2);
-    expect(animation.getDuration()).toBe(320);
+    expect(animation.getDuration()).toBe(300);
   });
 
   it('should build a back animation with entering and leaving elements', () => {
